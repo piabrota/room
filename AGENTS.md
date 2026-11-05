@@ -85,7 +85,8 @@ macOS without Nix, `brew install node just ffmpeg`.
 | File | Job |
 |---|---|
 | `src/config.js` | the signature, shots, tapes, hotspots and sounds (invariant 3) |
-| `src/main.js` | entry: WebGL check, then the room or the static page (invariant 8) |
+| `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8) |
+| `src/lofi.js` | the LOFI view: the signature, the tapes and the link hotspots as plain text |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
 | `src/room.js` | loads `public/models/room.glb`, or builds the placeholder room |
 | `src/cameras.js` | named shots, eased moves, mouse parallax, `shot_*` cameras from the GLB |
@@ -102,7 +103,7 @@ tape, the `name` of each hotspot, and cameras `shot_<name>`.
 ## Working here
 
 - Read `src/config.js` first; most changes start and end there.
-- A new tape: copy `src/tapes/hello.js`, add it to `config.tapes`, add a `tape_<id>` mesh (the
+- A new tape: copy `src/tapes/hello.js`, add it to `config.tapes` with a `text` line for LOFI, add a `tape_<id>` mesh (the
   placeholder room makes one for each tape by itself), run `just check`.
 - A new sound: `just audio recording.wav <name>`, then add it to `config.ambience` or
   `config.sfx` with a `fallback`.

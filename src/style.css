@@ -12,7 +12,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
 button { font: inherit; color: var(--fg); background: #ffffff14; border: 1px solid #ffffff2a;
   padding: 6px 10px; border-radius: 6px; cursor: pointer; }
 button.active { background: #ffffff33; }
-#sound { position: fixed; top: 16px; right: 16px; }
+#sound { position: fixed; top: 16px; right: 128px; }
 #tooltip { position: fixed; pointer-events: none; padding: 4px 8px; background: #000c; border-radius: 4px;
   transform: translate(12px, 12px); opacity: 0; transition: opacity .12s; white-space: nowrap; }
 #tooltip.on { opacity: 1; }
@@ -20,9 +20,18 @@ button.active { background: #ffffff33; }
 #enter button { font-size: 16px; padding: 12px 20px; }
 #enter.gone { display: none; }
 #fallback { display: none; }
-body.static { overflow: auto; }
-body.static #scene, body.static #hud, body.static #enter, body.static #tooltip { display: none; }
-body.static #fallback { display: block; max-width: 40rem; margin: 15vh auto; padding: 0 16px; }
-body.static #fallback h1 { margin: 0; font-size: 24px; }
-body.static #fallback p { color: var(--dim); }
-body.static #fallback a { color: var(--fg); margin-right: 12px; }
+#view { position: fixed; top: 16px; right: 16px; z-index: 2; letter-spacing: .06em; }
+#view[hidden] { display: none; }
+#view span { opacity: .45; }
+#view span.on { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+body.lofi { overflow: auto; }
+body.lofi #scene, body.lofi #hud, body.lofi #enter, body.lofi #tooltip { display: none; }
+body.lofi #fallback { display: block; max-width: 40rem; margin: 15vh auto; padding: 0 16px; }
+body.lofi #fallback h1 { margin: 0; font-size: 24px; }
+body.lofi #fallback p { color: var(--dim); }
+body.lofi #fallback a { color: var(--fg); margin-right: 12px; }
+body.lofi #fallback h2 { margin: 2.2em 0 .4em; font-size: 14px; font-weight: normal; color: var(--dim); text-transform: lowercase; }
+body.lofi #fallback ul { margin: 0; padding: 0; list-style: none; }
+body.lofi #fallback li { margin: .3em 0; }
+body.lofi #fallback li span:last-child { color: var(--dim); }
+@media (max-width: 600px) { #signature { margin-top: 44px; } } /* clear the sound and view buttons */

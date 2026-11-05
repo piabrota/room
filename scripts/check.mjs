@@ -39,6 +39,7 @@ for (const t of config.tapes ?? []) {
   if (ids.has(t.id)) fail(6, `tape id "${t.id}" is used twice`);
   ids.add(t.id);
   if (!t.label || !/^#[0-9a-f]{6}$/i.test(t.color ?? '')) fail(6, `tape "${t.id}" needs a label and a #rrggbb color`);
+  if (typeof t.text !== 'string' || !t.text.trim()) fail(8, `tape "${t.id}" needs a text line for the LOFI view`);
   if (typeof t.module !== 'function') { fail(6, `tape "${t.id}" needs module: () => import(...)`); continue; }
   const mod = (await t.module()).default;
   if (typeof mod?.mount !== 'function' || typeof mod?.frame !== 'function') fail(6, `tape "${t.id}" must export default { mount, frame, ... }`);
@@ -64,6 +65,11 @@ for (const f of walk(join(root, 'public'))) {
   else if (max && size > max) fail(9, `${f.slice(root.length)} is ${(size / MB).toFixed(1)} MB, budget ${max / MB} MB`);
 }
 if (total > 25 * MB) fail(9, `public/ is ${(total / MB).toFixed(1)} MB, budget 25 MB`);
+
+// 3. Config text is rendered as text: nothing in src/ uses innerHTML.
+for (const f of walk(join(root, 'src'))) {
+  if (/\.(inner|outer)HTML\b|insertAdjacentHTML/.test(readFileSync(f, 'utf8'))) fail(3, `${f.slice(root.length)} uses innerHTML; build DOM nodes with textContent`);
+}
 
 // 1. No hotlinked assets: the code loads only files that ship with the site.
 for (const f of walk(join(root, 'src'))) {
