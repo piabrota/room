@@ -4,7 +4,7 @@ import * as THREE from 'three';
 // module that draws into that canvas:
 //
 //   export default {
-//     mount({ ctx, width, height, audio, signature }) {},  // tape inserted
+//     mount({ ctx, width, height, audio, signature, config }) {},  // tape inserted
 //     frame(ctx, t, dt) {},                                 // every frame
 //     input({ type, x, y }) {},                             // click on screen, x/y in px
 //     stop() {},                                            // ejected

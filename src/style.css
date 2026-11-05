@@ -1,37 +1,66 @@
-:root { --fg: #f3ead8; --dim: #f3ead899; --bg: #0b0d12; }
+/* The piabrota look (mu, docs/7-branding/identity): a dark sheet, one red. */
+:root {
+  --bg: #0b0d12; --surface: #14171f; --border: #2a303c; --fg: #edeff3; --dim: #9aa3b2;
+  --accent: #bc2318; --accent-text: #ff6b5e;
+  --title: "Fjalla One", Impact, sans-serif; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
-  font: 14px/1.4 ui-monospace, "SF Mono", Menlo, monospace; overflow: hidden; }
-#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
-#hud { position: fixed; inset: 16px; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; }
+  font: 13px/1.45 var(--mono); overflow: hidden; -webkit-tap-highlight-color: transparent; }
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#hud { position: fixed; inset: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); pointer-events: none;
+  display: flex; flex-direction: column; justify-content: space-between; }
 #hud > * { pointer-events: auto; }
-#signature h1 { margin: 0; font-size: 20px; letter-spacing: .04em; }
-#signature p { margin: 2px 0 6px; color: var(--dim); }
-#signature a { color: var(--fg); margin-right: 12px; }
-#shots { display: flex; gap: 6px; flex-wrap: wrap; }
-button { font: inherit; color: var(--fg); background: #ffffff14; border: 1px solid #ffffff2a;
-  padding: 6px 10px; border-radius: 6px; cursor: pointer; }
-button.active { background: #ffffff33; }
-#sound { position: fixed; top: 16px; right: 128px; }
-#tooltip { position: fixed; pointer-events: none; padding: 4px 8px; background: #000c; border-radius: 4px;
-  transform: translate(12px, 12px); opacity: 0; transition: opacity .12s; white-space: nowrap; }
+#signature { align-self: flex-start; }
+#signature h1 { margin: 0; font: 400 30px/1 var(--title); letter-spacing: .02em; text-transform: lowercase; }
+#signature h1::before { content: ""; display: inline-block; width: 10px; height: 10px; margin: 0 10px 4px 0;
+  background: var(--accent); border-radius: 3px; vertical-align: middle; }
+#signature p { margin: 6px 0 8px; color: var(--dim); }
+#signature a { color: var(--fg); margin-right: 14px; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+#signature a:hover { color: var(--accent-text); }
+#shots { display: flex; gap: 6px; flex-wrap: wrap; align-self: flex-start; }
+button { font: inherit; color: var(--fg); background: #14171fcc; border: 1px solid var(--border);
+  padding: 7px 11px; border-radius: 8px; cursor: pointer; backdrop-filter: blur(6px);
+  transition: background .2s, border-color .2s; }
+button:hover { border-color: #3a4252; }
+button:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+button.active { background: var(--accent); border-color: var(--accent); }
+kbd { font: inherit; opacity: .6; }
+button.active kbd { opacity: .85; }
+#sound { position: fixed; top: max(16px, env(safe-area-inset-top)); right: 128px; }
+#tooltip { position: fixed; left: 0; top: 0; pointer-events: none; padding: 7px 10px; max-width: 260px;
+  background: #0b0d12e6; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px;
+  opacity: 0; transition: opacity .15s; will-change: transform; }
 #tooltip.on { opacity: 1; }
-#enter { position: fixed; inset: 0; display: grid; place-items: center; background: #0b0d12cc; }
-#enter button { font-size: 16px; padding: 12px 20px; }
-#enter.gone { display: none; }
+#tooltip strong { display: block; font: 400 16px/1.2 var(--title); letter-spacing: .02em; }
+#tooltip span { display: block; color: var(--dim); margin-top: 2px; }
+#tooltip span[hidden] { display: none; }
+#loading { position: fixed; left: 0; right: 0; bottom: 0; height: 2px; pointer-events: none; }
+#loading span { display: block; height: 100%; width: calc(var(--p, 0) * 100%); background: var(--accent); transition: width .3s; }
+#loading.done { opacity: 0; transition: opacity .6s .2s; }
+#enter { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px;
+  background: radial-gradient(ellipse at center, #0b0d1299, #0b0d12ee); transition: opacity .6s; }
+#enter button { font: 400 20px/1 var(--title); letter-spacing: .04em; padding: 14px 24px; background: var(--accent); border-color: var(--accent); }
+#enter p { margin: 0; color: var(--dim); }
+#enter.gone { opacity: 0; pointer-events: none; }
 #fallback { display: none; }
-#view { position: fixed; top: 16px; right: 16px; z-index: 2; letter-spacing: .06em; }
+#view { position: fixed; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 2; letter-spacing: .06em; }
 #view[hidden] { display: none; }
 #view span { opacity: .45; }
-#view span.on { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+#view span.on { opacity: 1; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 body.lofi { overflow: auto; }
-body.lofi #scene, body.lofi #hud, body.lofi #enter, body.lofi #tooltip { display: none; }
-body.lofi #fallback { display: block; max-width: 40rem; margin: 15vh auto; padding: 0 16px; }
-body.lofi #fallback h1 { margin: 0; font-size: 24px; }
+body.lofi #scene, body.lofi #hud, body.lofi #enter, body.lofi #tooltip, body.lofi #loading { display: none; }
+body.lofi #fallback { display: block; max-width: 44rem; margin: 12vh auto; padding: 0 16px; }
+body.lofi #fallback h1 { margin: 0; font: 400 34px/1.1 var(--title); text-transform: lowercase; }
 body.lofi #fallback p { color: var(--dim); }
-body.lofi #fallback a { color: var(--fg); margin-right: 12px; }
-body.lofi #fallback h2 { margin: 2.2em 0 .4em; font-size: 14px; font-weight: normal; color: var(--dim); text-transform: lowercase; }
+body.lofi #fallback a { color: var(--fg); margin-right: 12px; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+body.lofi #fallback h2 { margin: 2.2em 0 .4em; font-size: 13px; font-weight: normal; color: var(--accent-text); text-transform: lowercase; }
 body.lofi #fallback ul { margin: 0; padding: 0; list-style: none; }
-body.lofi #fallback li { margin: .3em 0; }
+body.lofi #fallback li { margin: .35em 0; }
 body.lofi #fallback li span:last-child { color: var(--dim); }
-@media (max-width: 600px) { #signature { margin-top: 44px; } } /* clear the sound and view buttons */
+@media (max-width: 600px) {
+  #signature { margin-top: 44px; } /* clear the sound and view buttons */
+  #signature h1 { font-size: 24px; }
+  #shots button { padding: 6px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

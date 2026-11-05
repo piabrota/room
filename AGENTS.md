@@ -85,13 +85,15 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, shots, tapes, hotspots and sounds (invariant 3) |
+| `src/config.js` | the signature, theme, shots, tapes, sounds, and the room's content: projects, bots, people, works with a DOI, hotspots (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8) |
 | `src/lofi.js` | the LOFI view: the signature, the tapes and the link hotspots as plain text |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
-| `src/room.js` | loads `public/models/room.glb`, or builds the placeholder room |
-| `src/cameras.js` | named shots, eased moves, mouse parallax, `shot_*` cameras from the GLB |
-| `src/interact.js` | raycast hover and click, labels and glow |
+| `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material |
+| `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note |
+| `src/post.js` | post-processing: MSAA HDR buffer, hover outline, bloom, tone mapping, film grade; steps quality down when frames run long |
+| `src/cameras.js` | named shots and the moves between them: quintic curves that keep the velocity when a new shot is picked mid-move, arcs, slerped turns, per-shot `fov`, damped parallax; `shot_*` cameras from the GLB |
+| `src/interact.js` | raycast hover and click against the whole room (walls hide what is behind them), label cards with a hint, glow |
 | `src/tv.js` | the TV canvas and the tape contract |
 | `src/tapes/*.js` | one tape each |
 | `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
@@ -99,8 +101,14 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/signature.js` | renders the signature as text |
 | `scripts/check.mjs` | what `just check` tests |
 
-Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp`, `tape_<id>` for each
-tape, the `name` of each hotspot, and cameras `shot_<name>`.
+Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the
+light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
+`shelf`, `frame_<project>`, `bot_<id>`, `photo_<person>`, `book_<work>`), and cameras
+`shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
+the pointer.
+
+The visitor moves with the shot buttons, the keys 1 to 9, `←` `→` for the next and the previous
+shot, `Esc` for `startShot`, and a sideways swipe on a touch screen.
 
 ## Working here
 

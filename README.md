@@ -8,6 +8,24 @@ The idea of a room like this comes from **Felix Rieseberg**, who made one as his
 site. This is a separate build, with its own assets, signature, sounds and interactions
 ([`CREDITS.md`](CREDITS.md)).
 
+## What is in the room
+
+This is piabrota's room. The left wall holds the fabric, one framed print per project, each a
+link to its repository. The two bots of the org, piabrota-ops and piabrota-hermes, sit on the
+desk; the board holds the people; the shelf holds the works with a DOI by Matheus Hoffmann:
+marola ([10.5281/zenodo.23224155](https://doi.org/10.5281/zenodo.23224155)), ww3-gpu
+([10.5281/zenodo.23221351](https://doi.org/10.5281/zenodo.23221351)), picasso
+([10.5281/zenodo.23311208](https://doi.org/10.5281/zenodo.23311208)), closed source
+([10.5281/zenodo.23333656](https://doi.org/10.5281/zenodo.23333656)), marola-bench
+([10.5281/zenodo.23352633](https://doi.org/10.5281/zenodo.23352633)) and nashkell, the open book
+([10.5281/zenodo.23356739](https://doi.org/10.5281/zenodo.23356739)). The window looks on Rio at
+night, and the eye above the TV is the piabrota sign.
+
+Move with the shot buttons, the keys 1 to 9, `←` `→`, or a swipe; `Esc` steps back. The camera
+moves on quintic curves that keep their speed when you change your mind halfway, so no move
+ever jerks. The picture goes through a post-processing chain (outline on hover, bloom, a film
+grade) that lowers its own quality when the frame rate drops.
+
 ## Run it
 
 With Nix:

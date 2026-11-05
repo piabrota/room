@@ -3,6 +3,8 @@
 //   LOFI  the room as plain text (src/lofi.js).
 // The LOFI/HIFI button switches between them. `?lofi` (or the older
 // `?static`) opens in LOFI, and without WebGL LOFI is the only view.
+import '@fontsource/fjalla-one/latin-400.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
 import * as config from './config.js';
 import { renderLofi } from './lofi.js';
 
@@ -27,6 +29,7 @@ const asked = params.has('lofi') || params.has('static') ? 'lofi' : params.has('
 let mode = canHifi && asked !== 'lofi' ? 'hifi' : 'lofi';
 let room = null; // the HIFI app, once loaded
 
+document.title = `${config.signature.name} · room`;
 renderLofi(document.getElementById('fallback'), config);
 
 const toggle = document.getElementById('view');
