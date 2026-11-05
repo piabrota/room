@@ -39,6 +39,7 @@ rig.names.forEach((name, i) => {
 });
 rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.shot === n)));
 addEventListener('keydown', (e) => {
+  if (paused) return; // LOFI is showing
   const i = Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]);
   if (e.key === 'Escape') rig.go(config.startShot);
 });
@@ -108,7 +109,7 @@ function resize() {
 addEventListener('resize', resize); resize();
 
 const clock = new THREE.Clock();
-renderer.setAnimationLoop(() => {
+function frame() {
   const dt = Math.min(clock.getDelta(), 0.1);
   for (let i = tweens.length - 1; i >= 0; i--) {
     const tw = tweens[i]; tw.t = Math.min(1, tw.t + dt / tw.dur);
@@ -118,5 +119,22 @@ renderer.setAnimationLoop(() => {
   }
   rig.update(dt); ui.update(); tv.update(dt);
   renderer.render(scene, camera);
-});
+}
+renderer.setAnimationLoop(frame);
+
+// ── LOFI/HIFI: main.js pauses the room while the text view shows ──
+// Pausing stops the render loop and suspends the audio context, which
+// holds the ambience and the tape bus too, so LOFI is silent.
+let paused = false, wasRunning = false;
+export function pause() {
+  if (paused) return;
+  paused = true; renderer.setAnimationLoop(null);
+  wasRunning = audio.ctx.state === 'running';
+  if (wasRunning) audio.ctx.suspend();
+}
+export function resume() {
+  if (!paused) return;
+  paused = false; clock.getDelta(); resize(); renderer.setAnimationLoop(frame);
+  if (wasRunning) audio.ctx.resume();
+}
 window.__room = { rig, tv, room }; // handy for debugging in the console

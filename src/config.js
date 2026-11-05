@@ -41,11 +41,12 @@ export const sfx = {
 };
 
 // Tapes: each one is a module in src/tapes with mount/frame/input/stop.
-// `label` shows on hover, `color` tints the shell and the room light.
+// `label` shows on hover, `color` tints the shell and the room light,
+// `text` is the line the LOFI (plain text) view shows for the tape.
 export const tapes = [
-  { id: 'hello',  label: 'HELLO (about me)', color: '#e2574c', module: () => import('./tapes/hello.js') },
-  { id: 'clock',  label: 'NIGHT CLOCK',      color: '#3d8bd9', module: () => import('./tapes/clock.js') },
-  { id: 'synth',  label: 'TAPE SYNTH',       color: '#e8b33a', module: () => import('./tapes/synth.js') },
+  { id: 'hello',  label: 'HELLO (about me)', color: '#e2574c', text: 'my name, typed out, and where to find me', module: () => import('./tapes/hello.js') },
+  { id: 'clock',  label: 'NIGHT CLOCK',      color: '#3d8bd9', text: 'the time, glowing in the dark',             module: () => import('./tapes/clock.js') },
+  { id: 'synth',  label: 'TAPE SYNTH',       color: '#e8b33a', text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
 ];
 
 // Extra hoverable things. `name` matches a mesh name in your GLB

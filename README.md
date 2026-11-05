@@ -37,12 +37,13 @@ is built from boxes and the sounds are synthesized, so it always runs.
    slideshow, a game or an instrument.
 4. **Signature.** Name, colours and type in `src/config.js` and `src/style.css`.
 
-Without WebGL, or with `?static` in the address, the site shows the name and links as a plain
-page.
+The LOFI/HIFI button in the corner switches between the 3D room (HIFI) and the same content as
+plain text (LOFI): the name, the links and the tapes. The choice is remembered, and `?lofi` in the
+address opens the text view (`?static` still works). Without WebGL, LOFI is the only view.
 
-| Placeholder room, hover | A tape playing |
-|---|---|
-| ![hover](docs/preview-hover.png) | ![tape](docs/preview-tape.png) |
+| Placeholder room, hover | A tape playing | LOFI |
+|---|---|---|
+| ![hover](docs/preview-hover.png) | ![tape](docs/preview-tape.png) | ![lofi](docs/preview-lofi.png) |
 
 ## Licence
 
