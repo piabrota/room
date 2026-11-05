@@ -34,6 +34,10 @@ check: _deps
     npx vite build --logLevel warn
     @echo "✓ just check"
 
+# stills of every shot and 15 s of video into docs/record/ (headless Chrome, ffmpeg); every pull request carries them
+record: build
+    node scripts/record.mjs
+
 # normalize a sound into public/audio (loop beds at -18 LUFS): just audio in.wav ambience
 audio src name lufs="-18":
     ffmpeg -hide_banner -y -i "{{src}}" -af loudnorm=I={{lufs}}:TP=-1.5:LRA=11 -ar 44100 -c:a libmp3lame -q:a 3 "public/audio/{{name}}.mp3"

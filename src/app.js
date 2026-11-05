@@ -153,7 +153,11 @@ loading?.classList.add('done');
 const clock = new THREE.Clock();
 let elapsed = 0;
 function frame() {
-  const dt = Math.min(clock.getDelta(), 1 / 30); // a long stall never turns into a jump
+  tick(Math.min(clock.getDelta(), 1 / 30), true); // a long stall never turns into a jump
+}
+// One step of the room. `measure` lets the adaptive quality watch the
+// frame time; `just record` steps with a fixed dt and turns it off.
+function tick(dt, measure) {
   elapsed += dt;
   for (let i = tweens.length - 1; i >= 0; i--) {
     const tw = tweens[i]; tw.t = Math.min(1, tw.t + dt / tw.dur);
@@ -165,7 +169,7 @@ function frame() {
   const moving = rig.moving;
   rig.update(dt); room.update(elapsed); tv.update(dt);
   ui.update(moving || tweens.length > 0);
-  post.render(dt, elapsed);
+  post.render(dt, elapsed, measure);
 }
 renderer.setAnimationLoop(frame);
 
@@ -183,4 +187,9 @@ export function resume() {
   paused = false; clock.getDelta(); resize(); renderer.setAnimationLoop(frame);
   if (wasRunning) audio.ctx.resume();
 }
-window.__room = { rig, tv, room, renderer, camera, ui }; // handy for debugging in the console
+// handy for debugging in the console; `step` drives the room by hand for `just record`
+window.__room = { rig, tv, room, renderer, camera, ui, step: (dt) => {
+  if (!stepping) { stepping = true; renderer.setAnimationLoop(() => {}); } // frames keep coming, the room only moves on step
+  tick(dt, false);
+} };
+let stepping = false;
