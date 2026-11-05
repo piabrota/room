@@ -76,6 +76,7 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just preview` | serves `dist/` |
 | `just check` | `scripts/check.mjs` (the invariants), then a build |
 | `just audio <file> <name>` | normalizes a sound into `public/audio/<name>.mp3` |
+| `just compose [samples]` | makes the ambience, the VCR sounds and the piabrota tape from the field recordings in `samples/` (`scripts/compose.mjs`, `CREDITS.md`) |
 
 On Nix, `nix develop` (or `direnv allow`, with `.envrc`) gives Node 22, just and ffmpeg. On
 macOS without Nix, `brew install node just ffmpeg`.
@@ -93,6 +94,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/interact.js` | raycast hover and click, labels and glow |
 | `src/tv.js` | the TV canvas and the tape contract |
 | `src/tapes/*.js` | one tape each |
+| `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |
 | `scripts/check.mjs` | what `just check` tests |
