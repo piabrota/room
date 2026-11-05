@@ -75,6 +75,7 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just build` | the static site in `dist/` |
 | `just preview` | serves `dist/` |
 | `just check` | `scripts/check.mjs` (the invariants), then a build |
+| `just record` | stills of every shot and 15 s of video of navigating and clicking, into `docs/record/` |
 | `just audio <file> <name>` | normalizes a sound into `public/audio/<name>.mp3` |
 | `just compose [samples]` | makes the ambience, the VCR sounds and the piabrota tape from the field recordings in `samples/` (`scripts/compose.mjs`, `CREDITS.md`) |
 
@@ -100,6 +101,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |
 | `scripts/check.mjs` | what `just check` tests |
+| `scripts/record.mjs` | what `just record` makes: the stills and the video for a pull request |
 
 Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
@@ -119,6 +121,11 @@ shot, `Esc` for `startShot`, and a sideways swipe on a touch screen.
   `config.sfx` with a `fallback`.
 - A new model: export from Blender as glTF binary to `public/models/room.glb`, with the mesh
   names above. Check the size before you commit it.
+- Every pull request that changes the site carries at least three screenshots of the room and
+  a video of about 15 seconds of navigating and clicking on things (the owner, 5 November 2026).
+  `just record` makes both in `docs/record/` (headless Chrome, stepped at a fixed 1/30 s per
+  frame, so the video shows the motion a visitor sees); commit them and show them in the pull
+  request.
 - After a change you cannot see from the terminal (look, motion, sound), say so in the pull
   request, or check it in a headless browser and attach a screenshot.
 - Work on a branch and open a pull request; do not push to `main`.

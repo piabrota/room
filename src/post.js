@@ -69,9 +69,9 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {})
     composer,
     setSize,
     select(obj) { outline.selectedObjects = obj ? [obj] : []; outline.enabled = !!obj; },
-    render(dt, t) {
+    render(dt, t, measure = true) {
       grade.uniforms.time.value = t % 100;
-      watch(dt);
+      if (measure) watch(dt);
       composer.render(dt);
     },
   };

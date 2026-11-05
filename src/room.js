@@ -102,7 +102,12 @@ function placeholderRoom() {
   const back = mesh('wall_back', new THREE.PlaneGeometry(7, 3.2), wallMat, [0.5, 1.6, -2.0]); back.castShadow = false;
   const left = mesh('wall_left', new THREE.PlaneGeometry(7, 3.2), std('#2a2f3c', { roughness: 0.95 }), [-3.0, 1.6, 0.5]);
   left.rotation.y = Math.PI / 2; left.castShadow = false;
+  const right = mesh('wall_right', new THREE.PlaneGeometry(7, 3.2), std('#2a2f3c', { roughness: 0.95 }), [3.4, 1.6, 0.5]);
+  right.rotation.y = -Math.PI / 2; right.castShadow = false;
+  const ceiling = mesh('ceiling', new THREE.PlaneGeometry(7, 7), std('#1d2029', { roughness: 1 }), [0.2, 3.1, 0.5]);
+  ceiling.rotation.x = Math.PI / 2; ceiling.castShadow = false;
   box([7, 0.1, 0.03], [0.5, 0.05, -1.985], '#1c1f27');
+  box([0.03, 0.1, 7], [3.385, 0.05, 0.5], '#1c1f27');
   box([0.03, 0.1, 7], [-2.985, 0.05, 0.5], '#1c1f27');
   rbox([2.4, 0.015, 1.7], [0, 0.008, -0.55], '#6e1a14', { opts: { roughness: 1 } });
   rbox([2.1, 0.017, 1.4], [0, 0.009, -0.55], '#3e1411', { opts: { roughness: 1 } });
