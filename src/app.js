@@ -1,64 +1,94 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import * as config from './config.js';
 import { loadRoom } from './room.js';
 import { createCameraRig } from './cameras.js';
 import { createInteractions } from './interact.js';
 import { createAudio } from './audio.js';
 import { createTV } from './tv.js';
+import { createPost } from './post.js';
 import { renderSignature } from './signature.js';
 
+let paused = false, wasRunning = false; // see pause() and resume() at the end
 const canvas = document.getElementById('scene');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false; // the room is still: shadows are drawn again only when something moves
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b0d12);
-scene.fog = new THREE.Fog(0x0b0d12, 6, 14);
-const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 50);
+scene.background = new THREE.Color(config.theme.bg);
+scene.fog = new THREE.Fog(config.theme.bg, 7, 15);
+// soft reflections for the metal and the plastic, from a generated studio
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.18;
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.05, 50);
 scene.add(camera);
 
-// ── signature overlay ──
+// ── signature overlay and loading ──
 const sig = config.signature;
 renderSignature(document.getElementById('signature'), sig);
+const loading = document.getElementById('loading');
+const setProgress = (p) => loading?.style.setProperty('--p', String(p));
 
-const room = await loadRoom(scene, config.roomModel);
+const room = await loadRoom(scene, config.roomModel, setProgress);
 const rig = createCameraRig(camera, config.shots, room.root.userData.cameras);
-const ui = createInteractions(camera, canvas, document.getElementById('tooltip'));
+const post = createPost(renderer, scene, camera, { accent: config.theme.accent });
+const ui = createInteractions(camera, canvas, document.getElementById('tooltip'), { root: room.root, onHover: (o) => post.select(o) });
 const audio = createAudio(camera);
-const tv = createTV(room.screen, { audio, signature: sig });
+const tv = createTV(room.screen, { audio, signature: sig, config });
+const redrawShadows = () => { renderer.shadowMap.needsUpdate = true; };
 
-// ── camera shot buttons + number keys ──
+// ── camera shot buttons, number keys, arrows and swipes ──
 const nav = document.getElementById('shots');
 rig.names.forEach((name, i) => {
   const b = document.createElement('button');
-  b.textContent = `${i + 1} ${name}`; b.onclick = () => rig.go(name); b.dataset.shot = name;
+  const k = document.createElement('kbd'); k.textContent = String(i + 1);
+  b.append(k, document.createTextNode(` ${name}`));
+  b.onclick = () => rig.go(name); b.dataset.shot = name;
   nav.appendChild(b);
 });
-rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.shot === n)));
+rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => {
+  b.classList.toggle('active', b.dataset.shot === n);
+  b.setAttribute('aria-pressed', String(b.dataset.shot === n));
+}));
 addEventListener('keydown', (e) => {
-  if (paused) return; // LOFI is showing
+  if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
   const i = Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]);
   if (e.key === 'Escape') rig.go(config.startShot);
+  if (e.key === 'ArrowRight') rig.next(1);
+  if (e.key === 'ArrowLeft') rig.next(-1);
+});
+let swipe = null;
+canvas.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') swipe = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+canvas.addEventListener('pointerup', (e) => {
+  if (!swipe) return;
+  const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - swipe.t < 600) rig.next(dx < 0 ? 1 : -1);
+  swipe = null;
 });
 rig.go(config.startShot, true);
 
 // ── tapes: hover shows label, click flies it into the VCR ──
+const S = (t) => t * t * t * (t * (t * 6 - 15) + 10);
 const tweens = [];
 const tween = (obj, to, dur, done) => tweens.push({ obj, from: obj.position.clone(), to, t: 0, dur, done });
 for (const def of config.tapes) {
   const mesh = room.find(`tape_${def.id}`); if (!mesh) continue;
   mesh.userData.home = mesh.position.clone();
   ui.add(mesh, {
-    label: def.label,
+    label: def.label, hint: def.text,
     onClick: () => {
       if (tv.playing) eject();
       audio.play(config.sfx.click);
-      const slot = room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.22));
-      tween(mesh, slot, 0.6, async () => {
-        mesh.visible = false;
+      const slot = room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2));
+      tween(mesh, slot, 0.7, async () => {
+        mesh.visible = false; redrawShadows();
         audio.play(config.sfx.insert);
         await tv.insert(def);
         room.tvLight.color.set(def.color); room.tvLight.intensity = 3;
@@ -71,22 +101,23 @@ function eject() {
   const def = tv.playing?.def; if (!def) return;
   tv.eject(); room.tvLight.intensity = 0;
   const mesh = room.find(`tape_${def.id}`);
-  mesh.visible = true; tween(mesh, mesh.userData.home, 0.6);
-  audio.play(config.sfx.insert);
+  mesh.visible = true; tween(mesh, mesh.userData.home, 0.7, redrawShadows);
+  audio.play(config.sfx.eject ?? config.sfx.insert);
 }
-ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), onClick: eject });
+ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), hint: () => (tv.playing ? tv.playing.def.label : 'pick a tape beside it'), onClick: eject });
 ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClick: (hit) => hit.uv && tv.input(hit.uv) });
 
 // ── hotspots from config ──
+const lampOn = room.lamp.intensity;
 for (const h of config.hotspots) {
   ui.add(room.find(h.name), {
-    label: h.label,
+    label: h.label, hint: h.hint,
     onClick: () => {
       audio.play(config.sfx.click);
       if (h.action === 'shot') rig.go(h.value);
       if (h.action === 'link') window.open(h.value, '_blank', 'noopener');
       if (h.action === 'sfx') audio.play(config.sfx[h.value]);
-      if (h.action === 'toggleLamp') room.lamp.intensity = room.lamp.intensity ? 0 : 6;
+      if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : lampOn; redrawShadows(); }
     },
   });
 }
@@ -100,32 +131,47 @@ document.querySelector('#enter button').onclick = async () => {
 };
 soundBtn.onclick = () => { soundBtn.textContent = `sound: ${audio.toggle() ? 'on' : 'off'}`; };
 
-// ── loop ──
+// ── size ──
 function resize() {
-  const w = innerWidth, h = innerHeight;
-  renderer.setSize(w, h, false); camera.aspect = w / h;
-  camera.fov = w < h ? 65 : 45; camera.updateProjectionMatrix();
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  rig.setPortrait(innerWidth < innerHeight);
+  post.setSize();
 }
 addEventListener('resize', resize); resize();
 
+// Compile every shader and upload every texture before the first frame,
+// so the first move to a new shot never stalls.
+scene.traverse((o) => {
+  for (const m of [o.material].flat()) for (const k of ['map', 'emissiveMap']) if (m?.[k]) renderer.initTexture(m[k]);
+});
+rig.update(0);
+await renderer.compileAsync(scene, camera).catch(() => renderer.compile(scene, camera));
+redrawShadows();
+loading?.classList.add('done');
+
+// ── loop ──
 const clock = new THREE.Clock();
+let elapsed = 0;
 function frame() {
-  const dt = Math.min(clock.getDelta(), 0.1);
+  const dt = Math.min(clock.getDelta(), 1 / 30); // a long stall never turns into a jump
+  elapsed += dt;
   for (let i = tweens.length - 1; i >= 0; i--) {
     const tw = tweens[i]; tw.t = Math.min(1, tw.t + dt / tw.dur);
-    const k = 1 - Math.pow(1 - tw.t, 3);
-    tw.obj.position.lerpVectors(tw.from, tw.to, k); tw.obj.position.y += Math.sin(k * Math.PI) * 0.08;
+    const k = S(tw.t);
+    tw.obj.position.lerpVectors(tw.from, tw.to, k); tw.obj.position.y += Math.sin(k * Math.PI) * 0.1;
+    tw.obj.rotation.x = Math.sin(k * Math.PI) * -0.4;
     if (tw.t === 1) { tweens.splice(i, 1); tw.done?.(); }
   }
-  rig.update(dt); ui.update(); tv.update(dt);
-  renderer.render(scene, camera);
+  const moving = rig.moving;
+  rig.update(dt); room.update(elapsed); tv.update(dt);
+  ui.update(moving || tweens.length > 0);
+  post.render(dt, elapsed);
 }
 renderer.setAnimationLoop(frame);
 
 // ── LOFI/HIFI: main.js pauses the room while the text view shows ──
 // Pausing stops the render loop and suspends the audio context, which
 // holds the ambience and the tape bus too, so LOFI is silent.
-let paused = false, wasRunning = false;
 export function pause() {
   if (paused) return;
   paused = true; renderer.setAnimationLoop(null);
@@ -137,4 +183,4 @@ export function resume() {
   paused = false; clock.getDelta(); resize(); renderer.setAnimationLoop(frame);
   if (wasRunning) audio.ctx.resume();
 }
-window.__room = { rig, tv, room }; // handy for debugging in the console
+window.__room = { rig, tv, room, renderer, camera, ui }; // handy for debugging in the console

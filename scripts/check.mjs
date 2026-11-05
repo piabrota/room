@@ -26,7 +26,11 @@ if (!config.shots?.[config.startShot]) fail(4, `startShot "${config.startShot}" 
 
 // 5. Every hotspot has a label and a known action.
 const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp']);
+const names = new Set();
 for (const h of config.hotspots ?? []) {
+  if (names.has(h.name)) fail(5, `hotspot name "${h.name}" is used twice`);
+  names.add(h.name);
+  if (h.action === 'link' && !/^(https:\/\/|mailto:)/.test(h.value ?? '')) fail(5, `hotspot "${h.name}" links to "${h.value}": use https:// or mailto:`);
   if (!h.name || !h.label) fail(5, `hotspot ${JSON.stringify(h)} needs name and label`);
   if (!actions.has(h.action)) fail(5, `hotspot "${h.name}" has unknown action "${h.action}"`);
   if (h.action === 'shot' && !config.shots[h.value]) fail(5, `hotspot "${h.name}" points at missing shot "${h.value}"`);

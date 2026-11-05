@@ -19,12 +19,19 @@ asset gets a row here in the same commit that adds it.
 | `public/audio/eject.mp3` | magedu, with the owner's edit | "video_recorder_eject_cassette" (freesound 267832), trimmed and normalized | CC BY 4.0 |
 | `public/audio/insert.mp3` | magedu, with the owner's edit | the same recording, reversed | CC BY 4.0 |
 | `public/audio/tape-piabrota.mp3` | the owner; klankbeeld, YleArkisto and magedu | the score of `src/score.js`, mixed with freesound 350358, 219877 and 267832 by `just compose` | CC BY 4.0 |
+| Fjalla One (titles), bundled from `@fontsource/fjalla-one` | Sorkin Type | [Fontsource](https://fontsource.org/fonts/fjalla-one) | OFL-1.1 |
+| JetBrains Mono (interface), bundled from `@fontsource/jetbrains-mono` | JetBrains | [Fontsource](https://fontsource.org/fonts/jetbrains-mono) | OFL-1.1 |
+| The piabrota eye on the sign, drawn in code (`src/art.js`) after `docs/drawings/eye.svg` | piabrota | [piabrota/mu](https://github.com/piabrota/mu) | the org's mark, not licensed for other uses (mu's `TRADEMARKS.md`) |
 
 The four recordings are on freesound.org, under Creative Commons Attribution 4.0
 (creativecommons.org/licenses/by/4.0): 219877 and 174242 by klankbeeld, 350358 by YleArkisto
 (Yle, the Finnish broadcasting company's archive), 267832 by magedu. They are not in this
 repository; `just compose` reads them from `samples/` (see `scripts/compose.mjs`). The words and
 links of the piabrota tape come from piabrota's own GitHub pages (sources in `src/config.js`).
+
+The project glyphs on the frames (む, 道場, 無, 代理, 无) are typed characters standing for the
+drawings in each project's repository; no drawing is copied here. The projects, the bots, the
+people and the works on the shelf are described in our own words from the org's public READMEs.
 
 ## Libraries
 
