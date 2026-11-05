@@ -39,6 +39,10 @@ audio src name lufs="-18":
     ffmpeg -hide_banner -y -i "{{src}}" -af loudnorm=I={{lufs}}:TP=-1.5:LRA=11 -ar 44100 -c:a libmp3lame -q:a 3 "public/audio/{{name}}.mp3"
     @ls -lh "public/audio/{{name}}.mp3"
 
+# make the room's sounds and the piabrota tape from the freesound recordings in <samples> (CREDITS.md)
+compose samples="samples" out="public/audio":
+    node scripts/compose.mjs "{{samples}}" "{{out}}"
+
 # remove build output
 clean:
     rm -rf dist
