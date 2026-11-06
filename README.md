@@ -1,11 +1,14 @@
 # room
 
+English · [Português (Brasil)](README.pt-BR.md)
+
 A personal site that is a 3D room. Switch between camera shots, hover over things to see what
 they are, put a tape into the VCR to play it on the TV, and listen to the room. Built with
 [three.js](https://threejs.org) and [Vite](https://vite.dev), as static files.
 
-The idea of a room like this comes from **Felix Rieseberg**, who made one as his own personal
-site. This is a separate build, with its own assets, signature, sounds and interactions
+The idea of a room like this comes from **Felix Rieseberg** (`felixrieseberg` on GitHub), who
+made one as his own personal site. His name and login are written as text, with no link
+([`AGENTS.md`](AGENTS.md), invariant 2). This is a separate build, with its own assets, signature, sounds and interactions
 ([`CREDITS.md`](CREDITS.md)).
 
 ![the room](docs/record/shot-overview.jpg)
@@ -118,6 +121,8 @@ PROMPT_1.txt and PROMPT_2.txt so people can see how it was build, using wach mod
 much it took. Thead responde is not important user> 'original prompt' is enought'
 user> 'for example remove dois number, its just noise, this repo should be easy reforkable'
 user> 'and modular, so people can user their own slangs, lists, musics'
+user> 'Felix Rieseberg github user must be cited on README.md, also create a README.pt-BR.md
+version'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix
