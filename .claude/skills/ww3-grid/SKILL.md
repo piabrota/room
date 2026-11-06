@@ -19,6 +19,17 @@ The plan is `docs/SURVEY.md`, section 6. Read it first; this is the short form.
   minute; the script waits.
 - The sea in `frames.bin` is an estimate, Hs = 0.21 U²/g. Replacing it with WW3's Hs keeps the
   file format, and `config.grid.note` must then change.
+- `sst.bin` (#19): the latest day of OSTIA from Copernicus Marine's public ARCO zarr store
+  (`timeChunked.zarr`, chunks of 1 × 1024 × 1024, int16, Blosc LZ4 with byte shuffle, read by
+  `scripts/blosc.mjs`), Uint16 in 0.01 °C per node, 65535 for none; `run.json.sst` names the day.
+  If the store starts to ask for an account, the script warns and the view opens without it; the
+  `copernicusmarine` toolbox (Python) with `COPERNICUSMARINE_SERVICE_USERNAME` and `_PASSWORD`
+  is then the way. Credit "Generated using E.U. Copernicus Marine Service information" and "These
+  data were provided by GHRSST and Met Office" (`CREDITS.md`, `config.grid.sources`).
+- The flow (`flowField` in `src/grid.js`): particles advected on the mesh itself (a 0.1° raster
+  says which triangle holds a point; barycentric weights give the velocity), towards the wind at
+  the group speed. With WW3, drive it with the mean wave direction `dir` and `cg` from `ww3_ounf`
+  instead, and say so in `config.grid.words.flow`.
 
 ## Credit
 

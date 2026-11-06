@@ -46,6 +46,19 @@ The second commit of #16 applied what can land without the owner changing an inv
   by the room's clock, still under reduced motion).
 - **2, Vite 6** (6.4.5): the build, the preview and the dev server run as before.
 
+### Applied in #19
+
+- **6, the sea's temperature:** `just grid` reads the latest day of OSTIA (the Met Office's daily
+  foundation SST at 0.05°, Copernicus Marine, doi:10.48670/moi-00165) from the service's public
+  ARCO zarr store, with no account: two chunks of 1024 × 1024 cells cover the domain, decoded by
+  `scripts/blosc.mjs` (Blosc and LZ4, written here, no native module), sampled at the nodes into
+  `public/grid/sst.bin` (23 kB). The view switches between the sea's height and its temperature.
+- **6, the flow:** the wind's ticks are gone. Particles are carried where the waves travel, each
+  leaving a trail that fades, as on the wind maps: towards the wind, at the group speed of a fully
+  developed sea (cg = gT/4π, about 0.57 U). They break on the coast, step at 1/30 s of the room's
+  clock from a seeded generator (so `just record` films the same flow), keep their speed on the
+  screen at any zoom, and stand still under reduced motion.
+
 Still left, and why:
 
 - **WAVEWATCH III on the mesh.** It needs a Fortran toolchain (gfortran, NetCDF-Fortran, MPI) and
