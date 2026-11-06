@@ -46,6 +46,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 13 | 6 nov 04:07 | [#16](https://github.com/piabrota/room/pull/16), segundo commit: o dia não estoura mais em branco (bloom de dia e de noite, AgX, a luminária mais fraca de dia), `just light`, um `just record` mais rápido e `just stills`, vidro de CRT na TV, poeira na luz da janela, e cinco skills do Claude em `.claude/skills/` | 26 min |
 | 14 | 5 nov 23:23 | [#17](https://github.com/piabrota/room/pull/17) o LOFI como página de leitura: início, sobre, trabalho, posts em Markdown, online, assinar por RSS (feito em 6 nov) | 15 min |
 | 15 | 6 nov 04:29 | [#18](https://github.com/piabrota/room/pull/18) ▲ grid, a décima vista na tecla 0: uma carta na parede que abre um mapa da costa brasileira em 22 366 triângulos, com 24 h de vento do GFS e o mar que ele levanta; a luz da TV segue a fita, chuva no vidro, folhas que balançam, Vite 6 | 52 min |
+| 16 | 6 nov 05:15 | [#19](https://github.com/piabrota/room/pull/19) ▲ grid: a temperatura do mar do Copernicus Marine (OSTIA, lida do seu repositório zarr aberto) como segunda camada, e partículas que fluem para onde as ondas vão, no lugar dos traços do vento | 40 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -205,6 +206,14 @@ Subscribe'
 
 ```text
 user> 'now do improvements left from the survey you couldn't assess earlier'
+```
+
+**16.**
+
+```text
+user> 'improve the grid
+  * it must allow have temperature data using copernicus
+  * instead of plain traces pointing to wave direction, it must use a flow animation, usually like the one used in wind, to get better idea of propagation direction'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix

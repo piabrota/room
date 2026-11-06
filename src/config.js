@@ -375,18 +375,26 @@ export const reading = {
 // the wind (Pierson-Moskowitz, a fully developed sea), not yet a WAVEWATCH
 // III run: that is the next step (the ww3-grid skill).
 export const grid = {
-  label: '▲ grid', hint: 'the Brazilian coast on triangles: 24 h of wind and sea',
+  label: '▲ grid', hint: 'the Brazilian coast on triangles: 24 h of sea, and its temperature',
   title: '▲ grid · the Brazilian coast',
   credit: 'Triangle grids for WAVEWATCH III: Dr. Aron Roland (with Fabrice Ardhuin); at NOAA, Dr. Ali Abdolali.',
   note: 'The sea here is estimated from the wind (Pierson–Moskowitz, fully developed), not a WAVEWATCH III run.',
-  sources: 'Land: Natural Earth · Wind: NOAA GFS 0.25°, through Open-Meteo (CC BY 4.0)',
+  sources: 'Land: Natural Earth · Wind: NOAA GFS 0.25°, through Open-Meteo (CC BY 4.0) · Temperature: OSTIA, generated using E.U. Copernicus Marine Service information (doi:10.48670/moi-00165); these data were provided by GHRSST and Met Office',
   // the domain of `just grid`: west, south, east, north; how far out the mesh goes, in km;
   // the spacing of its nodes near the coast and far out, in km
   bbox: [-56, -35.5, -27, 6.5], reach: 550, spacing: [9, 70],
-  files: { run: '/grid/run.json', mesh: '/grid/mesh.bin', frames: '/grid/frames.bin', land: '/grid/land.json' },
+  files: { run: '/grid/run.json', mesh: '/grid/mesh.bin', frames: '/grid/frames.bin', sst: '/grid/sst.bin', land: '/grid/land.json' },
+  // the flow over the sea: how many particles, the points of each trail, how long one lives (s),
+  // and how fast it goes, in degrees a second for each m/s of the waves' group speed
+  flow: { particles: 1600, trail: 24, life: [2, 5], speed: 0.6 },
   // places to name on the map: [label, longitude, latitude]
   places: [['Rio de Janeiro', -43.2, -22.9], ['Salvador', -38.5, -12.97], ['Recife', -34.88, -8.05], ['Fortaleza', -38.53, -3.73], ['Florianópolis', -48.55, -27.6], ['Belém', -48.5, -1.45]],
-  words: { play: 'play', pause: 'pause', back: 'back to the room', hs: 'sea (Hs)', wind: 'wind', node: 'node', m: 'm', ms: 'm/s', loading: 'loading the grid…', missing: 'no run yet: just grid' },
+  words: {
+    play: 'play', pause: 'pause', back: 'back to the room', hs: 'sea (Hs)', sst: 'temperature', wind: 'wind', node: 'node', m: 'm', ms: 'm/s', c: '°C', from: 'from', toward: 'waves toward',
+    hsLong: 'the height of the sea (Hs)', sstLong: 'the temperature of the sea’s surface', sstDay: 'OSTIA, day', noSst: 'no temperature in this run: just grid',
+    flow: 'The lines flow where the waves travel, at their group speed (about 0.57 × the wind, for a sea it fully raised).',
+    loading: 'loading the grid…', missing: 'no run yet: just grid',
+  },
 };
 
 export const hotspots = [

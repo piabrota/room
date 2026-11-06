@@ -6,6 +6,8 @@
 //               triangles (Uint16 node indices, three each)
 //   frames.bin  per hour, per node: Hs (Uint8, 5 cm steps), the wind's speed
 //               (Uint8, 0.1 m/s steps) and the direction it comes from (Uint8, 360/256°)
+//   sst.bin     the sea's surface temperature at each node (Uint16, 0.01 °C steps,
+//               65535 where there is none), one day of Copernicus Marine's OSTIA
 //   run.json    the counts, the hours, the scales, the sources
 //
 // The mesh: nodes on the coastline every `spacing[0]` km, then ocean nodes in
@@ -18,9 +20,17 @@
 // estimated from it: Hs = 0.21 U² / g, a fully developed sea (Pierson and
 // Moskowitz, 1964). It is not a WAVEWATCH III run; that is the next step
 // (.claude/skills/ww3-grid). `--offline` reuses the winds already fetched.
+//
+// The temperature: OSTIA, the Met Office's daily foundation SST at 0.05°
+// (Copernicus Marine, SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001, DOI
+// 10.48670/moi-00165), its latest day, read from the service's public ARCO
+// zarr store: one chunk of 1024 × 1024 cells covers the domain. It needs no
+// account today. If the store ever asks for one, the view still opens, without
+// the temperature, and the script says so (see `sstFail` below).
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import Delaunator from 'delaunator';
+import { blosc } from './blosc.mjs';
 import { grid } from '../src/config.js';
 
 const root = new URL('..', import.meta.url).pathname;
@@ -212,17 +222,73 @@ for (let h = 0; h < F; h++) {
   }
 }
 
+// ── the sea's temperature: OSTIA, from Copernicus Marine ──
+const OSTIA = 'https://s3.waw3-1.cloudferro.com/mdl-arco-time-045/arco/SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001/METOFFICE-GLO-SST-L4-NRT-OBS-SST-V2/timeChunked.zarr';
+async function bytes(name, url) {
+  const f = join(cache, name);
+  if (!existsSync(f)) {
+    if (offline) throw new Error(`${name} is not cached; run without --offline`);
+    const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`);
+    writeFileSync(f, Buffer.from(await r.arrayBuffer()));
+  }
+  return readFileSync(f);
+}
+let sstInfo = null;
+const sst = new Uint16Array(n).fill(65535);
+try {
+  // the latest day: the metadata are fetched again on every run that is not --offline
+  const metaFile = join(cache, 'ostia-zmetadata.json');
+  if (!offline || !existsSync(metaFile)) { const r = await fetch(`${OSTIA}/.zmetadata`); if (!r.ok) throw new Error(`.zmetadata: ${r.status}`); writeFileSync(metaFile, await r.text()); }
+  const meta = JSON.parse(readFileSync(metaFile, 'utf8')).metadata, arr = meta['analysed_sst/.zarray'], attrs = meta['analysed_sst/.zattrs'];
+  if (arr.compressor?.id !== 'blosc' || arr.dtype !== '<i2') throw new Error(`unexpected chunk format ${arr.dtype} ${arr.compressor?.id}`);
+  const [T, NY, NX] = arr.shape, [, CY, CX] = arr.chunks, day = T - 1;
+  const f32 = (b) => new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+  const lat = f32(blosc(await bytes('ostia-lat', `${OSTIA}/latitude/0`))), lon = f32(blosc(await bytes('ostia-lon', `${OSTIA}/longitude/0`)));
+  const tc = meta['time/.zarray'].chunks[0], times = new Int32Array(blosc(await bytes(`ostia-time-${Math.floor(day / tc)}-${T}`, `${OSTIA}/time/${Math.floor(day / tc)}`)).buffer);
+  const date = new Date((Date.UTC(1981, 0, 1) / 1000 + times[day % tc]) * 1000).toISOString().slice(0, 10);
+  const dy = lat[1] - lat[0], dx = lon[1] - lon[0];
+  const row = (y) => (y - lat[0]) / dy, col = (x) => (x - lon[0]) / dx;
+  const chunks = new Map();
+  for (let cy = Math.floor(row(S - 1) / CY); cy <= Math.floor(row(N + 1) / CY); cy++) for (let cx = Math.floor(col(W - 1) / CX); cx <= Math.floor(col(E + 1) / CX); cx++) {
+    const b = blosc(await bytes(`ostia-${date}-${cy}.${cx}`, `${OSTIA}/analysed_sst/${day}.${cy}.${cx}`));
+    chunks.set(`${cy},${cx}`, new Int16Array(b.buffer));
+  }
+  const cell = (r, c) => { const ch = chunks.get(`${Math.floor(r / CY)},${Math.floor(c / CX)}`); const v = ch ? ch[(r % CY) * CX + (c % CX)] : arr.fill_value; return v === arr.fill_value ? null : v; };
+  const kelvin = attrs.add_offset - 273.15, sf = attrs.scale_factor;
+  let filled = 0, near = 0;
+  for (let i = 0; i < n; i++) {
+    const [x, y] = keep[i], r0 = row(y), c0 = col(x), r = Math.floor(r0), c = Math.floor(c0), fr = r0 - r, fc = c0 - c;
+    let v = 0, w = 0;
+    for (const [rr, cc, ww] of [[r, c, (1 - fr) * (1 - fc)], [r + 1, c, fr * (1 - fc)], [r, c + 1, (1 - fr) * fc], [r + 1, c + 1, fr * fc]]) {
+      const q = cell(rr, cc); if (q != null) { v += q * ww; w += ww; }
+    }
+    // a node on the coast can fall in a cell that OSTIA counts as land: take the nearest sea cell, up to 0.3° away
+    if (w === 0) for (let k = 1; k <= 6 && w === 0; k++) for (let a = -k; a <= k && w === 0; a++) for (const b of [-k, k]) {
+      const q = cell(Math.round(r0) + a, Math.round(c0) + b) ?? cell(Math.round(r0) + b, Math.round(c0) + a); if (q != null) { v = q; w = 1; near++; break; }
+    }
+    if (w > 0) { sst[i] = Math.max(0, Math.min(65534, Math.round(((v / w) * sf + kelvin) * 100))); filled++; }
+  }
+  sstInfo = { date, scale: 0.01, missing: 65535, dataset: 'METOFFICE-GLO-SST-L4-NRT-OBS-SST-V2', product: 'SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001', doi: '10.48670/moi-00165' };
+  let lo = Infinity, hi = -Infinity; for (const t of sst) if (t !== 65535) { lo = Math.min(lo, t / 100); hi = Math.max(hi, t / 100); }
+  console.log(`sst: OSTIA ${date}, ${chunks.size} chunk(s), ${filled}/${n} nodes (${near} from a nearby cell), ${lo.toFixed(1)} to ${hi.toFixed(1)} °C`);
+} catch (e) {
+  // sstFail: the view opens without the temperature
+  console.warn(`sst: not read (${e.message}). The view will open without the temperature.\n` +
+    '  If Copernicus Marine now asks for an account, make one (free) at marine.copernicus.eu and tell the owner of this script.');
+}
+
 // ── the files ──
 const mesh = Buffer.alloc(n * 8 + tri.length * 2);
 keep.forEach(([x, y], i) => { mesh.writeFloatLE(x, i * 8); mesh.writeFloatLE(y, i * 8 + 4); });
 tri.forEach((v, k) => mesh.writeUInt16LE(v, n * 8 + k * 2));
 writeFileSync(join(out, 'mesh.bin'), mesh);
 writeFileSync(join(out, 'frames.bin'), frames);
+if (sstInfo) writeFileSync(join(out, 'sst.bin'), Buffer.from(sst.buffer));
 writeFileSync(join(out, 'run.json'), JSON.stringify({
   nodes: n, triangles: tri.length / 3, hours: winds.times.slice(0, F), fetched: winds.fetched,
   scales: { hs: 0.05, speed: 0.1, dir: 360 / 256 }, layout: 'per hour: hs[n], speed[n], from[n]',
-  bbox: grid.bbox, reach: REACH, spacing: grid.spacing,
-  sources: { land: 'Natural Earth 1:50m land (public domain)', wind: 'NOAA GFS 0.25°, 10 m wind, via Open-Meteo (CC BY 4.0)', sea: 'Hs = 0.21 U²/g (Pierson–Moskowitz), not WAVEWATCH III' },
+  bbox: grid.bbox, reach: REACH, spacing: grid.spacing, sst: sstInfo,
+  sources: { land: 'Natural Earth 1:50m land (public domain)', wind: 'NOAA GFS 0.25°, 10 m wind, via Open-Meteo (CC BY 4.0)', sea: 'Hs = 0.21 U²/g (Pierson–Moskowitz), not WAVEWATCH III', sst: sstInfo && `OSTIA ${sstInfo.date}, Copernicus Marine (doi:${sstInfo.doi}); these data were provided by GHRSST and Met Office` },
 }, null, 1));
 const kb = (f) => (readFileSync(join(out, f)).length / 1024).toFixed(0) + ' kB';
-console.log(`✓ public/grid/: land.json ${kb('land.json')}, mesh.bin ${kb('mesh.bin')}, frames.bin ${kb('frames.bin')} (${F} hours)`);
+console.log(`✓ public/grid/: land.json ${kb('land.json')}, mesh.bin ${kb('mesh.bin')}, frames.bin ${kb('frames.bin')} (${F} hours)${sstInfo ? `, sst.bin ${kb('sst.bin')}` : ''}`);
