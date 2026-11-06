@@ -6,6 +6,7 @@ import { createCameraRig } from './cameras.js';
 import { createInteractions } from './interact.js';
 import { createAudio } from './audio.js';
 import { createTV } from './tv.js';
+import { createRadio } from './radio.js';
 import { createPost } from './post.js';
 import { renderSignature } from './signature.js';
 
@@ -37,11 +38,12 @@ const loading = document.getElementById('loading');
 const setProgress = (p) => loading?.style.setProperty('--p', String(p));
 
 const room = await loadRoom(scene, config.roomModel, setProgress);
-const rig = createCameraRig(camera, config.shots, room.root.userData.cameras);
+const rig = createCameraRig(camera, config.shots, room.root.userData.cameras, { canvas });
 const post = createPost(renderer, scene, camera, { accent: config.theme.accent });
-const ui = createInteractions(camera, canvas, document.getElementById('tooltip'), { root: room.root, onHover: (o) => post.select(o) });
+const ui = createInteractions(camera, canvas, document.getElementById('tooltip'), { root: room.root, onHover: (o) => post.select(o), ignoreClick: () => rig.justDragged() });
 const audio = createAudio(camera);
 const tv = createTV(room.screen, { audio, signature: sig, config });
+const radio = createRadio(audio, config.radio);
 const redrawShadows = () => { renderer.shadowMap.needsUpdate = true; };
 
 // ── camera shot buttons, number keys, arrows and swipes ──
@@ -63,14 +65,6 @@ addEventListener('keydown', (e) => {
   if (e.key === 'Escape') rig.go(config.startShot);
   if (e.key === 'ArrowRight') rig.next(1);
   if (e.key === 'ArrowLeft') rig.next(-1);
-});
-let swipe = null;
-canvas.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') swipe = { x: e.clientX, y: e.clientY, t: performance.now() }; });
-canvas.addEventListener('pointerup', (e) => {
-  if (!swipe) return;
-  const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
-  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - swipe.t < 600) rig.next(dx < 0 ? 1 : -1);
-  swipe = null;
 });
 rig.go(config.startShot, true);
 
@@ -118,18 +112,37 @@ for (const h of config.hotspots) {
       if (h.action === 'link') window.open(h.value, '_blank', 'noopener');
       if (h.action === 'sfx') audio.play(config.sfx[h.value]);
       if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : lampOn; redrawShadows(); }
+      if (h.action === 'toggleRadio') radio.toggle();
     },
   });
 }
 
 // ── enter gate: needed so the browser lets us play sound ──
 const soundBtn = document.getElementById('sound');
+const beds = [];
 document.querySelector('#enter button').onclick = async () => {
   document.getElementById('enter').classList.add('gone');
   await audio.unlock(); soundBtn.textContent = 'sound: on';
-  config.ambience.forEach((a, i) => audio.loop(a, i === 1 ? room.screen : null)); // hum comes from the TV
+  config.ambience.forEach(async (a, i) => { // hum comes from the TV
+    const bed = await audio.loop(a, i === 1 ? room.screen : null); bed.userData = { volume: a.volume }; beds.push(bed);
+    if (radio.on) bed.setVolume(a.volume * config.radio.duck);
+  });
 };
 soundBtn.onclick = () => { soundBtn.textContent = `sound: ${audio.toggle() ? 'on' : 'off'}`; };
+
+// ── piabrota RADIO: the button at the top and the radio on the sill ──
+const radioBtn = document.getElementById('radio'), radioNext = document.getElementById('radio-next');
+const dial = room.find('radio_dial');
+radioBtn.onclick = () => radio.toggle();
+radioNext.onclick = () => radio.next();
+radio.onChange(({ on, track }) => {
+  radioBtn.textContent = on ? `${config.radio.name} · ${track.title}` : `${config.radio.name}: off`;
+  radioBtn.classList.toggle('active', on); radioBtn.setAttribute('aria-pressed', String(on));
+  radioBtn.title = on ? `${track.title}, by ${track.artist} (CC0)` : 'lofi, free-licensed';
+  radioNext.hidden = !on;
+  if (dial) dial.material.emissiveIntensity = on ? 1.6 : 0;
+  for (const b of beds) b.setVolume(b.userData.volume * (on ? config.radio.duck : 1));
+});
 
 // ── size ──
 function resize() {
@@ -151,7 +164,7 @@ loading?.classList.add('done');
 
 // ── loop ──
 const clock = new THREE.Clock();
-let elapsed = 0;
+let elapsed = 0, frames = 0;
 function frame() {
   tick(Math.min(clock.getDelta(), 1 / 30), true); // a long stall never turns into a jump
 }
@@ -168,7 +181,7 @@ function tick(dt, measure) {
   }
   const moving = rig.moving;
   rig.update(dt); room.update(elapsed); tv.update(dt);
-  ui.update(moving || tweens.length > 0);
+  ui.update(moving || tweens.length > 0 || ++frames % 3 === 0); // things on the wheel and the waves move too
   post.render(dt, elapsed, measure);
 }
 renderer.setAnimationLoop(frame);
@@ -181,14 +194,16 @@ export function pause() {
   paused = true; renderer.setAnimationLoop(null);
   wasRunning = audio.ctx.state === 'running';
   if (wasRunning) audio.ctx.suspend();
+  radio.pause();
 }
 export function resume() {
   if (!paused) return;
   paused = false; clock.getDelta(); resize(); renderer.setAnimationLoop(frame);
   if (wasRunning) audio.ctx.resume();
+  radio.resume();
 }
 // handy for debugging in the console; `step` drives the room by hand for `just record`
-window.__room = { rig, tv, room, renderer, camera, ui, step: (dt) => {
+window.__room = { rig, tv, radio, room, renderer, camera, ui, step: (dt) => {
   if (!stepping) { stepping = true; renderer.setAnimationLoop(() => {}); } // frames keep coming, the room only moves on step
   tick(dt, false);
 } };

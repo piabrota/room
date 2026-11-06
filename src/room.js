@@ -3,8 +3,11 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { tapes, hotspots, theme, people } from './config.js';
-import { fontsReady, frameArt, eyeArt, windowArt, photoArt, spineArt, noteArt } from './art.js';
+import { tapes, hotspots, theme, people, outside } from './config.js';
+import { buildOutside } from './outside.js';
+import { buildSea, buildLoop, buildRecords } from './props.js';
+import { woodGrain, planks, plaster } from './textures.js';
+import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt } from './art.js';
 
 // Loads your GLB if it exists, otherwise builds the placeholder room
 // from config. Either way it returns the same handles, so the rest of
@@ -96,16 +99,23 @@ function placeholderRoom() {
   const art = (kind) => hotspots.filter((h) => h.art?.kind === kind);
 
   // ── shell: floor, two walls, skirting, a rug ──
-  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), std('#2b2119', { roughness: 0.9 }), [0, 0, 0.5]);
+  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), new THREE.MeshStandardMaterial({ color: '#4a3424', map: planks(), roughness: 0.82 }), [0, 0, 0.5]);
   floor.rotation.x = -Math.PI / 2; floor.castShadow = false;
-  const wallMat = std('#2f3442', { roughness: 0.95 });
-  const back = mesh('wall_back', new THREE.PlaneGeometry(7, 3.2), wallMat, [0.5, 1.6, -2.0]); back.castShadow = false;
-  const left = mesh('wall_left', new THREE.PlaneGeometry(7, 3.2), std('#2a2f3c', { roughness: 0.95 }), [-3.0, 1.6, 0.5]);
+  const wall = (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.95, bumpMap: plaster(), bumpScale: 1.5 });
+  const wallMat = wall('#2f3442');
+  // the back wall, with an opening for the window (x 1.75..2.95, y 1.22..2.18)
+  for (const [w, h, x, y] of [[4.75, 3.2, -0.625, 1.6], [1.05, 3.2, 3.475, 1.6], [1.2, 1.22, 2.35, 0.61], [1.2, 1.02, 2.35, 2.69]]) {
+    const piece = mesh('wall_back', new THREE.PlaneGeometry(w, h), wallMat, [x, y, -2.0]); piece.castShadow = false;
+  }
+  const left = mesh('wall_left', new THREE.PlaneGeometry(7, 3.2), wall('#2a2f3c'), [-3.0, 1.6, 0.5]);
   left.rotation.y = Math.PI / 2; left.castShadow = false;
-  const right = mesh('wall_right', new THREE.PlaneGeometry(7, 3.2), std('#2a2f3c', { roughness: 0.95 }), [3.4, 1.6, 0.5]);
+  const right = mesh('wall_right', new THREE.PlaneGeometry(7, 3.2), wall('#2a2f3c'), [3.4, 1.6, 0.5]);
   right.rotation.y = -Math.PI / 2; right.castShadow = false;
   const ceiling = mesh('ceiling', new THREE.PlaneGeometry(7, 7), std('#1d2029', { roughness: 1 }), [0.2, 3.1, 0.5]);
   ceiling.rotation.x = Math.PI / 2; ceiling.castShadow = false;
+  const front = mesh('wall_front', new THREE.PlaneGeometry(7, 3.2), wall('#2c303d'), [0.2, 1.6, 3.8]);
+  front.rotation.y = Math.PI; front.castShadow = false;
+  box([7, 0.1, 0.03], [0.2, 0.05, 3.785], '#1c1f27');
   box([7, 0.1, 0.03], [0.5, 0.05, -1.985], '#1c1f27');
   box([0.03, 0.1, 7], [3.385, 0.05, 0.5], '#1c1f27');
   box([0.03, 0.1, 7], [-2.985, 0.05, 0.5], '#1c1f27');
@@ -114,7 +124,7 @@ function placeholderRoom() {
 
   // ── desk ──
   const deskY = 0.78, deskZ = -1.5;
-  rbox([2.3, 0.05, 0.85], [0.05, deskY, deskZ], '#6b4a32', { opts: { roughness: 0.55 } });
+  mesh('', new RoundedBoxGeometry(2.3, 0.05, 0.85, 2, 0.012), new THREE.MeshStandardMaterial({ color: '#8a6040', map: woodGrain(), roughness: 0.55 }), [0.05, deskY, deskZ]);
   for (const x of [-1.0, 1.1]) for (const z of [-1.85, -1.15]) box([0.05, deskY, 0.05], [x, deskY / 2, z], '#3e2a1c');
   const top = deskY + 0.025;
 
@@ -186,13 +196,22 @@ function placeholderRoom() {
   }
 
   // ── the window on Rio, with a frame and a sill ──
-  const win = windowArt();
   const wx = 2.35, wy = 1.7;
-  const glass = mesh('window', new THREE.PlaneGeometry(1.2, 0.96), new THREE.MeshBasicMaterial({ map: win.tex, toneMapped: false }), [wx, wy, -1.995]);
+  // the glass: a faint reflection, and Rio behind it in depth (outside.js)
+  const glass = mesh('window', new THREE.PlaneGeometry(1.2, 0.96), new THREE.MeshPhysicalMaterial({ color: '#9fb6d8', roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.08, depthWrite: false }), [wx, wy, -1.995]);
+  glass.renderOrder = 3;
+  animated.push(buildOutside(g, { center: new THREE.Vector3(wx, wy, -2), photo: outside?.photo }));
   glass.castShadow = false;
   for (const [s, p] of [[[1.32, 0.06, 0.08], [wx, wy + 0.51, -1.97]], [[1.32, 0.06, 0.08], [wx, wy - 0.51, -1.97]], [[0.06, 1.08, 0.08], [wx - 0.63, wy, -1.97]], [[0.06, 1.08, 0.08], [wx + 0.63, wy, -1.97]], [[0.03, 0.96, 0.03], [wx, wy, -1.98]], [[1.2, 0.03, 0.03], [wx, wy + 0.1, -1.98]]]) box(s, p, '#d8d2c4');
   box([1.4, 0.04, 0.2], [wx, wy - 0.56, -1.92], '#d8d2c4');
-  animated.push((t) => win.update(t));
+
+  // piabrota RADIO on the sill: a small transistor set, its dial lit while it plays
+  const radio = named('radio'); radio.position.set(wx + 0.42, wy - 0.54 + 0.07, -1.9); radio.rotation.y = -0.25;
+  mesh('', new RoundedBoxGeometry(0.24, 0.14, 0.08, 2, 0.02), std('#b8442f', { roughness: 0.45 }), [0, 0, 0], radio);
+  const grille = mesh('', new THREE.CircleGeometry(0.045, 24), std('#2a2522', { roughness: 0.9, metalness: 0.2 }), [-0.055, 0, 0.041], radio); grille.castShadow = false;
+  mesh('radio_dial', new THREE.PlaneGeometry(0.07, 0.035), new THREE.MeshStandardMaterial({ color: '#f1e3c0', emissive: '#ffb066', emissiveIntensity: 0 }), [0.06, 0.02, 0.041], radio).castShadow = false;
+  mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.012, 16).rotateX(Math.PI / 2), std('#d8d2c4', { metalness: 0.5, roughness: 0.3 }), [0.06, -0.035, 0.045], radio);
+  const aerial = mesh('', new THREE.CylinderGeometry(0.002, 0.002, 0.22, 6), std('#c9c9c9', { metalness: 0.8, roughness: 0.25 }), [0.08, 0.17, -0.01], radio); aerial.rotation.z = -0.35;
 
   // ── the board: people pinned as polaroids ──
   const bx = 1.15, by = 1.62;
@@ -250,6 +269,9 @@ function placeholderRoom() {
   part(new THREE.CylinderGeometry(0.25, 0.25, 0.03, 16), [0.1, 0.02, -0.75], '#3a3d45');
   part(new THREE.CylinderGeometry(0.16, 0.12, 0.34, 16), [-2.6, 0.17, 0.9], '#c9c2b4');
   for (let i = 0; i < 9; i++) part(new THREE.ConeGeometry(0.06, 0.7, 6), [-2.6 + Math.cos(i * 2.4) * 0.07, 0.62, 0.9 + Math.sin(i * 2.4) * 0.07], '#2f6b3a', { rot: [Math.sin(i * 2.4) * 0.35, 0, -Math.cos(i * 2.4) * 0.35] });
+
+  // ── the other walls: marola-dev's sea, ouroboric-dev's loop, h0ffmann's records ──
+  animated.push(buildSea(g, mesh, std, part), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
 
   // merge the static parts: one mesh per material
   for (const { mat, geos } of statics.values()) {

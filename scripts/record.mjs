@@ -77,6 +77,14 @@ async function click() {
   await step(3);
   await page.evaluate(([a, b]) => window.__rec(a, b, false), [mx, my]);
 }
+// a drag across the room: the 360° look
+async function drag(dx, seconds) {
+  await page.evaluate(([a, b]) => window.__rec(a, b, true), [mx, my]);
+  await page.mouse.down();
+  await moveTo(mx + dx, my, seconds);
+  await page.mouse.up(); await page.evaluate(([a, b]) => window.__rec(a, b, false), [mx, my]);
+  await step(4);
+}
 const wait = (s) => step(Math.round(s * FPS));
 const land = async () => { for (let i = 0; i < 75 && await page.evaluate(() => window.__room.rig.moving); i++) await step(); };
 // the screen position of a mesh, or of a shot button
@@ -119,9 +127,12 @@ await moveTo(...(await at('book_closed-source')), 0.6); await wait(0.5);        
 await moveTo(...(await button('desk')), 0.5); await click(); await land();
 await moveTo(...(await at('tape_bots')), 0.5); await click(); await wait(1.6);  // a tape into the VCR
 await moveTo(...(await at('lamp', 0.4)), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
-await page.keyboard.press('5'); await land();                                   // key 5: the board
-await moveTo(...(await at('photo_robkler')), 0.5); await wait(0.4);
-await page.keyboard.press('ArrowRight'); await land();                          // →: the next shot, the window
+const r = await page.locator('#radio').boundingBox();
+await moveTo(r.x + r.width / 2, r.y + r.height / 2, 0.5); await click(); await wait(0.3); // piabrota RADIO on
+await page.keyboard.press('7'); await land();                                   // key 7: the marola-dev sea
+await moveTo(...(await at('buoy_marola')), 0.5); await wait(0.4);              // hover a buoy
+await drag(-380, 1.4);                                                          // drag: look around, 360°
+await page.keyboard.press('9'); await land();                                   // key 9: the ouroboric-dev loop
 await page.keyboard.press('Escape'); await land();                              // Esc: back to the start
 await wait(Math.max(0.5, (15 * FPS - n) / FPS));
 

@@ -19,12 +19,24 @@ marola ([10.5281/zenodo.23224155](https://doi.org/10.5281/zenodo.23224155)), ww3
 ([10.5281/zenodo.23333656](https://doi.org/10.5281/zenodo.23333656)), marola-bench
 ([10.5281/zenodo.23352633](https://doi.org/10.5281/zenodo.23352633)) and nashkell, the open book
 ([10.5281/zenodo.23356739](https://doi.org/10.5281/zenodo.23356739)). The window looks on Rio at
-night, and the eye above the TV is the piabrota sign.
+night, Sugarloaf and Botafogo bay in a photograph set far behind the glass, with trees and a
+neighbour's roof in front of it, so the view moves in depth as the camera does. The eye above
+the TV is the piabrota sign.
 
-Move with the shot buttons, the keys 1 to 9, `←` `→`, or a swipe; `Esc` steps back. The camera
+The other walls hold the rest. On the right, a wave tank with a buoy for each marola-dev
+repository. Behind you, a belt of crates that loops along the wall, one crate for each
+ouroboric-dev repository. On the floor by the shelf, a crate of records, one sleeve for each of
+h0ffmann's public repositories, its cover drawn from its name.
+
+piabrota RADIO plays lofi in the room, from the button at the top or the radio on the window sill:
+free-licensed tracks only (CC0, [`CREDITS.md`](CREDITS.md)), and the ambience steps back while it
+plays.
+
+Move with the shot buttons, the keys 1 to 9, `←` `→`, or drag to look around the room (360°);
+`Esc` steps back. The camera
 moves on quintic curves that keep their speed when you change your mind halfway, so no move
-ever jerks. The picture goes through a post-processing chain (outline on hover, bloom, a film
-grade) that lowers its own quality when the frame rate drops.
+ever jerks. The picture goes through a post-processing chain (ambient occlusion, outline on hover,
+bloom, a film grade) that lowers its own quality when the frame rate drops.
 
 ## Run it
 
