@@ -91,9 +91,12 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, hotspots (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8) |
-| `src/lofi.js` | the LOFI view: the signature, the tapes and the link hotspots as plain text |
+| `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, from `config.reading` and `posts/`, on hash routes (`#/posts/<slug>`) |
+| `src/markdown.js` | reads a post: front matter, then Markdown into DOM nodes with `textContent`, never `innerHTML` |
+| `posts/*.md` | the posts of LOFI, one file each, `YYYY-MM-DD-slug.md`, with `title`, `date` and `summary` (the check asks) |
+| `scripts/feed.mjs` | the posts' RSS feed, `feed.xml` in the build (and in `just dev`) |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
 | `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material; the photographed wood of `public/textures/pbr/`; your feet under the camera (`buildBody`); the day and night light sets, the desk lamp at a third by day, the dust in the window's light |
 | `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note, record sleeves and the slipbox's two cards, crates, the tape labels in their retro faces, plastic, the keyboard, the VCR's front, typed paper, the folder |
@@ -137,6 +140,8 @@ shot, `Esc` for `startShot`, and a drag (mouse or finger) to look around from wh
   placeholder room makes one for each tape by itself), run `just check`.
 - A new sound: `just audio recording.wav <name>`, then add it to `config.ambience` or
   `config.sfx` with a `fallback`.
+- A new post: a Markdown file in `posts/`, named `YYYY-MM-DD-slug.md`, with `title`, `date` and
+  `summary` in its front matter. LOFI lists it, newest first, and `feed.xml` carries it.
 - A new radio track: lofi under CC0 or CC BY only. `just audio track.mp3 radio/<name>`, add it
   to a station's `tracks` in `config.radio` with `fallback: 'lofi'`, and a row to `CREDITS.md`
   (the check asks). A new station is one more entry in `config.radio.stations`.

@@ -1,49 +1,84 @@
-// The LOFI view: the room's content as plain text. Same config as the
-// 3D room (signature, tapes, link hotspots), built with DOM nodes and
-// textContent, never innerHTML, so config text stays text.
+// The LOFI view: the room as a page to read. Home, About, Work, Posts,
+// Online and Subscribe, from the same config as the 3D room, and the
+// posts from posts/*.md. One column, plain text, hash routes
+// (#/about, #/posts/<slug>...). Built with DOM nodes and textContent,
+// never innerHTML, so config text and posts stay text.
 import { renderSignature } from './signature.js';
+import { frontMatter, renderMarkdown } from './markdown.js';
 
-const el = (tag, text) => { const n = document.createElement(tag); if (text) n.textContent = text; return n; };
-const link = ({ label, url }) => {
-  const a = el('a', label); a.href = url; a.target = '_blank'; a.rel = 'noopener'; return a;
-};
+const files = import.meta.glob('../posts/*.md', { query: '?raw', import: 'default', eager: true });
+const posts = Object.entries(files).map(([path, src]) => {
+  const { meta, body } = frontMatter(src);
+  return { slug: path.split('/').pop().replace(/\.md$/, ''), body, ...meta };
+}).sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
 
-export function renderLofi(root, { signature, tapes = [], hotspots = [] }) {
-  const head = el('header');
-  renderSignature(head, signature);
-  root.replaceChildren(head);
+const el = (tag, text, cls) => { const n = document.createElement(tag); if (text) n.textContent = text; if (cls) n.className = cls; return n; };
+const out = (label, url) => { const a = el('a', label); a.href = url; if (/^https?:/.test(url)) { a.target = '_blank'; a.rel = 'noopener'; } return a; };
+const route = (label, to) => { const a = el('a', label); a.href = `#/${to}`; return a; };
+const day = (d) => (d ? new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '');
 
-  if (tapes.length) {
-    const sec = el('section'); sec.append(el('h2', 'tapes'));
-    const ul = el('ul');
-    for (const t of tapes) {
-      const li = el('li');
-      const swatch = el('span', '■ '); swatch.style.color = t.color; swatch.setAttribute('aria-hidden', 'true');
-      li.append(swatch, el('strong', t.label));
-      if (t.text) li.append(el('span', ` · ${t.text}`));
-      ul.append(li);
+export function renderLofi(root, config) {
+  const { signature, reading: r } = config, S = r.sections;
+
+  function nav() {
+    const n = el('nav'); n.setAttribute('aria-label', 'sections');
+    for (const k of ['about', 'work', 'posts', 'online']) n.append(route(S[k], k));
+    return n;
+  }
+  function postList(list) {
+    const ul = el('ul', null, 'posts');
+    if (!list.length) ul.append(el('li', r.empty));
+    for (const p of list) { const li = el('li'); li.append(route(p.title, `posts/${p.slug}`), el('time', day(p.date))); ul.append(li); }
+    return ul;
+  }
+  const section = (key, ...kids) => { const s = el('section'); s.id = `lofi-${key}`; s.append(el('h2', S[key]), ...kids); return s; };
+  const links = (items) => { const ul = el('ul'); for (const [label, url, hint] of items) { const li = el('li'); li.append(url ? out(label, url) : el('strong', label)); if (hint) li.append(el('span', ` · ${hint}`)); ul.append(li); } return ul; };
+
+  const about = () => section('about', ...r.about.map((t) => el('p', t)));
+  const work = () => {
+    const linkSpots = (g) => config.hotspots.filter((h) => h.group === g && h.action === 'link').map((h) => [h.label, h.value, h.hint]);
+    const s = section('work');
+    s.append(el('h3', 'piabrota'), links(config.projects.map((p) => [p.id, p.url, p.line])));
+    s.append(el('h3', 'works with a DOI'), links(config.works.map((w) => [w.title, `https://doi.org/${w.doi}`, `doi ${w.doi}`])));
+    s.append(el('h3', 'friends'), links([[config.sea.label, config.sea.url, config.sea.hint], [config.loop.label, config.loop.url, config.loop.hint]]));
+    s.append(el('h3', 'tapes'), links(config.tapes.map((t) => [t.label, null, t.text])));
+    s.append(el('h3', 'inspiration'), links(linkSpots('inspiration')));
+    return s;
+  };
+  const posts_ = (all) => section('posts', postList(all ? posts : posts.slice(0, r.latest)), ...(all || posts.length <= r.latest ? [] : [route(`${r.back} →`, 'posts')]));
+  const online = () => section('online', links(r.online.map((o) => [`${o.label} · ${o.handle}`, o.url])));
+  const subscribe = () => {
+    const p = el('p', `${r.subscribe.line} `); p.append(out(r.subscribe.feedLabel, r.feed));
+    const mail = config.hotspots.find((h) => h.name === 'fax');
+    const p2 = el('p', `${r.subscribe.mailLine} `); if (mail) p2.append(out(mail.hint, mail.value));
+    return section('subscribe', p, ...(mail ? [p2] : []));
+  };
+  function footer() {
+    const f = el('footer'), n = el('nav'); n.setAttribute('aria-label', 'footer');
+    n.append(route(S.home, ''), ...['about', 'work', 'posts', 'online', 'subscribe'].map((k) => route(S[k], k)));
+    f.append(n); return f;
+  }
+
+  function show() {
+    const path = location.hash.replace(/^#\/?/, '');
+    const head = el('header'); renderSignature(head, signature); head.append(nav());
+    const main = el('div', null, 'page');
+    const [kind, slug] = path.split('/');
+    if (kind === 'posts' && slug) {
+      const p = posts.find((x) => x.slug === slug);
+      const art = el('article');
+      if (p) { art.append(el('h2', p.title, 'title'), el('time', day(p.date)), renderMarkdown(p.body)); }
+      else art.append(el('p', r.empty));
+      const back = el('p'); back.append(route(`← ${r.back}`, 'posts')); art.append(back);
+      main.append(art);
+    } else if (kind && S[kind] && kind !== 'home') {
+      main.append({ about, work, posts: () => posts_(true), online, subscribe }[kind]());
+    } else {
+      main.append(about(), posts_(false), online());
     }
-    sec.append(ul); root.append(sec);
+    root.replaceChildren(head, main, footer());
+    if (document.body.classList.contains('lofi') && path) scrollTo(0, 0);
   }
-
-  // Link hotspots that the signature does not already list, one
-  // section per `group` (projects, bots, people, works with a DOI...).
-  const known = new Set(signature.links.map((l) => l.url));
-  const groups = new Map();
-  for (const h of hotspots) {
-    if (h.action !== 'link' || known.has(h.value)) continue;
-    const g = h.group ?? 'in the room';
-    if (!groups.has(g)) groups.set(g, []);
-    groups.get(g).push(h);
-  }
-  for (const [title, list] of groups) {
-    const sec = el('section'); sec.append(el('h2', title));
-    const ul = el('ul');
-    for (const h of list) {
-      const li = el('li'); li.append(link({ label: h.label, url: h.value }));
-      if (h.hint) li.append(el('span', ` · ${h.hint}`));
-      ul.append(li);
-    }
-    sec.append(ul); root.append(sec);
-  }
+  addEventListener('hashchange', show);
+  show();
 }

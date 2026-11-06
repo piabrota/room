@@ -44,6 +44,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 11 | 6 Nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) the wide window in the middle, a locked door, your feet when you look down, photographed wood, a beige computer, VHS tapes with retro labels, the CV, marola.dev and ouroboric-dev tapes, a fax, the Pirsig and pirsig cards, the closed-source file | 35 min |
 | 12 | 6 Nov 03:38 | [#16](https://github.com/piabrota/room/pull/16) a survey, [`docs/SURVEY.md`](docs/SURVEY.md): other rooms, frameworks, animation, our own shaders, a faster `just record`, the ▲ grid view with WW3 on triangles, and why the day blows out to white | 42 min |
 | 13 | 6 Nov 04:07 | [#16](https://github.com/piabrota/room/pull/16), second commit: the day no longer burns white (bloom by day and by night, AgX, the lamp dimmed by day), `just light`, a faster `just record` and `just stills`, CRT glass on the TV, dust in the window's light, and five Claude skills in `.claude/skills/` | 26 min |
+| 14 | 5 Nov 23:23 | [#17](https://github.com/piabrota/room/pull/17) LOFI as a page to read: home, about, work, posts from Markdown, online, subscribe by RSS (built 6 Nov) | 15 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -186,6 +187,19 @@ the PR'
 user> 'Dr. Aron Roland I meant'
 ```
 
+**14.**
+
+```text
+user> 'also hifi is the sound solution, lofi is the text only with blogposts'
+user> '[the address of Felix Rieseberg's room, in its reading mode] lofi version'
+user> 'Home
+About
+Work
+Posts
+Online
+Subscribe'
+```
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -229,6 +243,7 @@ is its own export, so you can replace one and keep the rest:
 | `tapes` | what the VCR plays | your tapes, one file each in `src/tapes/` |
 | `projects`, `bots`, `people`, `works` | the walls, the desk, the board, the shelf | your own lists |
 | `sea`, `loop`, `slipbox` | the other three walls | your own collections, or remove them |
+| `reading`, `posts/` | the LOFI page: about, online, subscribe; the posts | your words, your profiles; your posts, one Markdown file each |
 | `hotspots` | what can be clicked, and what it does | your labels, your words, your links |
 
 Until there is a model and recordings, the room is built from boxes and the sounds are

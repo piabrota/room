@@ -340,6 +340,28 @@ export const door = { label: 'door', hint: 'locked, for now' };
 // ── you: a pair of feet under the camera, seen when you look down ──
 export const body = { shoes: '#e9e6df', soles: '#f7f5f0', jeans: '#2b3a55', laces: '#c9c3b6' };
 
+// ── LOFI: the room as a page to read. The sections are in this order,
+// each with its word. Posts are Markdown files in posts/ (front matter:
+// title, date, summary); the newest is first, and the feed lists them.
+export const reading = {
+  site: 'https://room.piabrota.art',
+  feed: '/feed.xml',
+  sections: { home: 'home', about: 'about', work: 'work', posts: 'posts', online: 'online', subscribe: 'subscribe' },
+  about: [
+    'pia, brota is an open software fabric made in Rio de Janeiro: a company chart, a second brain, a runtime for agents and the box that serves this site, built in the open.',
+    'Its people are pinned to the board of the room, its two bots sit on the desk, and its friends, marola and Ouroboric, have a wall each. This page is the same room, as text.',
+  ],
+  latest: 3, // posts on the home page
+  online: [
+    { label: 'GitHub', handle: 'piabrota', url: 'https://github.com/piabrota' },
+    { label: 'GitHub', handle: 'h0ffmann', url: 'https://github.com/h0ffmann' },
+    { label: 'LinkedIn', handle: 'mhoffmannbr', url: 'https://www.linkedin.com/in/mhoffmannbr/' },
+    { label: 'piabrota.art', handle: 'piabrota.art', url: 'https://piabrota.art' },
+  ],
+  subscribe: { line: 'New posts come out in an RSS feed. Add it to your reader:', feedLabel: 'feed.xml', mailLine: 'or write to' },
+  back: 'all posts', empty: 'no posts yet',
+};
+
 // Hoverable things. `name` matches a mesh name in your GLB (or the
 // placeholder room, which builds one for each `art`). `action` is one
 // of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio'. `group` titles the LOFI list.
