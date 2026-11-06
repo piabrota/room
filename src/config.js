@@ -45,6 +45,7 @@ export const outside = {
   night: { photo: '/textures/rio-night.jpg', anchor: [0.63, 0.25] },
   day:   { photo: '/textures/rio-day.jpg',   anchor: [0.72, 0.4] },
   dayHours: [6, 18],
+  aim: [0.4, 6.0], // where the landmark sits, in metres from the middle of the window, 25 m out
 };
 
 // Named camera shots. Keys 1..n or the buttons switch between them.
@@ -55,8 +56,8 @@ export const shots = {
   desk:     { position: [0.05, 1.42, 0.75], target: [0.05, 1.08, -1.0], fov: 45 },
   fabric:   { position: [-0.7, 1.6, 0.55], target: [-3.0, 1.6, -0.2], fov: 52 },
   shelf:    { position: [-1.75, 1.35, 0.15], target: [-2.05, 1.25, -1.9], fov: 46 },
-  board:    { position: [1.15, 1.6, 0.25], target: [1.15, 1.6, -2.0], fov: 44 },
-  window:   { position: [2.1, 1.6, -0.05], target: [2.4, 1.68, -2.0], fov: 46 },
+  board:    { position: [2.45, 1.8, 0.25], target: [2.45, 1.82, -2.0], fov: 50 },
+  window:   { position: [0.2, 1.62, 0.7], target: [0.2, 2.12, -2.0], fov: 56 },
   sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
   slipbox:  { position: [-1.62, 0.88, -0.22], target: [-2.2, 0.18, -0.98], fov: 46 },
   loop:     { position: [0.4, 1.6, 1.0], target: [0.9, 1.65, 3.8], fov: 54 },
@@ -152,12 +153,19 @@ export const sfx = {
 // Tapes: each one is a module in src/tapes with mount/frame/input/stop.
 // `label` shows on hover, `color` tints the shell and the room light,
 // `text` is the line the LOFI (plain text) view shows for the tape.
+// `spine` is what is written on the tape's label, and in which face:
+// one of the retro faces in src/art.js (`marker`, `neon`, `pixel`,
+// `terminal`, `typewriter`), with the colour of the label and its ink.
+// The stack on the desk is built in this order, the last on top.
 export const tapes = [
-  { id: 'piabrota', label: 'PIABROTA (the fabric)', color: '#1682d4', text: 'a radio piece on piabrota, its people, its agents and its works, with links', module: () => import('./tapes/piabrota.js') },
-  { id: 'hello',  label: 'HELLO (who we are)', color: '#bc2318', text: 'the name, typed out, and where to find us', module: () => import('./tapes/hello.js') },
-  { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
-  { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
-  { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
+  { id: 'marola',    label: 'marola.dev',     color: '#0f3d66', text: 'the sea of marola-dev: its repositories, floating on live waves', spine: { text: 'marola.dev', face: 'neon', paper: '#08243f', ink: '#5cc8ff' }, module: () => import('./tapes/marola.js') },
+  { id: 'ouroboric', label: 'ouroboric-dev',  color: '#3a1d0e', text: 'Ouroboric\'s factory: the snake that eats its tail, and the repositories on its loop', spine: { text: 'ouroboric-dev', face: 'pixel', paper: '#f2e6c9', ink: '#c2410c' }, module: () => import('./tapes/ouroboric.js') },
+  { id: 'piabrota', label: 'PIABROTA (the fabric)', color: '#1682d4', spine: { text: 'piabrota', face: 'marker', paper: '#f4efe4', ink: '#1682d4' }, text: 'a radio piece on piabrota, its people, its agents and its works, with links', module: () => import('./tapes/piabrota.js') },
+  { id: 'hello',  label: 'HELLO (who we are)', color: '#bc2318', spine: { text: 'hello', face: 'marker', paper: '#f4efe4', ink: '#bc2318' }, text: 'the name, typed out, and where to find us', module: () => import('./tapes/hello.js') },
+  { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
+  { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950' }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
+  { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347' }, text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
+  { id: 'cv',        label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b' }, module: () => import('./tapes/cv.js') },
 ];
 
 // ── the fabric: piabrota's projects, framed on the left wall ──
@@ -259,8 +267,12 @@ export const loop = {
 export const slipbox = {
   label: 'slipbox', hint: 'Pirsig first, then h0ffmann\'s repositories', url: 'https://github.com/h0ffmann',
   front: [
-    { id: 'pirsig-wikipedia', title: 'Robert M. Pirsig', line: 'on Wikipedia', url: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig' },
-    { id: 'pirsig',           title: 'pirsig',           line: 'a second brain: PARA and a slip-box', url: 'https://github.com/piabrota/pirsig' },
+    // `card` is how the sleeve is drawn: `book`, a paperback of his book
+    // drawn in code (no cover is copied); `repo`, a card with a pill.
+    { id: 'pirsig-wikipedia', title: 'Robert M. Pirsig', line: 'Zen and the Art of Motorcycle Maintenance, on Wikipedia', url: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig',
+      card: { kind: 'book', title: 'Zen and the Art of Motorcycle Maintenance', sub: 'An Inquiry into Values', author: 'Robert M. Pirsig', year: '1974' } },
+    { id: 'pirsig',           title: 'pirsig',           line: 'the technical implementation of pirsig brain', url: 'https://github.com/piabrota/pirsig',
+      card: { kind: 'repo', pill: ['GitHub', 'piabrota/pirsig'], title: 'pirsig brain', line: 'the technical implementation: PARA and a slip-box, as files' } },
   ],
   sleeves: [
     { id: 'ww3-gpu',        line: 'WAVEWATCH III on the GPU, bit for bit',     url: 'https://github.com/h0ffmann/ww3-gpu' },
@@ -278,6 +290,56 @@ export const slipbox = {
   ],
 };
 
+// ── the CV tape (src/tapes/cv.js): Matheus Hoffmann's track record.
+// Every row comes from h0ffmann/h0ffmann, site/data/timeline.tsv at
+// cc597dc (each row has its own source there), told here in a few words
+// of this room. The six works with a DOI follow, from `works` above.
+export const cv = {
+  title: 'cv / h0ffmann', name: 'Matheus Hoffmann', url: 'https://github.com/h0ffmann/h0ffmann',
+  rows: [
+    { when: 'as a kid',  what: 'swimmer',                    where: 'Associação Atlética Portuguesa' },
+    { when: '2010–2012', what: 'electronics technician',     where: 'CEFET/RJ' },
+    { when: '2013–2020', what: 'Escola Politécnica',         where: 'UFRJ' },
+    { when: '2016–2017', what: 'research: an underwater ROV', where: 'LIOC, UFRJ' },
+    { when: '2017–2018', what: 'software engineer, payments', where: 'Stone' },
+    { when: '2019–2020', what: 'a PIX engine, before PIX',   where: 'iUPay and Guiabolso' },
+    { when: '2020',      what: 'senior software engineer',   where: 'Broad (YC W21)' },
+    { when: '2021–2022', what: 'lead MLOps',                 where: 'Elemeno AI' },
+    { when: '2023–2024', what: 'senior software and ML engineer, fraud', where: 'Signifyd' },
+    { when: '2024',      what: 'twenty days',                where: 'Japan' },
+    { when: '2025–2026', what: 'consulting',                 where: 'ITV' },
+    { when: 'Sep 2025',  what: '3rd place, 10 km open water', where: 'Oceanman Rio' },
+    { when: '2026',      what: 'the open ocean layer of the coast', where: 'marola' },
+    { when: '2026',      what: 'open factories, with Bruno Valério', where: 'Ouroboric' },
+    { when: 'Oct 2026',  what: 'six works with a DOI',       where: 'Zenodo' },
+  ],
+};
+
+// ── the contact: a fax on the desk. The address is kept in parts and
+// written with [at], so it is not lying in the page for a scraper.
+export const contact = {
+  label: 'fax', name: 'Matheus Hoffmann',
+  email: { user: 'mhoffmann', host: 'gmail.com' },
+  linkedin: { label: 'LinkedIn', url: 'https://www.linkedin.com/in/mhoffmannbr/' },
+};
+export const emailText = `${contact.email.user} [at] ${contact.email.host}`;
+const mailto = ['mailto:', contact.email.user, '@', contact.email.host].join('');
+
+// ── a file under the desk: closed source, a confidential letter ──
+export const closedSource = {
+  label: 'closed source', hint: 'a file marked confidential', url: 'https://h0ffmann.github.io/closed-source/',
+  letter: {
+    label: 'a confidential letter', hint: 'the paper, on Zenodo', url: 'https://doi.org/10.5281/zenodo.23333656',
+    lines: ['CONFIDENTIAL', '', 'Re: closed source', '', 'A book on reverse engineering', 'and the ethics of citation.', '', 'site: h0ffmann.github.io/closed-source', 'paper: doi 10.5281/zenodo.23333656', '', '— M. H.'],
+  },
+};
+
+// ── the door: locked, for now ──
+export const door = { label: 'door', hint: 'locked, for now' };
+
+// ── you: a pair of feet under the camera, seen when you look down ──
+export const body = { shoes: '#e9e6df', soles: '#f7f5f0', jeans: '#2b3a55', laces: '#c9c3b6' };
+
 // Hoverable things. `name` matches a mesh name in your GLB (or the
 // placeholder room, which builds one for each `art`). `action` is one
 // of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio'. `group` titles the LOFI list.
@@ -288,6 +350,11 @@ export const hotspots = [
   { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
   { name: 'quote',  label: '"Time is a flat circle."', hint: 'Rust Cohle', action: 'link', value: 'https://en.wikipedia.org/wiki/Rust_Cohle', group: 'inspiration', art: { kind: 'quote', text: 'Time is a flat circle', by: 'Rust Cohle' } },
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
+  { name: 'door',   label: door.label, hint: door.hint, action: 'sfx', value: 'click' },
+  { name: 'fax',    label: contact.label, hint: emailText, action: 'link', value: mailto, group: 'contact', art: { kind: 'fax' } },
+  { name: 'fax_linkedin', label: contact.linkedin.label, hint: contact.name, action: 'link', value: contact.linkedin.url, group: 'contact' },
+  { name: 'folder_closed-source', label: closedSource.label, hint: closedSource.hint, action: 'link', value: closedSource.url, group: 'closed source', art: { kind: 'folder' } },
+  { name: 'letter_closed-source', label: closedSource.letter.label, hint: closedSource.letter.hint, action: 'link', value: closedSource.letter.url, group: 'closed source' },
   { name: 'note',   label: 'inspiration: Robert M. Pirsig', hint: 'Zen and the Art of Motorcycle Maintenance', action: 'link', value: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig', group: 'inspiration', art: { kind: 'note', glyph: '無' } },
   ...projects.map((p) => ({
     name: `frame_${p.id}`, label: p.id, hint: p.line, action: 'link', value: p.url, group: 'projects',
@@ -318,7 +385,7 @@ export const hotspots = [
   { name: 'crate', label: slipbox.label, hint: slipbox.hint, action: 'shot', value: 'slipbox', group: 'slipbox' },
   ...slipbox.front.map((r, i) => ({
     name: `record_${r.id}`, label: r.title, hint: r.line, action: 'link', value: r.url, group: 'slipbox',
-    art: { kind: 'record', front: i },
+    art: { kind: 'record', front: i, card: r.card },
   })),
   ...slipbox.sleeves.map((r) => ({
     name: `record_${r.id}`, label: r.id, hint: r.line, action: 'link', value: r.url, group: 'slipbox',

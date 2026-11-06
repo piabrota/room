@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { hotspots, theme } from './config.js';
-import { recordArt, crateArt, texture, FONT_TITLE, FONT_MONO } from './art.js';
+import { recordArt, cardArt, crateArt, texture, FONT_TITLE, FONT_MONO } from './art.js';
 
 // The props of the two other walls and the floor, built from config:
 //   the sea    (right wall)  a wave tank, one buoy per marola-dev repo;
@@ -183,7 +183,7 @@ export function buildRecords(g, mesh, std, part) {
     mesh('', new THREE.BoxGeometry(...s), wood, p, grp);
   }
   const edge = std('#111', { roughness: 0.6 });
-  const sleeve = (h, pos) => mesh(h.name, new THREE.BoxGeometry(0.31, 0.31, 0.006), [edge, edge, edge, edge, new THREE.MeshStandardMaterial({ map: recordArt({ title: h.label, theme }), roughness: 0.6 }), edge], pos, grp);
+  const sleeve = (h, pos) => mesh(h.name, new THREE.BoxGeometry(0.31, 0.31, 0.006), [edge, edge, edge, edge, new THREE.MeshStandardMaterial({ map: h.art.card ? cardArt({ card: h.art.card, title: h.label, theme }) : recordArt({ title: h.label, theme }), roughness: 0.6 }), edge], pos, grp);
   // the two that start it, side by side, leaning on the front of the crate
   for (const h of art('record').filter((x) => x.art.front !== undefined)) {
     const s = sleeve(h, [(h.art.front - 0.5) * 0.33, 0.155, D / 2 + 0.045]);

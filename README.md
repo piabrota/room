@@ -41,6 +41,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 8 | 6 Nov 00:33 | [#7](https://github.com/piabrota/room/pull/7) the radio's own budget; [#12](https://github.com/piabrota/room/pull/12) 40 radio tracks in two stations and a listeners count, day and night, the rain button, the slipbox, the letter board, the favicon | 3 and 45 min |
 | 9 | 6 Nov 00:50 | this README | |
 | 10 | 6 Nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) the project's settings, in [`docs/CLAUDE_PROJECT.md`](docs/CLAUDE_PROJECT.md) | 6 min |
+| 11 | 6 Nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) the wide window in the middle, a locked door, your feet when you look down, photographed wood, a beige computer, VHS tapes with retro labels, the CV, marola.dev and ouroboric-dev tapes, a fax, the Pirsig and pirsig cards, the closed-source file | 35 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -136,6 +137,22 @@ user> 'please solve my personal typos in README.md'
 user> 'in a new PR dump your entire Claude Project settings, in the same way is done in other
 repos like piabrota/nix-os, so people can reproduce same environment with another Claude
 Project, without need of Claude Code CLI'
+```
+
+**11.**
+
+```text
+user> 'now do a big change on the scene, window should be way bigger and wider, and be central
+on top of the center wall. Also textures still dont feel realistic, like real wood, real
+computer, real VHS. The must be a door in the scene locked for now. the feet of the persona
+must be visible when they are at the center looking down (a bit of self perspective.). Also
+create a VHS for CV with my track record from h0ffmann/h0ffmann of my personal experiences. VHS
+tapes must be more realistic wider (with retro fonts like marola.dev, ouroboric-dev, cv /
+h0ffmann), also add a fax with my email mhoffmann [at] gmail.com and a linkedin button. Also
+improve slipbox, the Robert Pirsig card must looklike realistic with reference to ZAMM, and the
+other card must have a github pill for pirsig repository, technical implementation of pirsig
+brain. it must also contain a file under the desk callled closed source with confidencial
+letter pointing to h0ffmann/closed-source website and paper'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix

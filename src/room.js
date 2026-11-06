@@ -3,11 +3,18 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { tapes, hotspots, theme, people, outside } from './config.js';
+import { tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook } from './config.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { woodGrain, planks, plaster } from './textures.js';
-import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt } from './art.js';
+import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt } from './art.js';
+
+// Photographed wood (Poly Haven, CC0; CREDITS.md): colour, normal and roughness.
+const loader = new THREE.TextureLoader();
+function pbr(name, repeat = [1, 1], rot = 0) {
+  const map = (k, srgb) => { const t = loader.load(`/textures/pbr/${name}_${k}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.rotation = rot; t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
+  return { map: map('diff', true), normalMap: map('nor'), roughnessMap: map('rough') };
+}
 
 // Loads your GLB if it exists, otherwise builds the placeholder room
 // from config. Either way it returns the same handles, so the rest of
@@ -89,6 +96,9 @@ function useBakedLighting(root) {
 // whole room stays well under 100 draw calls; anything that can be
 // hovered is its own named mesh or group.
 // ─────────────────────────────────────────────────────────────
+// The window: wide, in the middle of the back wall, above the desk.
+const WIN = { x: 0.2, y: 2.2, w: 2.8, h: 1.4 };
+
 function placeholderRoom() {
   const g = new THREE.Group();
   const animated = [];
@@ -118,12 +128,13 @@ function placeholderRoom() {
   const art = (kind) => hotspots.filter((h) => h.art?.kind === kind);
 
   // ── shell: floor, two walls, skirting, a rug ──
-  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), new THREE.MeshStandardMaterial({ color: '#4a3424', map: planks(), roughness: 0.82 }), [0, 0, 0.5]);
+  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), new THREE.MeshStandardMaterial({ color: '#b9a48e', ...pbr('herringbone_parquet', [3.5, 3.5]), roughness: 1, normalScale: new THREE.Vector2(0.8, 0.8) }), [0, 0, 0.5]);
   floor.rotation.x = -Math.PI / 2; floor.castShadow = false;
   const wall = (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.95, bumpMap: plaster(), bumpScale: 1.5 });
   const wallMat = wall('#2f3442');
-  // the back wall, with an opening for the window (x 1.75..2.95, y 1.22..2.18)
-  for (const [w, h, x, y] of [[4.75, 3.2, -0.625, 1.6], [1.05, 3.2, 3.475, 1.6], [1.2, 1.22, 2.35, 0.61], [1.2, 1.02, 2.35, 2.69]]) {
+  // the back wall, with a wide opening for the window in the middle (x -1.2..1.6, y 1.5..2.9)
+  const W0 = WIN.x - WIN.w / 2, W1 = WIN.x + WIN.w / 2, H0 = WIN.y - WIN.h / 2, H1 = WIN.y + WIN.h / 2;
+  for (const [w, h, x, y] of [[W0 + 3, 3.2, (W0 - 3) / 2, 1.6], [4.0 - W1, 3.2, (W1 + 4.0) / 2, 1.6], [WIN.w, H0, WIN.x, H0 / 2], [WIN.w, 3.2 - H1, WIN.x, (H1 + 3.2) / 2]]) {
     mesh('wall_back', new THREE.PlaneGeometry(w, h), wallMat, [x, y, -2.0]); // it casts: the day's sun comes in by the window only
   }
   const left = mesh('wall_left', new THREE.PlaneGeometry(7, 3.2), wall('#2a2f3c'), [-3.0, 1.6, 0.5]);
@@ -141,30 +152,44 @@ function placeholderRoom() {
   rbox([2.4, 0.015, 1.7], [0, 0.008, -0.55], '#6e1a14', { opts: { roughness: 1 } });
   rbox([2.1, 0.017, 1.4], [0, 0.009, -0.55], '#3e1411', { opts: { roughness: 1 } });
 
-  // ── desk ──
-  const deskY = 0.78, deskZ = -1.5;
-  mesh('', new RoundedBoxGeometry(2.3, 0.05, 0.85, 2, 0.012), new THREE.MeshStandardMaterial({ color: '#8a6040', map: woodGrain(), roughness: 0.55 }), [0.05, deskY, deskZ]);
-  for (const x of [-1.0, 1.1]) for (const z of [-1.85, -1.15]) box([0.05, deskY, 0.05], [x, deskY / 2, z], '#3e2a1c');
+  // ── desk: walnut, under the window ──
+  const deskY = 0.78, deskZ = -1.45;
+  const walnut = new THREE.MeshStandardMaterial({ color: '#c9a888', ...pbr('american_walnut_veneer', [1.6, 0.6]), roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
+  mesh('', new RoundedBoxGeometry(2.3, 0.05, 0.95, 2, 0.012), walnut, [0.05, deskY, deskZ]);
+  for (const x of [-1.0, 1.1]) for (const z of [-1.82, -1.05]) mesh('', new THREE.BoxGeometry(0.05, deskY, 0.05), walnut, [x, deskY / 2, z]);
+  mesh('', new THREE.BoxGeometry(2.15, 0.1, 0.03), walnut, [0.05, deskY - 0.07, -1.88]); // the apron at the back
   const top = deskY + 0.025;
 
-  // TV on a small stand, VCR in front of it, tapes beside
-  box([0.5, 0.06, 0.38], [0.05, top + 0.03, -1.65], '#1a1a1d');
-  rbox([0.72, 0.56, 0.52], [0.05, top + 0.06 + 0.28, -1.65], '#1d1d21', { opts: { roughness: 0.4 } });
-  box([0.6, 0.46, 0.02], [0.05, top + 0.34, -1.385], '#0c0c0e');
-  const screen = mesh('screen', new THREE.PlaneGeometry(0.54, 0.4), new THREE.MeshBasicMaterial({ color: 0x111111 }), [0.05, top + 0.34, -1.373]);
+  // the computer: a beige CRT monitor on a stand, the VCR in front of it, a keyboard
+  const beige = (seed, color) => new THREE.MeshStandardMaterial({ map: plasticArt(color, seed), bumpMap: noiseTex(256, 30, seed), bumpScale: 0.4, roughness: 0.62 });
+  const plastic = beige(3, '#d6ccb8');
+  mesh('', new RoundedBoxGeometry(0.42, 0.06, 0.34, 2, 0.015), plastic, [0.05, top + 0.03, -1.66]);
+  mesh('', new RoundedBoxGeometry(0.66, 0.54, 0.34, 3, 0.03), plastic, [0.05, top + 0.06 + 0.27, -1.55]);
+  mesh('', new RoundedBoxGeometry(0.5, 0.42, 0.24, 3, 0.06), plastic, [0.05, top + 0.06 + 0.27, -1.8]); // the tube's back
+  const bezel = beige(8, '#cbbfa8');
+  mesh('', new RoundedBoxGeometry(0.6, 0.47, 0.02, 2, 0.008), bezel, [0.05, top + 0.35, -1.375]);
+  mesh('', new THREE.BoxGeometry(0.56, 0.43, 0.01), std('#141416', { roughness: 0.3 }), [0.05, top + 0.35, -1.368]);
+  const screen = mesh('screen', new THREE.PlaneGeometry(0.52, 0.39), new THREE.MeshBasicMaterial({ color: 0x111111 }), [0.05, top + 0.35, -1.36]);
   screen.castShadow = false;
-  const vcr = mesh('vcr', new RoundedBoxGeometry(0.58, 0.09, 0.36, 2, 0.015), std('#26262a', { roughness: 0.35, metalness: 0.3 }), [0.05, top + 0.045, -1.15]);
-  const led = mesh('vcr_led', new THREE.PlaneGeometry(0.03, 0.01), new THREE.MeshBasicMaterial({ color: '#ff3b2f', toneMapped: false }), [0.22, 0.01, 0.181], vcr);
+  mesh('', new THREE.SphereGeometry(0.006, 8, 6), new THREE.MeshBasicMaterial({ color: '#5dff9a', toneMapped: false }), [0.3, top + 0.09, -1.37]).castShadow = false; // power LED
+  const vcr = mesh('vcr', new RoundedBoxGeometry(0.58, 0.09, 0.32, 2, 0.012), std('#202023', { roughness: 0.4, metalness: 0.35 }), [0.05, top + 0.045, -1.17]);
+  mesh('', new THREE.PlaneGeometry(0.56, 0.0875), new THREE.MeshStandardMaterial({ map: vcrFrontArt(), roughness: 0.5, metalness: 0.2 }), [0, 0, 0.1605], vcr).castShadow = false;
+  const led = mesh('vcr_led', new THREE.PlaneGeometry(0.012, 0.006), new THREE.MeshBasicMaterial({ color: '#ff3b2f', toneMapped: false }), [0.25, 0.02, 0.162], vcr);
   led.castShadow = false;
-  box([0.26, 0.012, 0.005], [0.0, top + 0.06, -0.97], '#0a0a0a');
+  const kb = mesh('', new THREE.BoxGeometry(0.44, 0.025, 0.16), [plastic, plastic, new THREE.MeshStandardMaterial({ map: keyboardArt(), bumpMap: keyboardArt(), bumpScale: 0.6, roughness: 0.7 }), plastic, plastic, plastic], [-0.5, top + 0.0125, -1.14]);
+  kb.rotation.set(0.06, 0.1, 0);
+
+  // the tapes: a stack beside the VCR, spines out, labels by hand or in a retro face
+  const shell = std('#151517', { roughness: 0.55, bumpMap: noiseTex(128, 50, 2), bumpScale: 0.3 });
   tapes.forEach((t, i) => {
-    const tape = mesh(`tape_${t.id}`, new RoundedBoxGeometry(0.19, 0.028, 0.11, 2, 0.006), std(t.color, { roughness: 0.5 }), [0.62, top + 0.015 + i * 0.03, -1.2]);
-    tape.rotation.y = (i % 2 ? 1 : -1) * 0.06 * (i + 1);
-    const label = mesh('', new THREE.PlaneGeometry(0.12, 0.018), std('#efe9dc'), [0, 0, 0.0555], tape); label.castShadow = false;
+    const spine = t.spine ?? { text: t.label };
+    const faces = [shell, shell, new THREE.MeshStandardMaterial({ map: tapeTopArt(spine), roughness: 0.5 }), shell, new THREE.MeshStandardMaterial({ map: tapeSpineArt(spine), roughness: 0.6 }), shell];
+    const tape = mesh(`tape_${t.id}`, new THREE.BoxGeometry(0.205, 0.028, 0.115), faces, [0.62, top + 0.014 + i * 0.0285, -1.22]);
+    tape.rotation.y = Math.sin(i * 2.3) * 0.07;
   });
 
   // desk lamp: a base, an arm and a shade, hoverable as one
-  const lamp = named('lamp'); lamp.position.set(-0.55, top, -1.65);
+  const lamp = named('lamp'); lamp.position.set(-0.3, top, -1.75);
   const brass = std('#b08a4a', { metalness: 0.6, roughness: 0.35 });
   mesh('', new THREE.CylinderGeometry(0.09, 0.1, 0.03, 24), brass, [0, 0.015, 0], lamp);
   mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.42, 8), brass, [0, 0.23, 0], lamp);
@@ -173,10 +198,36 @@ function placeholderRoom() {
   const bulb = mesh('lamp_bulb', new THREE.SphereGeometry(0.03, 12, 8), new THREE.MeshBasicMaterial({ color: '#fff1d6', toneMapped: false }), [0, 0.42, 0], lamp);
   bulb.castShadow = false;
 
+  // the fax: the address on the page it printed, and a LinkedIn button
+  for (const h of art('fax')) {
+    const fax = named(h.name); fax.position.set(-0.95, top, -1.7); fax.rotation.y = 0.25;
+    const faxPlastic = beige(11, '#cfc8ba');
+    mesh('', new RoundedBoxGeometry(0.32, 0.09, 0.26, 2, 0.02), faxPlastic, [0, 0.045, 0], fax);
+    mesh('', new RoundedBoxGeometry(0.3, 0.05, 0.12, 2, 0.015), faxPlastic, [0, 0.1, -0.06], fax);
+    mesh('', new THREE.PlaneGeometry(0.1, 0.03), new THREE.MeshBasicMaterial({ color: '#9fb88a' }), [-0.06, 0.0905, 0.07], fax).rotation.x = -Math.PI / 2; // the display
+    for (let k = 0; k < 12; k++) mesh('', new THREE.BoxGeometry(0.018, 0.008, 0.016), std('#4a4740'), [0.04 + (k % 3) * 0.024, 0.093, 0.03 + Math.floor(k / 3) * 0.022], fax);
+    const page = mesh('', new THREE.PlaneGeometry(0.21, 0.27), new THREE.MeshStandardMaterial({ map: paperArt({ lines: ['FAX', '', `to: you`, `from: ${contact.name}`, '', emailText, '', contact.linkedin.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')], stamp: 'RECEIVED' }), side: THREE.DoubleSide, roughness: 0.9 }), [0, 0.24, -0.1], fax);
+    page.rotation.x = -0.32; page.castShadow = false;
+    const li = new THREE.Group(); li.name = 'fax_linkedin'; li.position.set(0.12, 0.092, -0.03); fax.add(li);
+    mesh('', new THREE.CylinderGeometry(0.018, 0.018, 0.012, 20), std('#0a66c2', { roughness: 0.4, emissive: '#0a66c2', emissiveIntensity: 0.25 }), [0, 0.006, 0], li);
+    const tag = document.createElement('canvas'); tag.width = tag.height = 64; const tc = tag.getContext('2d');
+    tc.fillStyle = '#0a66c2'; tc.fillRect(0, 0, 64, 64); tc.fillStyle = '#fff'; tc.font = 'bold 40px Arial, sans-serif'; tc.textAlign = 'center'; tc.textBaseline = 'middle'; tc.fillText('in', 32, 34);
+    const tagTex = new THREE.CanvasTexture(tag); tagTex.colorSpace = THREE.SRGBColorSpace;
+    const cap = mesh('', new THREE.CircleGeometry(0.017, 20), new THREE.MeshBasicMaterial({ map: tagTex }), [0, 0.0125, 0], li); cap.rotation.x = -Math.PI / 2; cap.castShadow = false;
+  }
+
   // the note: the inspiration
   for (const h of art('note')) {
-    const note = mesh(h.name, new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: noteArt({ glyph: h.art.glyph, lines: [h.label.replace(/^.*?: /, ''), h.hint], theme }), roughness: 0.9 }), [-0.35, top + 0.002, -1.2]);
+    const note = mesh(h.name, new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: noteArt({ glyph: h.art.glyph, lines: [h.label.replace(/^.*?: /, ''), h.hint], theme }), roughness: 0.9 }), [-0.98, top + 0.002, -1.12]);
     note.rotation.set(-Math.PI / 2, 0, 0.18); note.castShadow = false;
+  }
+
+  // ── under the desk: a file marked closed source, a letter half out of it ──
+  for (const h of art('folder')) {
+    const f = named(h.name); f.position.set(0.62, 0.006, -1.0); f.rotation.y = -0.35;
+    mesh('', new THREE.BoxGeometry(0.32, 0.012, 0.24), [std('#c9a764'), std('#c9a764'), new THREE.MeshStandardMaterial({ map: folderArt({ title: closedSource.label }), roughness: 0.85 }), std('#c9a764'), std('#c9a764'), std('#c9a764')], [0, 0, 0], f);
+    const letter = mesh('letter_closed-source', new THREE.PlaneGeometry(0.2, 0.28), new THREE.MeshStandardMaterial({ map: paperArt({ lines: closedSource.letter.lines, stamp: 'CONFIDENTIAL', size: 13 }), roughness: 0.9 }), [0.13, 0.008, 0.06], f);
+    letter.rotation.set(-Math.PI / 2, 0, 0.5); letter.castShadow = false;
   }
 
   // ── the bots: two small robots on the desk, eyes that blink ──
@@ -205,43 +256,44 @@ function placeholderRoom() {
     });
   });
 
-  // ── a letter board on the wall, beside the eye: a line someone said ──
+  // ── the right of the back wall: the eye, the letter board beside it, the people below ──
+  const RX = 2.5;
   for (const h of art('quote')) {
-    const board = named(h.name); board.position.set(-0.78, 2.02, -1.975);
+    const board = named(h.name); board.position.set(RX + 0.42, 2.3, -1.975);
     mesh('', new THREE.BoxGeometry(0.62, 0.44, 0.025), std('#5a3d28', { roughness: 0.7 }), [0, 0, 0], board);
     mesh('', new THREE.PlaneGeometry(0.58, 0.4), new THREE.MeshStandardMaterial({ map: quoteArt({ text: h.art.text, by: h.art.by, theme }), roughness: 0.95 }), [0, 0, 0.0135], board).castShadow = false;
   }
-
-  // ── the sign: the piabrota eye, glowing above the TV ──
   for (const h of hotspots.filter((x) => x.name === 'sign')) {
-    const sign = named(h.name); sign.position.set(0.05, 2.08, -1.97);
-    box([0.62, 0.62, 0.02], [0.05, 2.08, -1.985], '#111');
+    const sign = named(h.name); sign.position.set(RX - 0.36, 2.3, -1.97);
+    box([0.62, 0.62, 0.02], [RX - 0.36, 2.3, -1.985], '#111');
     const face = mesh('', new THREE.PlaneGeometry(0.56, 0.56), new THREE.MeshStandardMaterial({ map: eyeArt(theme), emissiveMap: eyeArt(theme), emissive: '#ffffff', emissiveIntensity: 1.6, toneMapped: false }), [0, 0, 0.002], sign);
     face.castShadow = false;
     animated.push((t) => { face.material.emissiveIntensity = 1.5 + Math.sin(t * 2.1) * 0.05 + (Math.sin(t * 13.7) > 0.995 ? -0.6 : 0); });
   }
 
-  // ── the window on Rio, with a frame and a sill ──
-  const wx = 2.35, wy = 1.7;
-  // the glass: a faint reflection, and Rio behind it in depth (outside.js)
-  const glass = mesh('window', new THREE.PlaneGeometry(1.2, 0.96), new THREE.MeshPhysicalMaterial({ color: '#9fb6d8', roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.08, depthWrite: false }), [wx, wy, -1.995]);
-  glass.renderOrder = 3;
-  const view = buildOutside(g, { center: new THREE.Vector3(wx, wy, -2), night: outside?.night, day: outside?.day });
+  // ── the window on Rio: wide, in the middle, with a frame, mullions and a sill ──
+  const { x: wx, y: wy, w: ww, h: wh } = WIN;
+  const glass = mesh('window', new THREE.PlaneGeometry(ww, wh), new THREE.MeshPhysicalMaterial({ color: '#9fb6d8', roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.07, depthWrite: false }), [wx, wy, -1.995]);
+  glass.renderOrder = 3; glass.castShadow = false;
+  const view = buildOutside(g, { center: new THREE.Vector3(wx, wy, -2), aim: outside?.aim, night: outside?.night, day: outside?.day });
   animated.push(view); g.userData.outside = view;
-  glass.castShadow = false;
-  for (const [s, p] of [[[1.32, 0.06, 0.08], [wx, wy + 0.51, -1.97]], [[1.32, 0.06, 0.08], [wx, wy - 0.51, -1.97]], [[0.06, 1.08, 0.08], [wx - 0.63, wy, -1.97]], [[0.06, 1.08, 0.08], [wx + 0.63, wy, -1.97]], [[0.03, 0.96, 0.03], [wx, wy, -1.98]], [[1.2, 0.03, 0.03], [wx, wy + 0.1, -1.98]]]) box(s, p, '#d8d2c4');
-  box([1.4, 0.04, 0.2], [wx, wy - 0.56, -1.92], '#d8d2c4');
+  const frameMat = '#d8d2c4';
+  box([ww + 0.12, 0.07, 0.09], [wx, wy + wh / 2 + 0.03, -1.97], frameMat); box([ww + 0.12, 0.07, 0.09], [wx, wy - wh / 2 - 0.03, -1.97], frameMat);
+  box([0.07, wh + 0.12, 0.09], [wx - ww / 2 - 0.03, wy, -1.97], frameMat); box([0.07, wh + 0.12, 0.09], [wx + ww / 2 + 0.03, wy, -1.97], frameMat);
+  for (const k of [-1, 0, 1]) box([0.035, wh, 0.04], [wx + k * ww / 4 + (k === 0 ? 0 : 0), wy, -1.98], frameMat); // three mullions: four panes
+  box([ww, 0.03, 0.035], [wx, wy + wh * 0.18, -1.98], frameMat); // the transom
+  box([ww + 0.25, 0.04, 0.22], [wx, wy - wh / 2 - 0.08, -1.9], frameMat); // the sill
 
   // piabrota RADIO on the sill: a small transistor set, its dial lit while it plays
-  const radio = named('radio'); radio.position.set(wx + 0.42, wy - 0.54 + 0.07, -1.9); radio.rotation.y = -0.25;
+  const radio = named('radio'); radio.position.set(wx + ww / 2 - 0.25, wy - wh / 2 - 0.06 + 0.07, -1.88); radio.rotation.y = -0.25;
   mesh('', new RoundedBoxGeometry(0.24, 0.14, 0.08, 2, 0.02), std('#b8442f', { roughness: 0.45 }), [0, 0, 0], radio);
   const grille = mesh('', new THREE.CircleGeometry(0.045, 24), std('#2a2522', { roughness: 0.9, metalness: 0.2 }), [-0.055, 0, 0.041], radio); grille.castShadow = false;
   mesh('radio_dial', new THREE.PlaneGeometry(0.07, 0.035), new THREE.MeshStandardMaterial({ color: '#f1e3c0', emissive: '#ffb066', emissiveIntensity: 0 }), [0.06, 0.02, 0.041], radio).castShadow = false;
   mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.012, 16).rotateX(Math.PI / 2), std('#d8d2c4', { metalness: 0.5, roughness: 0.3 }), [0.06, -0.035, 0.045], radio);
   const aerial = mesh('', new THREE.CylinderGeometry(0.002, 0.002, 0.22, 6), std('#c9c9c9', { metalness: 0.8, roughness: 0.25 }), [0.08, 0.17, -0.01], radio); aerial.rotation.z = -0.35;
 
-  // ── the board: people pinned as polaroids ──
-  const bx = 1.15, by = 1.62;
+  // ── the board: people pinned as polaroids, under the eye ──
+  const bx = RX, by = 1.45;
   rbox([0.95, 0.62, 0.03], [bx, by, -1.985], '#8a6a46', { opts: { roughness: 1 } });
   art('photo').forEach((h, i) => {
     const p = people.find((x) => `photo_${x.id}` === h.name) ?? { name: h.label.replace('@', ''), line: h.hint };
@@ -250,6 +302,22 @@ function placeholderRoom() {
     ph.rotation.z = [0.06, -0.04, 0.08, -0.07][i % 4]; ph.castShadow = false;
     const pin = mesh('', new THREE.SphereGeometry(0.012, 8, 6), std(theme.accent), [0, 0.11, 0.008], ph); pin.castShadow = false;
   });
+
+  // ── the door, on the front wall: locked, for now ──
+  for (const h of hotspots.filter((x) => x.name === 'door')) {
+    const door = named(h.name); door.position.set(-1.55, 0, 3.78); door.rotation.y = Math.PI;
+    const dw = 0.9, dh = 2.05;
+    const doorWood = new THREE.MeshStandardMaterial({ color: '#a88a70', ...pbr('american_walnut_veneer', [0.5, 1.2], Math.PI / 2), roughness: 1 });
+    mesh('', new THREE.BoxGeometry(dw, dh, 0.045), doorWood, [0, dh / 2, 0.02], door);
+    for (const [px, py, pw, ph] of [[0, 1.45, 0.62, 0.7], [0, 0.55, 0.62, 0.8]]) mesh('', new THREE.BoxGeometry(pw, ph, 0.012), doorWood, [px, py, 0.048], door); // two raised panels
+    for (const [s2, p2] of [[[0.08, dh + 0.08, 0.06], [-dw / 2 - 0.04, (dh + 0.08) / 2, 0.01]], [[0.08, dh + 0.08, 0.06], [dw / 2 + 0.04, (dh + 0.08) / 2, 0.01]], [[dw + 0.16, 0.08, 0.06], [0, dh + 0.04, 0.01]]]) mesh('', new THREE.BoxGeometry(...s2), std('#d8d2c4'), p2, door);
+    const knob = std('#b08a4a', { metalness: 0.8, roughness: 0.3 });
+    mesh('', new THREE.SphereGeometry(0.03, 16, 12), knob, [dw / 2 - 0.09, 1.0, 0.08], door);
+    mesh('', new THREE.CylinderGeometry(0.035, 0.035, 0.01, 20).rotateX(Math.PI / 2), knob, [dw / 2 - 0.09, 1.0, 0.05], door);
+    mesh('', new THREE.BoxGeometry(0.03, 0.06, 0.01), knob, [dw / 2 - 0.09, 1.12, 0.05], door); // the keyhole plate, locked
+    const tag = paperArt({ lines: ['LOCKED', '', 'for now'], w: 128, h: 96, size: 14 });
+    mesh('', new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: tag, roughness: 0.9 }), [0, 1.62, 0.056], door).castShadow = false;
+  }
 
   // ── the bookcase: the works with a DOI on the middle shelf ──
   const shelf = named('shelf');
@@ -306,4 +374,33 @@ function placeholderRoom() {
     m.castShadow = m.receiveShadow = true; m.name = 'static'; g.add(m);
   }
   return { root: g, animated };
+}
+
+// You: a pair of sneakers and the legs of a pair of jeans, standing under
+// the camera and turned the way it looks, so looking down from where you
+// stand shows your own feet. Hidden when the camera is low (the slipbox).
+export function buildBody(look) {
+  const g = new THREE.Group(); g.name = 'you';
+  const mat = (color, roughness = 0.8) => new THREE.MeshStandardMaterial({ color, roughness });
+  const jeans = new THREE.MeshStandardMaterial({ color: look.jeans, roughness: 0.95, bumpMap: noiseTex(128, 70, 13), bumpScale: 0.8 });
+  const shoe = mat(look.shoes, 0.7), sole = mat(look.soles, 0.9), lace = mat(look.laces);
+  for (const s of [-1, 1]) {
+    const foot = new THREE.Group(); foot.position.set(s * 0.11, 0, 0.0); foot.rotation.y = s * -0.12; g.add(foot);
+    const add = (geo, m, p, r) => { const o = new THREE.Mesh(geo, m); o.position.set(...p); if (r) o.rotation.set(...r); o.castShadow = false; o.receiveShadow = true; foot.add(o); return o; };
+    add(new RoundedBoxGeometry(0.105, 0.03, 0.29, 2, 0.012), sole, [0, 0.015, -0.1]);
+    add(new RoundedBoxGeometry(0.1, 0.075, 0.26, 3, 0.035), shoe, [0, 0.06, -0.1]);
+    add(new RoundedBoxGeometry(0.06, 0.012, 0.11, 2, 0.005), lace, [0, 0.1, -0.13], [0.2, 0, 0]);
+    add(new THREE.CylinderGeometry(0.075, 0.062, 0.78, 14), jeans, [0, 0.5, 0.03], [0.08, 0, 0]); // the leg, from the knee down, leaning back to the hip
+    add(new THREE.CylinderGeometry(0.068, 0.068, 0.05, 14), jeans, [0, 0.11, -0.005]); // the hem
+  }
+  const _f = new THREE.Vector3();
+  g.follow = (camera) => {
+    _f.set(0, 0, -1).applyQuaternion(camera.quaternion); _f.y = 0;
+    const yaw = _f.lengthSq() > 1e-6 ? Math.atan2(-_f.x, -_f.z) : g.rotation.y;
+    g.rotation.y = yaw;
+    // stand a step behind the eye, so the shoes show a little ahead of it
+    g.position.set(camera.position.x + Math.sin(yaw) * 0.06, 0, camera.position.z + Math.cos(yaw) * 0.06);
+    g.visible = camera.position.y > 1.25;
+  };
+  return g;
 }

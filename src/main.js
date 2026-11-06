@@ -5,6 +5,11 @@
 // `?static`) opens in LOFI, and without WebGL LOFI is the only view.
 import '@fontsource/fjalla-one/latin-400.css';
 import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/permanent-marker/latin-400.css';
+import '@fontsource/monoton/latin-400.css';
+import '@fontsource/press-start-2p/latin-400.css';
+import '@fontsource/vt323/latin-400.css';
+import '@fontsource/special-elite/latin-400.css';
 import * as config from './config.js';
 import { renderLofi } from './lofi.js';
 

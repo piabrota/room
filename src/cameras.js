@@ -65,7 +65,7 @@ export function createCameraRig(camera, shots, gltfCameras = [], { center = [0.3
   // ── 360: drag to look all the way around, from where the camera stands.
   // The camera never moves for this, so it cannot leave the room; picking
   // a shot turns the view back to that shot's framing.
-  const look = { yaw: 0, pitch: 0 }, lookGoal = { yaw: 0, pitch: 0 };
+  const look = { yaw: 0, pitch: 0 }, lookGoal = { yaw: 0, pitch: 0 }, _fwd = new THREE.Vector3();
   let drag = null, draggedAt = -1e9;
   if (canvas) {
     canvas.addEventListener('pointerdown', (e) => {
@@ -79,7 +79,9 @@ export function createCameraRig(camera, shots, gltfCameras = [], { center = [0.3
       drag.moved = true; canvas.style.cursor = 'grabbing';
       const k = (camera.fov * Math.PI / 180) / innerHeight; // a pixel turns the view by a pixel
       lookGoal.yaw = drag.yaw + dx * k;
-      lookGoal.pitch = THREE.MathUtils.clamp(drag.pitch + dy * k, -0.95, 0.95);
+      // down far enough to see your own feet, never past straight down
+      const base = Math.asin(THREE.MathUtils.clamp(_fwd.set(0, 0, -1).applyQuaternion(quat).y, -1, 1));
+      lookGoal.pitch = THREE.MathUtils.clamp(drag.pitch + dy * k, -1.48 - base, 0.95 - base);
     });
     const end = (e) => {
       if (!drag || e.pointerId !== drag.id) return;

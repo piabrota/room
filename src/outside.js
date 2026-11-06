@@ -26,7 +26,7 @@ const ridge = (ctx, w, h, pts, color) => {
   ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
 };
 
-export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2), night: nightPhoto, day: dayPhoto } = {}) {
+export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2), aim: aimAt = [0.3, 3.2], night: nightPhoto, day: dayPhoto } = {}) {
   const root = new THREE.Group(); root.name = 'outside'; parent.add(root);
   const drawn = new THREE.Group(); root.add(drawn);
   let g = root;
@@ -125,7 +125,7 @@ export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2)
   // sits where the window looks.
   let twinkle = null, isDay = false;
   const photos = {};
-  const aim = new THREE.Vector2(2.65, 1.8);
+  const aim = new THREE.Vector2(...aimAt); // where the landmark sits, from the middle of the window, 25 m out
   function loadPhoto(kind, { photo, anchor = [0.5, 0.5] }) {
     const img = new Image();
     img.onload = () => {

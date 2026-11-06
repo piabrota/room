@@ -19,6 +19,8 @@ asset gets a row here in the same commit that adds it.
 | `public/audio/eject.mp3` | magedu, with the owner's edit | "video_recorder_eject_cassette" (freesound 267832), trimmed and normalized | CC BY 4.0 |
 | `public/audio/insert.mp3` | magedu, with the owner's edit | the same recording, reversed | CC BY 4.0 |
 | `public/audio/tape-piabrota.mp3` | the owner; klankbeeld, YleArkisto and magedu | the score of `src/score.js`, mixed with freesound 350358, 219877 and 267832 by `just compose` | CC BY 4.0 |
+| `public/textures/pbr/herringbone_parquet_*.jpg`, the floor | Sergej Majboroda (photography), Jenelle van Heerden (processing) | "Herringbone Parquet" on [Poly Haven](https://polyhaven.com/a/herringbone_parquet), 1k, re-encoded | CC0 1.0 |
+| `public/textures/pbr/american_walnut_veneer_*.jpg`, the desk and the door | Jenelle van Heerden | "American Walnut Veneer" on [Poly Haven](https://polyhaven.com/a/american_walnut_veneer), 1k, re-encoded | CC0 1.0 |
 | `public/textures/rio-day.jpg`, the view from the window by day | Arian Zwegers | "Rio de Janeiro, Pão de Açúcar from Cristo Redentor" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro,_P%C3%A3o_de_A%C3%A7%C3%BAcar_from_Cristo_Redentor_(15744316848).jpg), resized to 1920 px | CC BY 2.0 |
 | `public/textures/rio-night.jpg`, the view from the window at night | Wilfredor | "Rio de Janeiro at night from above, Rio de Janeiro.jpg" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro_at_night_from_above,_Rio_de_Janeiro.jpg), resized to 1920 px | CC0 1.0 |
 | `public/audio/radio/ocean-memory.mp3`, on piabrota RADIO | HoliznaCC0 | "Ocean Memory" on [Free Music Archive](https://freemusicarchive.org/music/holiznacc0/ocean-memory-lo-fi-chill/ocean-memory/), normalized to -18 LUFS, 96 kb/s | CC0 1.0 |
@@ -63,6 +65,11 @@ asset gets a row here in the same commit that adds it.
 | `public/audio/radio/brasil-cafezinho-com-leite.mp3`, on piabrota RADIO (lofi brasil) | Popoi | "Cafezinho com Leite", Jamendo album 455155, as archived on [archive.org](https://archive.org/details/jamendo-455155), normalized to -18 LUFS, 96 kb/s | CC BY 3.0 |
 | Fjalla One (titles), bundled from `@fontsource/fjalla-one` | Sorkin Type | [Fontsource](https://fontsource.org/fonts/fjalla-one) | OFL-1.1 |
 | JetBrains Mono (interface), bundled from `@fontsource/jetbrains-mono` | JetBrains | [Fontsource](https://fontsource.org/fonts/jetbrains-mono) | OFL-1.1 |
+| Permanent Marker (tape labels by hand), bundled from `@fontsource/permanent-marker` | Font Diner | [Fontsource](https://fontsource.org/fonts/permanent-marker) | Apache-2.0 |
+| Monoton (the neon tape labels, the marola.dev tape), bundled from `@fontsource/monoton` | Vernon Adams | [Fontsource](https://fontsource.org/fonts/monoton) | OFL-1.1 |
+| Press Start 2P (the pixel tape labels, the ouroboric-dev tape), bundled from `@fontsource/press-start-2p` | CodeMan38 | [Fontsource](https://fontsource.org/fonts/press-start-2p) | OFL-1.1 |
+| VT323 (the terminal tape labels, the CV tape, the VCR clock), bundled from `@fontsource/vt323` | Peter Hull | [Fontsource](https://fontsource.org/fonts/vt323) | OFL-1.1 |
+| Special Elite (the typed paper: the fax, the letter, the door's tag), bundled from `@fontsource/special-elite` | Astigmatic | [Fontsource](https://fontsource.org/fonts/special-elite) | Apache-2.0 |
 | `public/favicon.svg`, the tab's icon: the piabrota eye | piabrota | `docs/drawings/eye.svg` of [piabrota/mu](https://github.com/piabrota/mu), the org's logo | the org's mark, not licensed for other uses (mu's `TRADEMARKS.md`) |
 | The piabrota eye on the sign, drawn in code (`src/art.js`) after `docs/drawings/eye.svg` | piabrota | [piabrota/mu](https://github.com/piabrota/mu) | the org's mark, not licensed for other uses (mu's `TRADEMARKS.md`) |
 
