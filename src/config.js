@@ -34,6 +34,11 @@ export const theme = {
 // a placeholder room is built from config so you can still develop.
 export const roomModel = '/models/room.glb';
 
+// The view from the window: a photograph of Rio at night (CREDITS.md),
+// set far behind the glass with drawn layers around it. Without the file
+// the drawn view alone is shown (src/outside.js).
+export const outside = { photo: '/textures/rio-night.jpg' };
+
 // Named camera shots. Keys 1..n or the buttons switch between them.
 // `fov` is optional (degrees, landscape). In Blender, cameras named
 // "shot_desk" etc. are picked up from the GLB (see cameras.js).
@@ -44,8 +49,28 @@ export const shots = {
   shelf:    { position: [-1.75, 1.35, 0.15], target: [-2.05, 1.25, -1.9], fov: 46 },
   board:    { position: [1.15, 1.6, 0.25], target: [1.15, 1.6, -2.0], fov: 44 },
   window:   { position: [2.1, 1.6, -0.05], target: [2.4, 1.68, -2.0], fov: 46 },
+  sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
+  records:  { position: [-1.45, 1.05, -0.35], target: [-2.25, 0.3, -1.25], fov: 48 },
+  loop:     { position: [0.4, 1.6, 1.0], target: [0.9, 1.65, 3.8], fov: 54 },
 };
 export const startShot = 'overview';
+
+// piabrota RADIO: lofi under a free licence only (CC0, CREDITS.md), one
+// track after another from a random start. It plays through the room's
+// sound, so the sound button mutes it too, and the ambience steps back
+// while it plays. A missing file falls back to a synthesized lofi bed.
+export const radio = {
+  name: 'piabrota RADIO',
+  volume: 0.6,
+  duck: 0.35, // the ambience's volume while the radio plays
+  tracks: [
+    { src: '/audio/radio/ocean-memory.mp3', title: 'Ocean Memory', artist: 'HoliznaCC0', fallback: 'lofi' },
+    { src: '/audio/radio/washed-up.mp3', title: 'Washed Up', artist: 'HoliznaCC0', fallback: 'lofi' },
+    { src: '/audio/radio/ease-into-night.mp3', title: 'Ease into Night', artist: 'HoliznaCC0', fallback: 'lofi' },
+    { src: '/audio/radio/moon-unit.mp3', title: 'Moon Unit', artist: 'HoliznaCC0', fallback: 'lofi' },
+    { src: '/audio/radio/roof-tops.mp3', title: 'Roof Tops', artist: 'HoliznaCC0', fallback: 'lofi' },
+  ],
+};
 
 // Ambient beds. Put your own files in /public/audio. If a file is
 // missing, a synthesized fallback (rain-ish noise / hum) is used.
@@ -133,13 +158,69 @@ export const works = [
   { id: 'nashkell',      title: 'nashkell, the open book', doi: '10.5281/zenodo.23356739', color: '#D29922' },
 ];
 
+// ── the sea: marola-dev's repositories as buoys on a wave tank ──
+// The waves are computed live, a nod to ww3-gpu (WAVEWATCH III).
+export const sea = {
+  label: 'marola', hint: 'the water super app, and the sea it floats on', url: 'https://marola.dev',
+  buoys: [
+    { id: 'marola',          line: 'the water super app',                     url: 'https://github.com/marola-dev/marola' },
+    { id: 'marola-app',      line: 'the backend, in Scala',                   url: 'https://github.com/marola-dev/marola-app' },
+    { id: 'marola-site',     line: 'the front end of marola.dev',             url: 'https://github.com/marola-dev/marola-site' },
+    { id: 'marola-ml',       line: 'marolaGPT, its fine-tune and its benchmark gate', url: 'https://github.com/marola-dev/marola-ml' },
+    { id: 'marola-research', line: 'the science',                             url: 'https://github.com/marola-dev/marola-research' },
+    { id: 'marola-oods',     line: 'an open ocean data store, as files',      url: 'https://github.com/marola-dev/marola-oods' },
+    { id: 'marola-corpus',   line: 'sourced notes on the ocean and safety at sea', url: 'https://github.com/marola-dev/marola-corpus' },
+    { id: 'marola-skills',   line: 'the marola way of coding',                url: 'https://github.com/marola-dev/marola-skills' },
+    { id: 'marola-devkit',   line: 'the dev-flow harness of the marola repos', url: 'https://github.com/marola-dev/marola-devkit' },
+  ],
+};
+
+// ── the loop: ouroboric-dev's repositories as crates on a belt that
+// never ends. Ouroboric is a partner of piabrota; its names are its own.
+export const loop = {
+  label: 'Ouroboric', hint: 'open factories that improve themselves (a partner)', url: 'https://github.com/ouroboric-dev',
+  crates: [
+    { id: 'ouroboric',   line: 'the charter, the standards, the journal',  url: 'https://github.com/ouroboric-dev/ouroboric' },
+    { id: 'yggdrasil',   line: 'an open software factory: agents build, humans steer', url: 'https://github.com/ouroboric-dev/yggdrasil' },
+    { id: 'asgard',      line: 'the company factory',                      url: 'https://github.com/ouroboric-dev/asgard' },
+    { id: 'odin',        line: 'the orchestrator and its graph engine',    url: 'https://github.com/ouroboric-dev/odin' },
+    { id: 'gleipnir',    line: 'the harness and its sandbox',              url: 'https://github.com/ouroboric-dev/gleipnir' },
+    { id: 'jormungandr', line: 'the loop: build, check, fix',              url: 'https://github.com/ouroboric-dev/jormungandr' },
+    { id: 'gungnir',     line: 'the contract: types and schemas',          url: 'https://github.com/ouroboric-dev/gungnir' },
+    { id: 'havamal',     line: 'the skill library',                        url: 'https://github.com/ouroboric-dev/havamal' },
+    { id: 'mimir',       line: 'the public benchmark kit',                 url: 'https://github.com/ouroboric-dev/mimir' },
+    { id: 'voluspa',     line: 'the graphs and their stage prompts',       url: 'https://github.com/ouroboric-dev/voluspa' },
+  ],
+};
+
+// ── the records: h0ffmann's own repositories, in a crate on the floor.
+// Each sleeve's cover is drawn from its name, so no two are alike.
+export const records = {
+  label: 'the records', hint: 'h0ffmann\'s repositories, one sleeve each', url: 'https://github.com/h0ffmann',
+  sleeves: [
+    { id: 'ww3-gpu',        line: 'WAVEWATCH III on the GPU, bit for bit',     url: 'https://github.com/h0ffmann/ww3-gpu' },
+    { id: 'picasso',        line: 'deterministic toolchains: just, nix, rust', url: 'https://github.com/h0ffmann/picasso' },
+    { id: 'closed-source',  line: 'research on licences, and a book',          url: 'https://github.com/h0ffmann/closed-source' },
+    { id: 'proof',          line: 'Lean kernels and graphs',                   url: 'https://github.com/h0ffmann/proof' },
+    { id: 'nagori',         line: '名残',                                      url: 'https://github.com/h0ffmann/nagori' },
+    { id: 'south-disaster', line: 'disaster alerts for the south of Brazil',   url: 'https://github.com/h0ffmann/astrbot_dw_ext_br_south_disaster' },
+    { id: 'south-waterq',   line: 'bathing-water alerts for the south of Brazil', url: 'https://github.com/h0ffmann/astrbot_dw_ext_br_south_waterq' },
+    { id: 'swim-sync',      line: 'a swim training app',                       url: 'https://github.com/h0ffmann/swim-sync' },
+    { id: 'okekara',        line: 'synced lyrics and karaoke for YouTube Music', url: 'https://github.com/h0ffmann/okekara' },
+    { id: 'sharingan',      line: 'Aider meets an instruction DSL',            url: 'https://github.com/h0ffmann/sharingan' },
+    { id: 'forecast-energy-demand', line: 'forecasting hourly electricity demand', url: 'https://github.com/h0ffmann/forecast-energy-demand' },
+    { id: 'bigiot',         line: 'remote monitoring on asynchronous messages', url: 'https://github.com/h0ffmann/bigiot' },
+  ],
+};
+
 // Hoverable things. `name` matches a mesh name in your GLB (or the
 // placeholder room, which builds one for each `art`). `action` is one
-// of: 'shot', 'link', 'sfx', 'toggleLamp'. `group` titles the LOFI list.
+// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio'. `group` titles the LOFI list.
 export const hotspots = [
   { name: 'window', label: 'Rio at night', hint: 'where piabrota is made', action: 'shot', value: 'window' },
   { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },
+  { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
   { name: 'note',   label: 'inspiration: Robert M. Pirsig', hint: 'Zen and the Art of Motorcycle Maintenance', action: 'link', value: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig', group: 'inspiration', art: { kind: 'note', glyph: '無' } },
   ...projects.map((p) => ({
@@ -157,6 +238,21 @@ export const hotspots = [
   ...works.map((w) => ({
     name: `book_${w.id}`, label: w.title, hint: `doi ${w.doi}`, action: 'link', value: `https://doi.org/${w.doi}`, group: 'works with a DOI',
     art: { kind: 'book', color: w.color },
+  })),
+  { name: 'tank', label: sea.label, hint: sea.hint, action: 'link', value: sea.url, group: 'marola-dev', art: { kind: 'tank' } },
+  ...sea.buoys.map((b, i) => ({
+    name: `buoy_${b.id}`, label: b.id, hint: b.line, action: 'link', value: b.url, group: 'marola-dev',
+    art: { kind: 'buoy', color: Object.values(theme.lanes)[i % 4] },
+  })),
+  { name: 'belt', label: loop.label, hint: loop.hint, action: 'link', value: loop.url, group: 'ouroboric-dev', art: { kind: 'belt' } },
+  ...loop.crates.map((c) => ({
+    name: `crate_${c.id}`, label: c.id, hint: c.line, action: 'link', value: c.url, group: 'ouroboric-dev',
+    art: { kind: 'crate' },
+  })),
+  { name: 'crate', label: records.label, hint: records.hint, action: 'shot', value: 'records', group: 'h0ffmann' },
+  ...records.sleeves.map((r) => ({
+    name: `record_${r.id}`, label: r.id, hint: r.line, action: 'link', value: r.url, group: 'h0ffmann',
+    art: { kind: 'record' },
   })),
 ];
 

@@ -15,7 +15,7 @@ import * as THREE from 'three';
 //    shortest arc instead of swinging through a lerped look-at point;
 //  - mouse parallax and idle drift are small, damped offsets that fade
 //    out while the camera moves.
-export function createCameraRig(camera, shots, gltfCameras = [], { center = [0.3, 1.5, 0.8] } = {}) {
+export function createCameraRig(camera, shots, gltfCameras = [], { center = [0.3, 1.5, 0.8], canvas = null } = {}) {
   const all = {};
   for (const [name, s] of Object.entries(shots)) all[name] = s;
   for (const c of gltfCameras) {
@@ -62,6 +62,34 @@ export function createCameraRig(camera, shots, gltfCameras = [], { center = [0.3
   });
   document.addEventListener('mouseleave', () => parallaxGoal.set(0, 0));
 
+  // ── 360: drag to look all the way around, from where the camera stands.
+  // The camera never moves for this, so it cannot leave the room; picking
+  // a shot turns the view back to that shot's framing.
+  const look = { yaw: 0, pitch: 0 }, lookGoal = { yaw: 0, pitch: 0 };
+  let drag = null, draggedAt = -1e9;
+  if (canvas) {
+    canvas.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, yaw: lookGoal.yaw, pitch: lookGoal.pitch, moved: false };
+    });
+    addEventListener('pointermove', (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+      drag.moved = true; canvas.style.cursor = 'grabbing';
+      const k = (camera.fov * Math.PI / 180) / innerHeight; // a pixel turns the view by a pixel
+      lookGoal.yaw = drag.yaw + dx * k;
+      lookGoal.pitch = THREE.MathUtils.clamp(drag.pitch + dy * k, -0.95, 0.95);
+    });
+    const end = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (drag.moved) { draggedAt = performance.now(); canvas.style.cursor = ''; }
+      drag = null;
+    };
+    addEventListener('pointerup', end); addEventListener('pointercancel', end);
+  }
+  const _yaw = new THREE.Quaternion(), _pitch = new THREE.Quaternion(), UP = new THREE.Vector3(0, 1, 0), RIGHT = new THREE.Vector3(1, 0, 0);
+
   const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3();
   const prev = { p: new THREE.Vector3(), q: new THREE.Quaternion(), f: 45 };
   let time = 0;
@@ -70,12 +98,20 @@ export function createCameraRig(camera, shots, gltfCameras = [], { center = [0.3
     names,
     shots: all,
     get current() { return current; },
-    get moving() { return move.t < 1; },
+    get moving() { return move.t < 1 || Math.abs(look.yaw - lookGoal.yaw) + Math.abs(look.pitch - lookGoal.pitch) > 1e-3; },
+    // true right after a drag, so the release is not taken as a click
+    justDragged() { return !!drag?.moved || performance.now() - draggedAt < 250; },
+    get looking() { return Math.abs(lookGoal.yaw) + Math.abs(lookGoal.pitch) > 1e-3; },
     onChange(fn) { listeners.push(fn); },
     setPortrait(v) { portrait = v; },
     go(name, instant = false) {
       const s = all[name]; if (!s) return;
       const to = poseOf(s);
+      // fold the look-around into the base pose, so going back to the shot is one smooth turn
+      if (Math.abs(look.yaw) + Math.abs(look.pitch) > 1e-4) {
+        quat.premultiply(_yaw.setFromAxisAngle(UP, look.yaw)).multiply(_pitch.setFromAxisAngle(RIGHT, look.pitch));
+        look.yaw = look.pitch = lookGoal.yaw = lookGoal.pitch = 0;
+      }
       current = name;
       listeners.forEach((fn) => fn(name));
       if (instant || still) {
@@ -127,15 +163,19 @@ export function createCameraRig(camera, shots, gltfCameras = [], { center = [0.3
         if (move.t >= 1) { vel.set(0, 0, 0); angVel.set(0, 0, 0); fovVel = 0; }
       }
 
+      // the look-around, damped (a cut under reduced motion)
+      const kl = still ? 1 : 1 - Math.exp(-dt * 10);
+      look.yaw += (lookGoal.yaw - look.yaw) * kl; look.pitch += (lookGoal.pitch - look.pitch) * kl;
+
       // parallax and idle drift, faded out while moving
       const calm = move.t < 1 ? Math.pow(Math.abs(2 * move.t - 1), 2) : 1;
       parallax.lerp(parallaxGoal, 1 - Math.exp(-dt * 3));
       camera.position.copy(pos);
-      camera.quaternion.copy(quat);
+      camera.quaternion.copy(quat).premultiply(_yaw.setFromAxisAngle(UP, look.yaw)).multiply(_pitch.setFromAxisAngle(RIGHT, look.pitch));
       if (!still) {
         const drift = 0.006 * calm;
         _v.set(parallax.x * 0.06 + Math.sin(time * 0.31) * drift, -parallax.y * 0.04 + Math.sin(time * 0.23) * drift, 0);
-        camera.position.add(_v.applyQuaternion(quat));
+        camera.position.add(_v.applyQuaternion(camera.quaternion));
         _e.set(-parallax.y * 0.025 * calm, -parallax.x * 0.04 * calm, 0, 'YXZ');
         camera.quaternion.multiply(_q.setFromEuler(_e));
       }

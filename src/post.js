@@ -1,23 +1,31 @@
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 // The post-processing chain: the room is rendered into a multisampled
-// HDR buffer, the hovered object gets an outline, bright things (the
+// HDR buffer, corners and contacts get ambient occlusion (GTAO, the soft
+// shadow where things meet), the hovered object gets an outline, bright things (the
 // sign, the bulb, the TV, the bots' eyes) bloom, then tone mapping, and
 // last a film grade: vignette, a little grain and lens fringe.
 //
-// It watches the frame time and steps the quality down (pixel ratio,
-// then bloom) when the laptop can't keep up, so motion stays smooth.
+// It watches the frame time and steps the quality down (ambient
+// occlusion first, then pixel ratio, then bloom) when the laptop can't keep up, so motion stays smooth.
 export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {}) {
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, target);
   composer.addPass(new RenderPass(scene, camera));
+
+  const ao = new GTAOPass(scene, camera, size.x, size.y);
+  ao.updateGtaoMaterial({ radius: 0.3, distanceExponent: 1, thickness: 1, scale: 1, samples: 12 });
+  ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 4, rings: 2, samples: 12 });
+  ao.blendIntensity = 0.85;
+  composer.addPass(ao);
 
   const outline = new OutlinePass(new THREE.Vector2(size.x, size.y), scene, camera);
   Object.assign(outline, { edgeStrength: 4, edgeGlow: 0.6, edgeThickness: 1.5, pulsePeriod: 2.4, enabled: false });
@@ -59,7 +67,8 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {})
     if (acc < 1.2) return;
     const avg = acc / frames; acc = 0; frames = 0;
     if (avg <= 1 / 48) return;
-    if (level < levels.length - 1) { level++; setSize(); }
+    if (ao.enabled) ao.enabled = false;
+    else if (level < levels.length - 1) { level++; setSize(); }
     else if (bloom.enabled) bloom.enabled = false;
     else if (grade.enabled) grade.enabled = false;
     warmup = 0.5;

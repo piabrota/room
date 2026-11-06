@@ -8,7 +8,7 @@ import * as THREE from 'three';
 // The ray tests the whole room, so a wall or a desk hides what is
 // behind it. A mesh marked `userData.proxy` (an invisible hit box) only
 // counts when nothing real is under the pointer.
-export function createInteractions(camera, canvas, tooltip, { root, onHover = () => {} } = {}) {
+export function createInteractions(camera, canvas, tooltip, { root, onHover = () => {}, ignoreClick = () => false } = {}) {
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const targets = new Map(); // object -> { label, hint, onClick }
   let hovered = null, lastEvent = null, dirty = false, touchUntil = 0;
@@ -38,7 +38,7 @@ export function createInteractions(camera, canvas, tooltip, { root, onHover = ()
       if (!m.userData.baseMat) { m.userData.baseMat = m.material; m.material = m.material.clone(); }
       const mat = m.material, base = m.userData.baseMat;
       if (mat.emissive && !mat.emissiveMap) mat.emissive.copy(base.emissive).add(on ? lift : new THREE.Color(0));
-      else if (!mat.emissive && !mat.map) mat.color.copy(base.color).multiplyScalar(on ? 1.3 : 1);
+      else if (!mat.emissive && !mat.map && mat.color && base.color) mat.color.copy(base.color).multiplyScalar(on ? 1.3 : 1);
     });
   }
 
@@ -47,6 +47,7 @@ export function createInteractions(camera, canvas, tooltip, { root, onHover = ()
   canvas.addEventListener('pointerdown', (e) => { moved(e); if (e.pointerType !== 'mouse') touchUntil = performance.now() + 2500; }); // a tap shows the label too
   canvas.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { lastEvent = null; dirty = true; } });
   canvas.addEventListener('click', (e) => {
+    if (ignoreClick()) return; // the end of a drag to look around
     const p = pick(e); if (!p) return;
     targets.get(p.obj).onClick?.(p.hit);
   });

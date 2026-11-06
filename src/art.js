@@ -156,3 +156,48 @@ export function noteArt({ glyph, lines, theme }) {
 function mulberry(a) {
   return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
+
+// A record sleeve, drawn from its name: the name seeds the pattern, the
+// palette and the composition, so every repository gets its own cover.
+export function recordArt({ title, theme }) {
+  const [c, ctx] = canvas(256, 256);
+  let h = 2166136261; for (const ch of title) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const rnd = mulberry(h >>> 0);
+  const pal = [...Object.values(theme.lanes), theme.eye.white, theme.eye.iris, '#7a5cff', '#e2574c'];
+  const pick = () => pal[Math.floor(rnd() * pal.length)];
+  const bg = rnd() < 0.5 ? theme.bg : '#e9e4d8', ink = bg === theme.bg ? theme.text : theme.bg;
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
+  const kind = Math.floor(rnd() * 4);
+  ctx.lineWidth = 2 + rnd() * 6;
+  if (kind === 0) { // rings, off centre
+    const x = 60 + rnd() * 136, y = 60 + rnd() * 100;
+    for (let r = 200; r > 8; r -= 10 + rnd() * 14) { ctx.strokeStyle = pick(); ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); }
+  } else if (kind === 1) { // waves
+    const a = 6 + rnd() * 18, f = 0.02 + rnd() * 0.05;
+    for (let y = 10; y < 210; y += 14) {
+      ctx.strokeStyle = pick(); ctx.beginPath();
+      for (let x = 0; x <= 256; x += 4) ctx.lineTo(x, y + Math.sin(x * f + y * 0.1) * a);
+      ctx.stroke();
+    }
+  } else if (kind === 2) { // a grid of blocks
+    const n = 3 + Math.floor(rnd() * 5), s = 216 / n;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (rnd() < 0.6) { ctx.fillStyle = pick(); ctx.fillRect(20 + i * s, 12 + j * s * 0.85, s - 4, s * 0.85 - 4); }
+  } else { // rays from a corner
+    const x = rnd() < 0.5 ? 0 : 256;
+    for (let i = 0; i < 26; i++) { ctx.strokeStyle = pick(); ctx.beginPath(); ctx.moveTo(x, 210); const a = (i / 26) * Math.PI; ctx.lineTo(x + Math.cos(a) * 300 * (x ? -1 : 1), 210 - Math.sin(a) * 300); ctx.stroke(); }
+  }
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 44); // the title on top, where it shows above the next sleeve
+  ctx.fillStyle = ink; fit(ctx, title, 236, 26, FONT_TITLE); ctx.textBaseline = 'middle'; ctx.fillText(title, 12, 22);
+  return texture(c);
+}
+
+// The side of a crate on the belt: its name, stencilled.
+export function crateArt({ title, theme }) {
+  const [c, ctx] = canvas(256, 128);
+  ctx.fillStyle = '#8a6a46'; ctx.fillRect(0, 0, 256, 128);
+  ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let y = 0; y < 128; y += 32) ctx.fillRect(0, y, 256, 3);
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 6; ctx.strokeRect(3, 3, 250, 122);
+  ctx.fillStyle = theme.bg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  fit(ctx, title, 220, 44, FONT_TITLE); ctx.fillText(title, 128, 66);
+  return texture(c);
+}

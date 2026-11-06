@@ -36,7 +36,7 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    no free orbit that can leave the room.
 5. **Whatever can be clicked says so on hover.** Every interactive object is registered
    through `src/interact.js`: it shows a label and a glow on hover, and does one thing on
-   click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`; a new action is
+   click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`; a new action is
    added to `src/app.js` and to the check together.
 6. **A tape is a module with the tape contract.** Each tape is one file in `src/tapes/`,
    loaded lazily through `config.tapes`, with a unique `id`, a label, a colour and a mesh
@@ -86,18 +86,22 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, theme, shots, tapes, sounds, and the room's content: projects, bots, people, works with a DOI, hotspots (invariant 3) |
+| `src/config.js` | the signature, theme, shots, tapes, sounds, the radio, the view from the window, and the room's content: projects, bots, people, works with a DOI, hotspots (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8) |
 | `src/lofi.js` | the LOFI view: the signature, the tapes and the link hotspots as plain text |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
 | `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material |
-| `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note |
-| `src/post.js` | post-processing: MSAA HDR buffer, hover outline, bloom, tone mapping, film grade; steps quality down when frames run long |
+| `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note, record sleeves, crates |
+| `src/props.js` | the other walls: the marola-dev wave tank and its buoys, the ouroboric-dev crate belt, the crate of h0ffmann's records |
+| `src/outside.js` | Rio behind the window, in layers at their own distances: the photograph of `config.outside`, its lights twinkling, trees in front; a drawn view when the file is missing |
+| `src/textures.js` | wood grain, floor planks and plaster, drawn on canvases |
+| `src/post.js` | post-processing: MSAA HDR buffer, ambient occlusion (GTAO), hover outline, bloom, tone mapping, film grade; steps quality down when frames run long |
 | `src/cameras.js` | named shots and the moves between them: quintic curves that keep the velocity when a new shot is picked mid-move, arcs, slerped turns, per-shot `fov`, damped parallax; `shot_*` cameras from the GLB |
 | `src/interact.js` | raycast hover and click against the whole room (walls hide what is behind them), label cards with a hint, glow |
 | `src/tv.js` | the TV canvas and the tape contract |
 | `src/tapes/*.js` | one tape each |
 | `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
+| `src/radio.js` | piabrota RADIO: the free-licensed lofi of `config.radio`, one track after another through the room's sound |
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |
 | `scripts/check.mjs` | what `just check` tests |
@@ -105,12 +109,14 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
-`shelf`, `frame_<project>`, `bot_<id>`, `photo_<person>`, `book_<work>`), and cameras
+`shelf`, `frame_<project>`, `bot_<id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`,
+`belt`, `crate`, `crate_<repo>`, `record_<repo>`, `radio` and its lit `radio_dial`), and cameras
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
 the pointer.
 
 The visitor moves with the shot buttons, the keys 1 to 9, `←` `→` for the next and the previous
-shot, `Esc` for `startShot`, and a sideways swipe on a touch screen.
+shot, `Esc` for `startShot`, and a drag (mouse or finger) to look around from where they stand,
+360° sideways and a little up and down; the next shot starts from that look, eased.
 
 ## Working here
 
@@ -119,6 +125,8 @@ shot, `Esc` for `startShot`, and a sideways swipe on a touch screen.
   placeholder room makes one for each tape by itself), run `just check`.
 - A new sound: `just audio recording.wav <name>`, then add it to `config.ambience` or
   `config.sfx` with a `fallback`.
+- A new radio track: lofi under CC0 or CC BY only. `just audio track.mp3 radio/<name>`, add it
+  to `config.radio.tracks` with `fallback: 'lofi'`, and a row to `CREDITS.md` (the check asks).
 - A new model: export from Blender as glTF binary to `public/models/room.glb`, with the mesh
   names above. Check the size before you commit it.
 - Every pull request that changes the site carries at least three screenshots of the room and
