@@ -42,6 +42,7 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   lamp.position.copy(find('lamp_bulb')?.getWorldPosition(v) ?? find('lamp')?.getWorldPosition(v) ?? v.set(-0.55, 1.25, -1.6));
   lamp.castShadow = true; lamp.shadow.mapSize.set(1024, 1024); lamp.shadow.bias = -0.002; lamp.shadow.radius = 4;
   scene.add(lamp);
+  const lampFull = lamp.intensity;
   const tvLight = new THREE.PointLight(0x88aaff, 0, 3, 2); // tinted by the playing tape
   const screen = find('screen');
   tvLight.position.copy(screen ? screen.getWorldPosition(v) : v.set(0, 1.15, -1.3)).add(new THREE.Vector3(0, 0, 0.4));
@@ -60,13 +61,15 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.001;
   Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 14 });
   scene.add(sun, sun.target);
-  const NIGHT = { sky: [0x55628a, 0x1a1410, 0.8], moon: 0.55, sun: 0, neon: 1.2, env: scene.environmentIntensity ?? 0.18, bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
-  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 3.4], moon: 0, sun: 5, neon: 0.5, env: 0.55, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
+  const NIGHT = { sky: [0x55628a, 0x1a1410, 0.8], moon: 0.55, sun: 0, neon: 1.2, lamp: 1, env: scene.environmentIntensity ?? 0.18, bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
+  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 2.6], moon: 0, sun: 3.2, neon: 0.4, env: 0.5, lamp: 0.35, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
   let day = false;
   function setDay(on) {
     day = on; const m = on ? DAY : NIGHT;
     sky.color.set(m.sky[0]); sky.groundColor.set(m.sky[1]); sky.intensity = m.sky[2];
     moon.intensity = m.moon; sun.intensity = m.sun; neon.intensity = m.neon;
+    lamp.userData.full = lampFull * m.lamp; // a lamp in daylight adds little; at full power it burns the desk white
+    if (lamp.intensity) lamp.intensity = lamp.userData.full;
     scene.environmentIntensity = m.env;
     if (m.bg) scene.background = m.bg; if (m.fog && scene.fog) scene.fog.color.copy(m.fog);
     root.userData.outside?.setDay?.(on);

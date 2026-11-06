@@ -112,7 +112,7 @@ for (const h of config.hotspots) {
       if (h.action === 'shot') rig.go(h.value);
       if (h.action === 'link') window.open(h.value, '_blank', 'noopener');
       if (h.action === 'sfx') audio.play(config.sfx[h.value]);
-      if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : lampOn; redrawShadows(); }
+      if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : (room.lamp.userData.full ?? lampOn); redrawShadows(); }
       if (h.action === 'toggleRadio') radioBtn.click();
     },
   });
@@ -148,7 +148,8 @@ rainBtn.onclick = async () => {
 const dayBtn = document.getElementById('daylight');
 function setDay(on) {
   room.setDay(on); redrawShadows();
-  renderer.toneMappingExposure = on ? 1.3 : 1.05;
+  renderer.toneMappingExposure = on ? 0.82 : 1.05; // the day is lit by the sky and the sun, not by the exposure
+  post.setDay?.(on);
   dayBtn.textContent = on ? words.day : words.night;
   dayBtn.setAttribute('aria-pressed', String(on));
   dayBtn.title = on ? words.toNight : words.toDay;

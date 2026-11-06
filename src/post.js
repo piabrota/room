@@ -77,6 +77,8 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {})
   return {
     composer,
     setSize,
+    // by day the room is bright everywhere, so only what is far above white blooms, and less
+    setDay(on) { bloom.threshold = on ? 1.6 : 0.92; bloom.strength = on ? 0.3 : 0.55; },
     select(obj) { outline.selectedObjects = obj ? [obj] : []; outline.enabled = !!obj; },
     render(dt, t, measure = true) {
       grade.uniforms.time.value = t % 100;

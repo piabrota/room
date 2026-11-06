@@ -42,6 +42,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 9 | 6 nov 00:50 | este README | |
 | 10 | 6 nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) as configurações do projeto, em [`docs/CLAUDE_PROJECT.pt-BR.md`](docs/CLAUDE_PROJECT.pt-BR.md) | 6 min |
 | 11 | 6 nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) a janela larga no meio, uma porta trancada, seus pés quando você olha para baixo, madeira fotografada, um computador bege, fitas VHS com etiquetas retrô, as fitas do CV, marola.dev e ouroboric-dev, um fax, os cartões de Pirsig e do pirsig, a pasta closed source | 35 min |
+| 12 | 6 nov 03:38 | o ponto 7, [#PRNUM](https://github.com/piabrota/room/pull/PRNUM): o dia não estoura mais em branco; os pontos 1 a 6, uma pesquisa, em outra conversa | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -153,6 +154,25 @@ improve slipbox, the Robert Pirsig card must looklike realistic with reference t
 other card must have a github pill for pirsig repository, technical implementation of pirsig
 brain. it must also contain a file under the desk callled closed source with confidencial
 letter pointing to h0ffmann/closed-source website and paper'
+```
+
+**12.**
+
+```text
+user> 'Do a survey now based on the new code and unique techniques to improve design and
+realism of existing room code. This must include.
+
+1. Check other FOSS room websites, to grab ideas with credits
+2. Check other frameworks.
+3. Check other animations tools to make the site more appealing
+4. Create our own shaders, textures, etc
+5. How to make develop loop faster (Final recording (the video takes about 25 min in software)
+6. How this could align to add a new view in the website, the 10th one, called ▲ grid, with a
+triangular grids for the brazilian coast, the idea of triangule grids proposed by Dr. Aaron
+from NOAA wave model physicist, and how to use ww3, with this preset grid with GFS, to be able
+to play it back on the maplibre map, in the traingular grid, with small resolution/forecast
+horizon (to speedup development cycle)
+7. Fix lights blowing up on white screen during day'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix

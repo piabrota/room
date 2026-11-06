@@ -42,6 +42,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 9 | 6 Nov 00:50 | this README | |
 | 10 | 6 Nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) the project's settings, in [`docs/CLAUDE_PROJECT.md`](docs/CLAUDE_PROJECT.md) | 6 min |
 | 11 | 6 Nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) the wide window in the middle, a locked door, your feet when you look down, photographed wood, a beige computer, VHS tapes with retro labels, the CV, marola.dev and ouroboric-dev tapes, a fax, the Pirsig and pirsig cards, the closed-source file | 35 min |
+| 12 | 6 Nov 03:38 | point 7, [#PRNUM](https://github.com/piabrota/room/pull/PRNUM): the day no longer burns white; points 1 to 6, a survey, in another thread | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -153,6 +154,25 @@ improve slipbox, the Robert Pirsig card must looklike realistic with reference t
 other card must have a github pill for pirsig repository, technical implementation of pirsig
 brain. it must also contain a file under the desk callled closed source with confidencial
 letter pointing to h0ffmann/closed-source website and paper'
+```
+
+**12.**
+
+```text
+user> 'Do a survey now based on the new code and unique techniques to improve design and
+realism of existing room code. This must include.
+
+1. Check other FOSS room websites, to grab ideas with credits
+2. Check other frameworks.
+3. Check other animations tools to make the site more appealing
+4. Create our own shaders, textures, etc
+5. How to make develop loop faster (Final recording (the video takes about 25 min in software)
+6. How this could align to add a new view in the website, the 10th one, called ▲ grid, with a
+triangular grids for the brazilian coast, the idea of triangule grids proposed by Dr. Aaron
+from NOAA wave model physicist, and how to use ww3, with this preset grid with GFS, to be able
+to play it back on the maplibre map, in the traingular grid, with small resolution/forecast
+horizon (to speedup development cycle)
+7. Fix lights blowing up on white screen during day'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix
