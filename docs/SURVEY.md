@@ -15,6 +15,24 @@ made on a local build with two lines patched in and then reverted.
 | 6 | The tenth view, "▲ grid" | a lazy MapLibre view with the mesh drawn by a custom WebGL layer; WW3 on a 15k-node triangle mesh, forced by GFS, 24 h, runs in minutes |
 | 7 | Day blows out to white | the bloom threshold (0.92) sits below the brightness of a lit wall by day; fix it per mode and switch to AgX |
 
+### Applied in #16
+
+The second commit of #16 applied what can land without the owner changing an invariant:
+
+- **7, the white-out:** bloom has a night and a day threshold (0.92 and 3, strength 0.55 and
+  0.35; `post.setDay`), tone mapping is AgX at exposure 1.1 day and night, and the desk lamp gives
+  35 % of its light by day (the lamp button keeps it; from the "Refine room navigation" thread).
+  `just light` now measures every shot: none burns a pixel to white, by night or by day.
+- **5, the loop:** `just record` uses the GPU on macOS, and in software records at 960×540 with
+  ambient occlusion off (`?record`); `just stills` makes the stills alone.
+- **3 and 4, realism:** CRT glass over the TV (`src/tv.js`, `onBeforeCompile`) and dust drifting
+  in the window's light (`src/room.js`, one draw call, still under reduced motion).
+- **Skills:** `.claude/skills/` has `room-pr`, `room-light`, `room-content`, `room-shaders` and
+  `ww3-grid`, so a Claude working here (or on a fork) starts from these rules and plans.
+
+Left for later, each its own pull request: the tenth view (invariant 4 first), a Blender bake,
+Vite 6, `WebGPURenderer`, `camera-controls`, KTX2.
+
 ---
 
 ## 1. Other open rooms
@@ -160,8 +178,8 @@ Rica), names "Aron Roland and Fabrice Ardhuin" as its authors (January 2011), la
 Abdolali in October 2018. At NOAA, **Dr. Ali Abdolali** (NWS/NCEP Environmental Modeling Center)
 led the domain decomposition and the implicit scheme on unstructured grids, with Roland,
 in the work applied to Hurricane Dorian (Smith, Hesser, Abdolali, Bryant, Roland and Cox, ICCE).
-Dr. Roland is not a NOAA employee; "Dr. Aaron from NOAA" in the prompt most likely means Aron
-Roland, who worked with NOAA on this. Please confirm before the name goes on the wall.
+Dr. Roland is not a NOAA employee; "Dr. Aaron from NOAA" in the prompt means Aron Roland, who
+worked with NOAA on this (confirmed by the owner, 6 November 2026).
 
 Sources: [`ww3_tp2.6/info`](https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/hafs.v2.0.8/sorc/hafs_ww3.fd/regtests/ww3_tp2.6/info),
 [Advances in the unstructured WAVEWATCH III and application to Hurricane Dorian](https://icce-ojs-tamu.tdl.org/icce/article/download/10249/9535/36502),
