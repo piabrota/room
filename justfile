@@ -34,6 +34,14 @@ check: _deps
     npx vite build --logLevel warn
     @echo "✓ just check"
 
+# the brightness of every shot, by night and by day; fails when one burns to white (just light day desk)
+light *args: build
+    node scripts/light.mjs {{args}}
+
+# only the stills of every shot into docs/record/ (fast; the video stays as it is)
+stills: build
+    node scripts/record.mjs --stills
+
 # stills of every shot and 15 s of video into docs/record/ (headless Chrome, ffmpeg); every pull request carries them
 record: build
     node scripts/record.mjs

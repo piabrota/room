@@ -13,6 +13,13 @@
 //
 // Chrome: $CHROME if set, else Google Chrome on macOS, else Playwright's
 // Chromium. ffmpeg encodes the video.
+//
+// Speed (docs/SURVEY.md, section 5): on macOS Chrome draws with the GPU
+// (Metal) at 1280×720. On Linux without a GPU it draws in software
+// (SwiftShader), where a frame costs seconds, so it records at 960×540;
+// `RECORD_SIZE=1280x720` overrides. Either way the room opens with
+// `?record`, which turns the ambient occlusion off (a third of a frame in
+// software, and barely visible at video size).
 import { mkdirSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -22,7 +29,9 @@ import { chromium } from 'playwright-core';
 const root = new URL('..', import.meta.url).pathname;
 const out = join(root, 'docs/record');
 const frames = join(root, 'node_modules/.record');
-const FPS = 30, W = 1280, H = 720;
+const gpu = process.platform === 'darwin' || process.env.RECORD_GPU === '1';
+const [W, H] = (process.env.RECORD_SIZE ?? (gpu ? '1280x720' : '960x540')).split('x').map(Number);
+const FPS = 30;
 
 function chrome() {
   if (process.env.CHROME) return process.env.CHROME;
@@ -39,14 +48,14 @@ const server = await preview({ root, preview: { port: 4177, strictPort: false },
 const url = server.resolvedUrls.local[0];
 const browser = await chromium.launch({
   executablePath: chrome(),
-  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'],
+  args: [...(gpu ? (process.platform === 'darwin' ? ['--use-angle=metal'] : []) : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']), '--autoplay-policy=no-user-gesture-required'],
 });
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 page.setDefaultTimeout(120000);
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 
-await page.goto(`${url}?hifi&night`); // the same light on every run
+await page.goto(`${url}?hifi&night&record`); // the same light on every run; no ambient occlusion
 await page.waitForSelector('#loading.done', { timeout: 120000 });
 await page.click('#enter button');
 await page.addStyleTag({ content: '#enter{display:none!important}' }); // skip its fade
@@ -151,4 +160,4 @@ rmSync(frames, { recursive: true, force: true });
 await browser.close(); await server.close();
 
 if (errors.length) { console.error('page errors:\n' + errors.join('\n')); process.exit(1); }
-console.log(`✓ ${shots.length} stills and ${(n / FPS).toFixed(1)} s of video in docs/record/`);
+console.log(`✓ ${shots.length} stills and ${(n / FPS).toFixed(1)} s of video (${W}×${H}, ${gpu ? 'GPU' : 'software'}) in docs/record/`);
