@@ -23,6 +23,9 @@ asset gets a row here in the same commit that adds it.
 | `public/textures/pbr/american_walnut_veneer_*.jpg`, the desk and the door | Jenelle van Heerden | "American Walnut Veneer" on [Poly Haven](https://polyhaven.com/a/american_walnut_veneer), 1k, re-encoded | CC0 1.0 |
 | `public/textures/rio-day.jpg`, the view from the window by day | Arian Zwegers | "Rio de Janeiro, Pão de Açúcar from Cristo Redentor" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro,_P%C3%A3o_de_A%C3%A7%C3%BAcar_from_Cristo_Redentor_(15744316848).jpg), resized to 1920 px | CC BY 2.0 |
 | `public/textures/rio-night.jpg`, the view from the window at night | Wilfredor | "Rio de Janeiro at night from above, Rio de Janeiro.jpg" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro_at_night_from_above,_Rio_de_Janeiro.jpg), resized to 1920 px | CC0 1.0 |
+| `public/grid/land.json`, the land on the ▲ grid map | Natural Earth | "Land", 1:50m, from [natural-earth-vector](https://github.com/nvkelso/natural-earth-vector), clipped to the domain by `just grid` | public domain |
+| `public/grid/mesh.bin`, the triangle mesh of the coast | the owner | made by `just grid` (`scripts/grid.mjs`) from Natural Earth's coastline, with [delaunator](https://github.com/mapbox/delaunator) (ISC). Triangle grids for WAVEWATCH III are the work of Dr. Aron Roland, with Fabrice Ardhuin; at NOAA, Dr. Ali Abdolali carried them further | public domain (Natural Earth); the mesh is the owner's |
+| `public/grid/frames.bin`, `public/grid/run.json`, 24 h of wind and sea on the mesh | NOAA (GFS), Open-Meteo | the GFS 0.25° forecast's 10 m wind, fetched through the [Open-Meteo API](https://open-meteo.com) (data under CC BY 4.0), interpolated to the mesh by `just grid`; the sea is estimated from it (Pierson and Moskowitz, 1964), not modelled | GFS: US government work, public domain; Open-Meteo: CC BY 4.0 |
 | `public/audio/radio/ocean-memory.mp3`, on piabrota RADIO | HoliznaCC0 | "Ocean Memory" on [Free Music Archive](https://freemusicarchive.org/music/holiznacc0/ocean-memory-lo-fi-chill/ocean-memory/), normalized to -18 LUFS, 96 kb/s | CC0 1.0 |
 | `public/audio/radio/washed-up.mp3`, on piabrota RADIO | HoliznaCC0 | "Washed Up" on [Free Music Archive](https://freemusicarchive.org/music/holiznacc0/ocean-memory-lo-fi-chill/washed-up/), normalized to -18 LUFS, 96 kb/s | CC0 1.0 |
 | `public/audio/radio/ease-into-night.mp3`, on piabrota RADIO | HoliznaCC0 | "Ease into Night" on [Free Music Archive](https://freemusicarchive.org/music/holiznacc0/public-domain-lofi/ease-into-night-lofi-relax-chill/), normalized to -18 LUFS, 96 kb/s | CC0 1.0 |
@@ -87,3 +90,5 @@ people and the works on the shelf are described in our own words from the org's 
 
 - [three.js](https://threejs.org), MIT.
 - [Vite](https://vite.dev), MIT.
+- [MapLibre GL JS](https://maplibre.org), BSD-3-Clause: the ▲ grid map, loaded only when it opens.
+- [delaunator](https://github.com/mapbox/delaunator), ISC: the triangulation of `just grid` (a build tool; not shipped).

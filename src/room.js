@@ -3,7 +3,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook } from './config.js';
+import { tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid } from './config.js';
+import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { woodGrain, planks, plaster } from './textures.js';
@@ -80,6 +81,7 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   return {
     root, find, lamp, tvLight, screen, vcr: find('vcr'),
     get day() { return day; }, setDay,
+    setRain(on) { const r = root.getObjectByName('rain_glass'); if (r) r.visible = on; },
     update(t) { for (const a of animated) a(t); if (!still) dust.material.uniforms.time.value = t; },
   };
 }
@@ -136,6 +138,7 @@ function useBakedLighting(root) {
 // The window: wide, in the middle of the back wall, above the desk.
 const WIN = { x: 0.2, y: 2.2, w: 2.8, h: 1.4 };
 
+const LEAF = { roughness: 0.7 }, leafTime = { value: 0 };
 function placeholderRoom() {
   const g = new THREE.Group();
   const animated = [];
@@ -340,6 +343,13 @@ function placeholderRoom() {
     const pin = mesh('', new THREE.SphereGeometry(0.012, 8, 6), std(theme.accent), [0, 0.11, 0.008], ph); pin.castShadow = false;
   });
 
+  // ── ▲ grid: a chart of the coast's triangle mesh on the right wall; its shot opens the map ──
+  for (const h of hotspots.filter((x) => x.name === 'chart')) {
+    const chart = named(h.name); chart.position.set(3.37, 1.62, 1.55); chart.rotation.y = -Math.PI / 2;
+    mesh('', new THREE.BoxGeometry(1.12, 0.86, 0.025), std('#1b2733', { roughness: 0.6 }), [0, 0, -0.012], chart);
+    mesh('', new THREE.PlaneGeometry(1.04, 0.78), (() => { const t = chartTexture(grid); return new THREE.MeshStandardMaterial({ map: t, emissiveMap: t, emissive: '#ffffff', emissiveIntensity: 0.28, roughness: 0.85 }); })(), [0, 0, 0.002], chart).castShadow = false;
+  }
+
   // ── the door, on the front wall: locked, for now ──
   for (const h of hotspots.filter((x) => x.name === 'door')) {
     const door = named(h.name); door.position.set(-1.55, 0, 3.78); door.rotation.y = Math.PI;
@@ -382,7 +392,7 @@ function placeholderRoom() {
   rbox([0.2, 0.15, 0.22], [sx - 0.25, 0.57 + 0.075, sz], '#2f3a4a');
   part(new THREE.CylinderGeometry(0.07, 0.055, 0.12, 16), [sx + 0.3, sh + 0.075, sz], '#b4583e');
   const leaf = new THREE.SphereGeometry(0.09, 10, 8).scale(1, 1.4, 0.4);
-  for (let i = 0; i < 6; i++) part(leaf, [sx + 0.3 + Math.cos(i) * 0.06, sh + 0.22 + (i % 3) * 0.04, sz + Math.sin(i) * 0.06], '#2f6b3a', { rot: [0.3 * Math.sin(i * 2), i, 0.4 * Math.cos(i)] });
+  for (let i = 0; i < 6; i++) part(leaf, [sx + 0.3 + Math.cos(i) * 0.06, sh + 0.22 + (i % 3) * 0.04, sz + Math.sin(i) * 0.06], '#2f6b3a', { rot: [0.3 * Math.sin(i * 2), i, 0.4 * Math.cos(i)], opts: LEAF });
 
   // ── the fabric wall: one framed print per project ──
   art('frame').forEach((h, i) => {
@@ -400,10 +410,44 @@ function placeholderRoom() {
   part(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), [0.1, 0.24, -0.75], '#3a3d45');
   part(new THREE.CylinderGeometry(0.25, 0.25, 0.03, 16), [0.1, 0.02, -0.75], '#3a3d45');
   part(new THREE.CylinderGeometry(0.16, 0.12, 0.34, 16), [-2.6, 0.17, 0.9], '#c9c2b4');
-  for (let i = 0; i < 9; i++) part(new THREE.ConeGeometry(0.06, 0.7, 6), [-2.6 + Math.cos(i * 2.4) * 0.07, 0.62, 0.9 + Math.sin(i * 2.4) * 0.07], '#2f6b3a', { rot: [Math.sin(i * 2.4) * 0.35, 0, -Math.cos(i * 2.4) * 0.35] });
+  for (let i = 0; i < 9; i++) part(new THREE.ConeGeometry(0.06, 0.7, 6), [-2.6 + Math.cos(i * 2.4) * 0.07, 0.62, 0.9 + Math.sin(i * 2.4) * 0.07], '#2f6b3a', { rot: [Math.sin(i * 2.4) * 0.35, 0, -Math.cos(i * 2.4) * 0.35], opts: LEAF });
 
   // ── the other walls: marola-dev's sea, ouroboric-dev's loop, the slipbox ──
   animated.push(buildSea(g, mesh, std, part), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
+
+  // the leaves sway a little in the air of the room (the vertex shader; still under reduced motion)
+  const sway = std('#2f6b3a', LEAF);
+  sway.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = leafTime;
+    shader.vertexShader = 'uniform float uTime;\n' + shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      float sw = 0.5 + 0.5 * sin(position.y * 23.0 + position.x * 11.0);
+      transformed.x += 0.007 * sw * sin(uTime * 1.1 + position.y * 9.0 + position.z * 4.0);
+      transformed.z += 0.006 * sw * cos(uTime * 0.83 + position.y * 7.0);`);
+  };
+  animated.push((t) => { if (!still) leafTime.value = t; });
+
+  // the rain on the glass, when the rain is on: drops that cling and run down
+  const rainGlass = mesh('', new THREE.PlaneGeometry(WIN.w, WIN.h), new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uAspect: { value: WIN.w / WIN.h } }, transparent: true, depthWrite: false, fog: false,
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `
+      uniform float uTime, uAspect; varying vec2 vUv;
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float drops(vec2 uv, float scale, float speed) {
+        vec2 p = vec2(uv.x * uAspect, uv.y) * scale, cell = floor(p), f = fract(p) - 0.5;
+        float h = hash(cell), fall = fract(h * 7.0 + uTime * speed * (0.3 + h));
+        vec2 at = vec2((h - 0.5) * 0.6, 0.45 - fall * 0.9);
+        float d = length((f - at) * vec2(1.0, 0.75));
+        float trail = smoothstep(0.05, 0.0, abs(f.x - at.x)) * smoothstep(at.y, 0.5, f.y) * 0.25;
+        return smoothstep(0.09, 0.03, d) * step(0.35, h) + trail * step(0.6, h);
+      }
+      void main() {
+        float a = drops(vUv, 9.0, 0.12) + 0.6 * drops(vUv + 0.37, 17.0, 0.05) + 0.35 * drops(vUv + 0.71, 31.0, 0.0);
+        gl_FragColor = vec4(vec3(0.82, 0.88, 0.95), clamp(a, 0.0, 1.0) * 0.32);
+      }`,
+  }), [WIN.x, WIN.y, -1.99]);
+  rainGlass.castShadow = rainGlass.receiveShadow = false; rainGlass.renderOrder = 4; rainGlass.visible = false; rainGlass.name = 'rain_glass';
+  animated.push((t) => { if (rainGlass.visible && !still) rainGlass.material.uniforms.uTime.value = t; });
 
   // merge the static parts: one mesh per material
   for (const { mat, geos } of statics.values()) {

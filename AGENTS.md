@@ -80,6 +80,7 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just record` | stills of every shot and 15 s of video of navigating and clicking, into `docs/record/`; on the GPU on macOS, in software at 960×540 elsewhere |
 | `just stills` | only the stills, into `docs/record/` (fast; use it while working) |
 | `just light [day\|night] [shots]` | the mean brightness and the share of pixels burnt to white of every shot, by night and by day; fails above 1 % (`scripts/light.mjs`) |
+| `just grid [--offline]` | the ▲ grid view's files in `public/grid/`: the coast's triangle mesh (Natural Earth, Delaunay) and 24 h of GFS wind with the sea it raises (`scripts/grid.mjs`) |
 | `just audio <file> <name>` | normalizes a sound into `public/audio/<name>.mp3` |
 | `just brasil` | renders the "lofi brasil" station into `public/audio/radio/` (`scripts/brasil.mjs`) |
 | `just listeners` | the radio's live listeners count on :8787; `just dev` passes `/live/` to it |
@@ -92,14 +93,14 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, hotspots, and `reading`, the words of the LOFI page (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, ▲ grid (its domain, files and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8) |
 | `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, from `config.reading` and `posts/`, on hash routes (`#/posts/<slug>`) |
 | `src/markdown.js` | reads a post: front matter, then Markdown into DOM nodes with `textContent`, never `innerHTML` |
 | `posts/*.md` | the posts of LOFI, one file each, `YYYY-MM-DD-slug.md`, with `title`, `date` and `summary` (the check asks) |
 | `scripts/feed.mjs` | the posts' RSS feed, `feed.xml` in the build (and in `just dev`) |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
-| `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material; the photographed wood of `public/textures/pbr/`; your feet under the camera (`buildBody`); the day and night light sets, the desk lamp at a third by day, the dust in the window's light |
+| `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material; the photographed wood of `public/textures/pbr/`; your feet under the camera (`buildBody`); the day and night light sets, the desk lamp at a third by day, the dust in the window's light, the rain on the glass, the leaves that sway |
 | `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note, record sleeves and the slipbox's two cards, crates, the tape labels in their retro faces, plastic, the keyboard, the VCR's front, typed paper, the folder |
 | `src/props.js` | the other walls: the marola-dev wave tank and its buoys, the ouroboric-dev crate belt, the slipbox (a crate of records, two side by side in front) |
 | `src/outside.js` | Rio behind the window, in layers at their own distances: the night and day photographs of `config.outside`, the night's lights twinkling, trees in front; a drawn view when the night file is missing |
@@ -107,7 +108,8 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/post.js` | post-processing: MSAA HDR buffer, ambient occlusion (GTAO, off under `?record`), hover outline, bloom with a threshold for the night and one for the day (`setDay`), tone mapping (AgX, set in `src/app.js`), film grade; steps quality down when frames run long |
 | `src/cameras.js` | named shots and the moves between them: quintic curves that keep the velocity when a new shot is picked mid-move, arcs, slerped turns, per-shot `fov`, damped parallax; `shot_*` cameras from the GLB |
 | `src/interact.js` | raycast hover and click against the whole room (walls hide what is behind them), label cards with a hint, glow |
-| `src/tv.js` | the TV canvas and the tape contract; the CRT glass (bulge, corners, phosphor stripes) over it |
+| `src/grid.js` | ▲ grid, the tenth view: the chart on the right wall, and the MapLibre map that opens over the room when its shot lands, the mesh drawn by a custom WebGL layer, the hours played by the room's clock |
+| `src/tv.js` | the TV canvas and the tape contract; the CRT glass (bulge, corners, phosphor stripes) over it; how bright the picture is, for the TV's light |
 | `src/tapes/*.js` | one tape each |
 | `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
 | `src/radio.js` | piabrota RADIO: the stations of `config.radio`, one track after another through the room's sound, and the live listeners count |
@@ -115,6 +117,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/signature.js` | renders the signature as text |
 | `scripts/check.mjs` | what `just check` tests |
 | `scripts/record.mjs` | what `just record` makes: the stills and the video for a pull request |
+| `scripts/grid.mjs` | what `just grid` makes: `public/grid/` (land, mesh, frames, run) |
 | `scripts/light.mjs` | what `just light` measures: how bright each shot is, and whether any burns to white |
 | `scripts/brasil.mjs` | what `just brasil` makes: the four bossa-lofi pieces of the "lofi brasil" station |
 | `scripts/listeners.mjs` | `just listeners`: the live listeners count, a small server with no dependency that runs beside the site (nix-os runs it on the host) |
@@ -126,7 +129,7 @@ Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
 `shelf`, `frame_<project>`, `bot_<id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`,
 `belt`, `crate`, `crate_<repo>`, `record_<id>`, `quote`, `radio` and its lit `radio_dial`, `door`, `fax`,
-`fax_linkedin`, `folder_closed-source`, `letter_closed-source`), and cameras
+`fax_linkedin`, `folder_closed-source`, `letter_closed-source`, `chart`), and cameras
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
 the pointer.
 

@@ -7,6 +7,19 @@ description: Build the planned tenth view "▲ grid" - WAVEWATCH III on a triang
 
 The plan is `docs/SURVEY.md`, section 6. Read it first; this is the short form.
 
+## What exists (#18)
+
+- `src/grid.js`: the chart on the right wall and the MapLibre map, the mesh as a custom WebGL
+  layer (`meshLayer`), play, the hour slider, hover. `config.grid` holds the domain, the files and
+  every word.
+- `scripts/grid.mjs` (`just grid`): Natural Earth land → coast nodes every `spacing[0]` km, ocean
+  nodes in bands out to `reach` km → Delaunay → `public/grid/mesh.bin`; GFS 10 m wind through
+  Open-Meteo on a 1° lattice → `frames.bin` (per hour: Hs[n], speed[n], from[n], Uint8).
+  `--offline` reuses the cached wind in `node_modules/.grid/`. Open-Meteo allows 600 points a
+  minute; the script waits.
+- The sea in `frames.bin` is an estimate, Hs = 0.21 U²/g. Replacing it with WW3's Hs keeps the
+  file format, and `config.grid.note` must then change.
+
 ## Credit
 
 Triangle (unstructured) grids in WAVEWATCH III are the work of Dr. Aron Roland (with Fabrice
