@@ -17,8 +17,7 @@ is named, cite his six works with a DOI together, as `docs/SURVEY.md` does.
 
 ## Gates, before any code
 
-1. **Invariant 4** gives shots the keys 1 to 9 and there are nine. The tenth needs key `0`: the
-   owner changes `AGENTS.md` first, in its own pull request.
+1. **Invariant 4** gives the tenth shot key `0` (the owner, 6 November 2026). It is the last key.
 2. **Invariant 1** forbids hotlinking: the basemap ships in `public/` (Natural Earth, public
    domain, or an OpenStreetMap PMTiles extract, ODbL, credited), zoom 0 to 8, inside 25 MB.
 

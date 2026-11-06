@@ -55,7 +55,7 @@ const redrawShadows = () => { renderer.shadowMap.needsUpdate = true; };
 const nav = document.getElementById('shots');
 rig.names.forEach((name, i) => {
   const b = document.createElement('button');
-  const k = document.createElement('kbd'); k.textContent = String(i + 1);
+  const k = document.createElement('kbd'); k.textContent = String((i + 1) % 10); // the tenth is 0
   b.append(k, document.createTextNode(` ${name}`));
   b.onclick = () => rig.go(name); b.dataset.shot = name;
   nav.appendChild(b);
@@ -66,7 +66,7 @@ rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => {
 }));
 addEventListener('keydown', (e) => {
   if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
-  const i = Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]);
+  const i = e.key === '0' ? 9 : Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]); // 1..9, and 0 for the tenth
   if (e.key === 'Escape') rig.go(config.startShot);
   if (e.key === 'ArrowRight') rig.next(1);
   if (e.key === 'ArrowLeft') rig.next(-1);

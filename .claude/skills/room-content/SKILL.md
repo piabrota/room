@@ -15,7 +15,7 @@ other file hardcodes a name, a link, a label or a sound path.
 | a radio track | lofi under CC0 or CC BY only; `just audio track.mp3 radio/<name>`; a station's `tracks` with `fallback: 'lofi'`; a row in `CREDITS.md` (the check asks). The radio has its own 100 MB |
 | a texture or photo | at most 2 MB, in `public/textures/`; a row in `CREDITS.md` naming the author, the source and the licence, in the same commit. Nothing hotlinked (invariant 1) |
 | a hotspot | an entry in `config.hotspots` with `name` (the mesh), `label`, `hint` and one `action`: `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`. A new action is added to `src/app.js` and to `scripts/check.mjs` together (invariant 5) |
-| a shot | `config.shots.<name>` with `position`, `target`, `fov`. There are nine, on keys 1 to 9; a tenth needs invariant 4 changed first, by the owner, in its own pull request |
+| a shot | `config.shots.<name>` with `position`, `target`, `fov`. At most ten, on keys 1 to 9 and 0 (invariant 4) |
 
 Then `just check`, and the `room-pr` skill.
 

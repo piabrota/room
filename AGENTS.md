@@ -32,7 +32,8 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    rendered as text (`src/signature.js`), never through `innerHTML`.
 4. **Cameras are named shots, and the visitor is never lost.** Every view is a shot in
    `config.shots` or a Blender camera named `shot_*`, reachable from its button and its number
-   key (1 to 9). `Esc` always returns to `startShot`. Moves between shots are eased; there is
+   key (1 to 9, and 0 for the tenth; at most ten shots, the owner, 6 November 2026). `Esc`
+   always returns to `startShot`. Moves between shots are eased; there is
    no free orbit that can leave the room.
 5. **Whatever can be clicked says so on hover.** Every interactive object is registered
    through `src/interact.js`: it shows a label and a glow on hover, and does one thing on
@@ -129,7 +130,7 @@ light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `not
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
 the pointer.
 
-The visitor moves with the shot buttons, the keys 1 to 9, `←` `→` for the next and the previous
+The visitor moves with the shot buttons, the keys 1 to 9 and 0, `←` `→` for the next and the previous
 shot, `Esc` for `startShot`, and a drag (mouse or finger) to look around from where they stand,
 360° sideways and a little up and down; the next shot starts from that look, eased.
 

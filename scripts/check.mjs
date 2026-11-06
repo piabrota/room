@@ -18,7 +18,7 @@ if (!sig?.name || !sig?.tagline || !Array.isArray(sig.links)) fail(3, 'signature
 // 4. Every shot is a named view with a position and a target.
 const shots = Object.entries(config.shots ?? {});
 if (shots.length === 0) fail(4, 'no camera shots');
-if (shots.length > 9) fail(4, 'more than 9 shots: number keys 1..9 cannot reach them all');
+if (shots.length > 10) fail(4, 'more than 10 shots: the keys 1..9 and 0 cannot reach them all');
 for (const [name, s] of shots) {
   if (!(s.position?.length === 3 && s.target?.length === 3)) fail(4, `shot "${name}" needs position and target [x, y, z]`);
 }
