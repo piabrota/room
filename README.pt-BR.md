@@ -24,6 +24,9 @@ respostas ficam de fora. Os dois primeiros estão em arquivos, para ler por inte
 - [`prompts/PROMPT_1.txt`](prompts/PROMPT_1.txt): entender o quarto de referência, começar um esqueleto
 - [`prompts/PROMPT_2.txt`](prompts/PROMPT_2.txt): o repositório e suas dez invariantes ([`AGENTS.md`](AGENTS.md))
 
+Para montar o mesmo projeto do Claude para o seu fork, sem o Claude Code CLI, siga o
+[`docs/CLAUDE_PROJECT.pt-BR.md`](docs/CLAUDE_PROJECT.pt-BR.md): o nome, os repositórios, as instruções e os modelos.
+
 Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para revisão.
 
 | # | Prompt (UTC) | Resultado | Levou |
@@ -37,6 +40,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 7 | 5 nov 23:21 | [#6](https://github.com/piabrota/room/pull/6) o quarto em 360°, a janela para o Rio, a piabrota RADIO | 50 min |
 | 8 | 6 nov 00:33 | [#7](https://github.com/piabrota/room/pull/7) o orçamento próprio da rádio; [#12](https://github.com/piabrota/room/pull/12) 40 faixas na rádio em duas estações e a contagem de ouvintes, dia e noite, o botão da chuva, o slipbox, o quadro de letras, o favicon | 3 e 45 min |
 | 9 | 6 nov 00:50 | este README | |
+| 10 | 6 nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) as configurações do projeto, em [`docs/CLAUDE_PROJECT.pt-BR.md`](docs/CLAUDE_PROJECT.pt-BR.md) | 6 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -124,6 +128,14 @@ user> 'and modular, so people can use their own slang, lists, music'
 user> 'Felix Rieseberg GitHub user must be cited on README.md, also create a README.pt-BR.md
 version'
 user> 'please solve my personal typos in README.md'
+```
+
+**10.**
+
+```text
+user> 'in a new PR dump your entire Claude Project settings, in the same way is done in other
+repos like piabrota/nix-os, so people can reproduce same environment with another Claude
+Project, without need of Claude Code CLI'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix

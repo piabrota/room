@@ -24,6 +24,9 @@ first two are in files, so you can read them whole:
 - [`prompts/PROMPT_1.txt`](prompts/PROMPT_1.txt): understand the reference room, start a starter
 - [`prompts/PROMPT_2.txt`](prompts/PROMPT_2.txt): the repository, its ten invariants ([`AGENTS.md`](AGENTS.md))
 
+To set up the same Claude project for your fork, without the Claude Code CLI, follow
+[`docs/CLAUDE_PROJECT.md`](docs/CLAUDE_PROJECT.md): its name, repositories, instructions and models.
+
 Times are UTC. "Took" runs from the prompt to the pull request being ready for review.
 
 | # | Prompt (UTC) | Result | Took |
@@ -37,6 +40,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 7 | 5 Nov 23:21 | [#6](https://github.com/piabrota/room/pull/6) the room in 360°, the window on Rio, piabrota RADIO | 50 min |
 | 8 | 6 Nov 00:33 | [#7](https://github.com/piabrota/room/pull/7) the radio's own budget; [#12](https://github.com/piabrota/room/pull/12) 40 radio tracks in two stations and a listeners count, day and night, the rain button, the slipbox, the letter board, the favicon | 3 and 45 min |
 | 9 | 6 Nov 00:50 | this README | |
+| 10 | 6 Nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) the project's settings, in [`docs/CLAUDE_PROJECT.md`](docs/CLAUDE_PROJECT.md) | 6 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -124,6 +128,14 @@ user> 'and modular, so people can use their own slang, lists, music'
 user> 'Felix Rieseberg GitHub user must be cited on README.md, also create a README.pt-BR.md
 version'
 user> 'please solve my personal typos in README.md'
+```
+
+**10.**
+
+```text
+user> 'in a new PR dump your entire Claude Project settings, in the same way is done in other
+repos like piabrota/nix-os, so people can reproduce same environment with another Claude
+Project, without need of Claude Code CLI'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix
