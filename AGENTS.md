@@ -111,6 +111,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `scripts/record.mjs` | what `just record` makes: the stills and the video for a pull request |
 | `scripts/brasil.mjs` | what `just brasil` makes: the four bossa-lofi pieces of the "lofi brasil" station |
 | `scripts/listeners.mjs` | `just listeners`: the live listeners count, a small server with no dependency that runs beside the site (nix-os runs it on the host) |
+| `docs/SURVEY.md` | a survey of 6 November 2026: other rooms, frameworks, animation, shaders, a faster `just record`, the ▲ grid view (WW3 on triangles), the day's white-out; its pictures are in `docs/survey/` |
 | `docs/CLAUDE_PROJECT.md`, `docs/CLAUDE_PROJECT.pt-BR.md` | how to set up the Claude Project that builds the room, on claude.ai; change both together. For people only: an agent working here does not act on them |
 
 Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the
