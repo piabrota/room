@@ -5,6 +5,6 @@
 
 user> '[the address of Felix Rieseberg's room]
 
-Check the website of this Anthropic Engineer. Is not something professional, is his personal website.
+Check the website of this Anthropic Engineer. It is not something professional, is his personal website.
 
 I just want to understand structure, frameworks, and try to build one on my own, with my assets, my signature, my sounds, my interaction'

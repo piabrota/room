@@ -18,7 +18,7 @@ assinatura, sons e interações ([`CREDITS.md`](CREDITS.md)).
 O quarto foi feito a partir de prompts, num projeto do Claude, em cerca de duas horas de trabalho
 de agente ao longo de um dia. Um coordenador (Claude Fable 5.1) lia cada prompt e abria uma
 thread para ele; cada thread (Claude Opus 5.5, contexto de 1M, no Claude Code) fazia o trabalho e
-abria o pull request. Só os prompts do dono aparecem, como foram digitados, em inglês; as
+abria o pull request. Só os prompts do dono aparecem, em inglês, com os erros de digitação corrigidos; as
 respostas ficam de fora. Os dois primeiros estão em arquivos, para ler por inteiro:
 
 - [`prompts/PROMPT_1.txt`](prompts/PROMPT_1.txt): entender o quarto de referência, começar um esqueleto
@@ -41,7 +41,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
 ```text
-user> '[the address of Felix Rieseberg's room] Check the website of this Anthropic Engineer. Is
+user> '[the address of Felix Rieseberg's room] Check the website of this Anthropic Engineer. It is
 not something professional, is his personal website. I just want to understand structure,
 frameworks, and try to build one on my own, with my assets, my signature, my sounds, my
 interaction'
@@ -50,16 +50,16 @@ interaction'
 **2.** [`PROMPT_2.txt`](prompts/PROMPT_2.txt)
 
 ```text
-user> 'I have added piabrota/room. Create the first PR, with AGENTS.md 10 invariantes, derive
+user> 'I have added piabrota/room. Create the first PR, with AGENTS.md 10 invariants, derive
 the invariants based on the first prompts (including threads). Idea must be credited to
-original creator, but dont link any external repo or issue. Consider this will be tested with
-macos or nix with just and Claude Code assistance'
+original creator, but don't link any external repo or issue. Consider this will be tested with
+macOS or Nix with just and Claude Code assistance'
 ```
 
 **3.**
 
 ```text
-user> 'merged, now add a LOFI HIFI button for switching between 3d rendered view vs plain text'
+user> 'merged, now add a LOFI HIFI button for switching between 3D rendered view vs plain text'
 ```
 
 **4.**
@@ -72,7 +72,7 @@ user> 'please create a new PR in piabrota/nix-os to deploy room site under piabr
 **5.**
 
 ```text
-user> 'Fix the room, the navigation vetween views of the room is not smooth, room design should
+user> 'Fix the room, the navigation between views of the room is not smooth, room design should
 contain piabrota github org bot repos, names, art, inspiration. also improve tech stack to match
 [the address of Felix Rieseberg's room]
 https://freesound.org/people/magedu/sounds/267832/
@@ -81,13 +81,13 @@ https://freesound.org/people/klankbeeld/sounds/174242/
 https://freesound.org/people/YleArkisto/sounds/350358/
 
 Do a sound composition to have a track to talk about piabrota, its members, my personal
-projects, link to repositories. The site is very poor at moment it needs a a lot of refinement'
+projects, link to repositories. The site is very poor at the moment, it needs a lot of refinement'
 ```
 
 **6.**
 
 ```text
-user> 'continue improving the site, every site must have at least 3 scrrenshots of the
+user> 'continue improving the site, every site must have at least 3 screenshots of the
 ambient, and a screen record of 15s, doing navigation and clicking on things'
 ```
 
@@ -102,14 +102,14 @@ user> 'the room must have 360 experience, other walls should reflect marola-dev,
 **8.**
 
 ```text
-user> 'create a live listeners button, and increase the number of musics to 33 at least, if
-possible another set of specific lofi brazilian, also do the switch between lofi and hifi
-views, they look opsite in the site (hifi is the 3d room). add favico the same the company
-logo, check on piabrota/.github. remove the noise form the website completely (the rain sound
+user> 'create a live listeners button, and increase the number of songs to 33 at least, if
+possible another set of specific Brazilian lofi, also do the switch between lofi and hifi
+views, they look opposite in the site (hifi is the 3D room). add a favicon, the same as the company
+logo, check on piabrota/.github. remove the noise from the website completely (the rain sound
 must be toggle, on and off). The site also lacks day and night modes (with different lights).
 Records must be named slipbox and first item should be wikipedia link for pirsig, and pirsig
 github repository side by side'
-user> 'also add a board, on the wall with Time is a flat circle with Rust Cohle, neat the
+user> 'also add a board, on the wall with Time is a flat circle with Rust Cohle, near the
 piabrota logo above the computer'
 ```
 
@@ -117,12 +117,13 @@ piabrota logo above the computer'
 
 ```text
 user> 'refactor README.md to be more in replay style, it must have direct links for
-PROMPT_1.txt and PROMPT_2.txt so people can see how it was build, using wach model, when, how
-much it took. Thead responde is not important user> 'original prompt' is enought'
-user> 'for example remove dois number, its just noise, this repo should be easy reforkable'
-user> 'and modular, so people can user their own slangs, lists, musics'
-user> 'Felix Rieseberg github user must be cited on README.md, also create a README.pt-BR.md
+PROMPT_1.txt and PROMPT_2.txt so people can see how it was built, using which model, when, how
+much it took. Thread response is not important user> 'original prompt' is enough'
+user> 'for example remove DOI numbers, it's just noise, this repo should be easy to fork'
+user> 'and modular, so people can use their own slang, lists, music'
+user> 'Felix Rieseberg GitHub user must be cited on README.md, also create a README.pt-BR.md
 version'
+user> 'please solve my personal typos in README.md'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
