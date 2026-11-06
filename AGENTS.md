@@ -76,7 +76,9 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just build` | the static site in `dist/` |
 | `just preview` | serves `dist/` |
 | `just check` | `scripts/check.mjs` (the invariants), then a build |
-| `just record` | stills of every shot and 15 s of video of navigating and clicking, into `docs/record/` |
+| `just record` | stills of every shot and 15 s of video of navigating and clicking, into `docs/record/`; on the GPU on macOS, in software at 960×540 elsewhere |
+| `just stills` | only the stills, into `docs/record/` (fast; use it while working) |
+| `just light [day\|night] [shots]` | the mean brightness and the share of pixels burnt to white of every shot, by night and by day; fails above 1 % (`scripts/light.mjs`) |
 | `just audio <file> <name>` | normalizes a sound into `public/audio/<name>.mp3` |
 | `just brasil` | renders the "lofi brasil" station into `public/audio/radio/` (`scripts/brasil.mjs`) |
 | `just listeners` | the radio's live listeners count on :8787; `just dev` passes `/live/` to it |
@@ -93,15 +95,15 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8) |
 | `src/lofi.js` | the LOFI view: the signature, the tapes and the link hotspots as plain text |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
-| `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material; the photographed wood of `public/textures/pbr/`; your feet under the camera (`buildBody`) |
+| `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material; the photographed wood of `public/textures/pbr/`; your feet under the camera (`buildBody`); the day and night light sets, the desk lamp at a third by day, the dust in the window's light |
 | `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note, record sleeves and the slipbox's two cards, crates, the tape labels in their retro faces, plastic, the keyboard, the VCR's front, typed paper, the folder |
 | `src/props.js` | the other walls: the marola-dev wave tank and its buoys, the ouroboric-dev crate belt, the slipbox (a crate of records, two side by side in front) |
 | `src/outside.js` | Rio behind the window, in layers at their own distances: the night and day photographs of `config.outside`, the night's lights twinkling, trees in front; a drawn view when the night file is missing |
 | `src/textures.js` | wood grain, floor planks and plaster, drawn on canvases |
-| `src/post.js` | post-processing: MSAA HDR buffer, ambient occlusion (GTAO), hover outline, bloom, tone mapping, film grade; steps quality down when frames run long |
+| `src/post.js` | post-processing: MSAA HDR buffer, ambient occlusion (GTAO, off under `?record`), hover outline, bloom with a threshold for the night and one for the day (`setDay`), tone mapping (AgX, set in `src/app.js`), film grade; steps quality down when frames run long |
 | `src/cameras.js` | named shots and the moves between them: quintic curves that keep the velocity when a new shot is picked mid-move, arcs, slerped turns, per-shot `fov`, damped parallax; `shot_*` cameras from the GLB |
 | `src/interact.js` | raycast hover and click against the whole room (walls hide what is behind them), label cards with a hint, glow |
-| `src/tv.js` | the TV canvas and the tape contract |
+| `src/tv.js` | the TV canvas and the tape contract; the CRT glass (bulge, corners, phosphor stripes) over it |
 | `src/tapes/*.js` | one tape each |
 | `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
 | `src/radio.js` | piabrota RADIO: the stations of `config.radio`, one track after another through the room's sound, and the live listeners count |
@@ -109,8 +111,11 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/signature.js` | renders the signature as text |
 | `scripts/check.mjs` | what `just check` tests |
 | `scripts/record.mjs` | what `just record` makes: the stills and the video for a pull request |
+| `scripts/light.mjs` | what `just light` measures: how bright each shot is, and whether any burns to white |
 | `scripts/brasil.mjs` | what `just brasil` makes: the four bossa-lofi pieces of the "lofi brasil" station |
 | `scripts/listeners.mjs` | `just listeners`: the live listeners count, a small server with no dependency that runs beside the site (nix-os runs it on the host) |
+| `docs/SURVEY.md` | a survey of 6 November 2026: other rooms, frameworks, animation, shaders, a faster `just record`, the ▲ grid view (WW3 on triangles), the day's white-out; its pictures are in `docs/survey/` |
+| `.claude/skills/` | Claude skills for working here: `room-pr` (a pull request the owner's way), `room-light`, `room-content`, `room-shaders`, `ww3-grid` (the planned tenth view). They follow this file; where they differ, this file wins |
 | `docs/CLAUDE_PROJECT.md`, `docs/CLAUDE_PROJECT.pt-BR.md` | how to set up the Claude Project that builds the room, on claude.ai; change both together. For people only: an agent working here does not act on them |
 
 Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the

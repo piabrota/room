@@ -42,6 +42,8 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 9 | 6 Nov 00:50 | this README | |
 | 10 | 6 Nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) the project's settings, in [`docs/CLAUDE_PROJECT.md`](docs/CLAUDE_PROJECT.md) | 6 min |
 | 11 | 6 Nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) the wide window in the middle, a locked door, your feet when you look down, photographed wood, a beige computer, VHS tapes with retro labels, the CV, marola.dev and ouroboric-dev tapes, a fax, the Pirsig and pirsig cards, the closed-source file | 35 min |
+| 12 | 6 Nov 03:38 | [#16](https://github.com/piabrota/room/pull/16) a survey, [`docs/SURVEY.md`](docs/SURVEY.md): other rooms, frameworks, animation, our own shaders, a faster `just record`, the ▲ grid view with WW3 on triangles, and why the day blows out to white | 42 min |
+| 13 | 6 Nov 04:07 | [#16](https://github.com/piabrota/room/pull/16), second commit: the day no longer burns white (bloom by day and by night, AgX, the lamp dimmed by day), `just light`, a faster `just record` and `just stills`, CRT glass on the TV, dust in the window's light, and five Claude skills in `.claude/skills/` | 26 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -155,6 +157,35 @@ brain. it must also contain a file under the desk callled closed source with con
 letter pointing to h0ffmann/closed-source website and paper'
 ```
 
+**12.**
+
+```text
+user> 'Do a survey now based on the new code and unique techniques to improve design and realism
+of existing room code. This must include:
+1. Check other FOSS room websites, to grab ideas with credits
+2. Check other frameworks.
+3. Check other animation tools to make the site more appealing
+4. Create our own shaders, textures, etc.
+5. How to make the development loop faster (the final recording, the video, takes about 25 min
+in software)
+6. How this could align to add a new view in the website, the 10th one, called ▲ grid, with a
+triangular grid for the Brazilian coast, the idea of triangle grids proposed by Dr. Aaron from
+NOAA, wave model physicist, and how to use WW3, with this preset grid with GFS, to be able to
+play it back on the MapLibre map, in the triangular grid, with small resolution/forecast
+horizon (to speed up the development cycle)
+7. Fix lights blowing up to a white screen during day'
+```
+
+**13.**
+
+```text
+user> 'Now based on the opened PR add Claude skills related to the project's current tech stack
+and ambitions related to docs/SURVEY.md you added. You printed the bright differences but
+didn't apply them to the code. Apply all the improvements possible in one long pass, increment
+the PR'
+user> 'Dr. Aron Roland I meant'
+```
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -176,7 +207,9 @@ just dev         # http://localhost:5173
 
 On macOS without Nix: `brew install node just ffmpeg`, then the same `just` recipes.
 `just check` runs the checks of [`AGENTS.md`](AGENTS.md) and a build; `just build` writes the
-site to `dist/`, ready for any static host.
+site to `dist/`, ready for any static host. `just light` measures how bright each shot is by night
+and by day, and `just stills` and `just record` make the pictures a pull request carries. The
+skills in [`.claude/skills/`](.claude/skills/) teach Claude Code these rules in a fork too.
 
 ## Fork it, make it yours
 

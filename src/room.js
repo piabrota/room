@@ -42,6 +42,7 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   lamp.position.copy(find('lamp_bulb')?.getWorldPosition(v) ?? find('lamp')?.getWorldPosition(v) ?? v.set(-0.55, 1.25, -1.6));
   lamp.castShadow = true; lamp.shadow.mapSize.set(1024, 1024); lamp.shadow.bias = -0.002; lamp.shadow.radius = 4;
   scene.add(lamp);
+  const lampFull = lamp.intensity;
   const tvLight = new THREE.PointLight(0x88aaff, 0, 3, 2); // tinted by the playing tape
   const screen = find('screen');
   tvLight.position.copy(screen ? screen.getWorldPosition(v) : v.set(0, 1.15, -1.3)).add(new THREE.Vector3(0, 0, 0.4));
@@ -60,13 +61,17 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.001;
   Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 14 });
   scene.add(sun, sun.target);
-  const NIGHT = { sky: [0x55628a, 0x1a1410, 0.8], moon: 0.55, sun: 0, neon: 1.2, env: scene.environmentIntensity ?? 0.18, bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
-  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 3.4], moon: 0, sun: 5, neon: 0.5, env: 0.55, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
+  const NIGHT = { sky: [0x55628a, 0x1a1410, 0.8], moon: 0.55, sun: 0, neon: 1.2, lamp: 1, env: scene.environmentIntensity ?? 0.18, bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
+  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 3.4], moon: 0, sun: 5, neon: 0.5, lamp: 0.35, env: 0.55, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
+  const dust = buildDust(); scene.add(dust);
   let day = false;
   function setDay(on) {
+    dust.material.uniforms.bright.value = on ? 1 : 0.18; // by day the sun lights it; at night only the moon
     day = on; const m = on ? DAY : NIGHT;
     sky.color.set(m.sky[0]); sky.groundColor.set(m.sky[1]); sky.intensity = m.sky[2];
     moon.intensity = m.moon; sun.intensity = m.sun; neon.intensity = m.neon;
+    // a lamp in daylight adds little; at full power, 0.35 m from the fax's page, it burns it white
+    lamp.userData.full = lampFull * m.lamp; if (lamp.intensity) lamp.intensity = lamp.userData.full;
     scene.environmentIntensity = m.env;
     if (m.bg) scene.background = m.bg; if (m.fog && scene.fog) scene.fog.color.copy(m.fog);
     root.userData.outside?.setDay?.(on);
@@ -75,8 +80,40 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   return {
     root, find, lamp, tvLight, screen, vcr: find('vcr'),
     get day() { return day; }, setDay,
-    update(t) { for (const a of animated) a(t); },
+    update(t) { for (const a of animated) a(t); if (!still) dust.material.uniforms.time.value = t; },
   };
+}
+
+// Dust in the window's light: 400 motes drifting in the air between the
+// window and the desk, one draw call. They move with the room's clock, so
+// `just record` films the same motes every time, and they stay still
+// under reduced motion (invariant 8).
+const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function buildDust(n = 400) {
+  let s = 7; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  const base = [], seed = [];
+  for (let i = 0; i < n; i++) { base.push(-1.1 + rnd() * 2.6, 0.7 + rnd() * 2.1, -1.85 + rnd() * 2.2); seed.push(rnd()); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(base, 3));
+  geo.setAttribute('seed', new THREE.Float32BufferAttribute(seed, 1));
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { time: { value: 0 }, bright: { value: 0.18 } },
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    vertexShader: `attribute float seed; uniform float time; varying float a;
+      void main() {
+        vec3 p = position;
+        p.y = 0.7 + mod(p.y - 0.7 - time * (0.004 + 0.01 * seed), 2.1);               // a slow fall, round again
+        p += 0.04 * vec3(sin(time * 0.31 + seed * 40.0), sin(time * 0.23 + seed * 17.0), cos(time * 0.27 + seed * 29.0));
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        a = 0.35 + 0.65 * fract(seed * 7.13);
+        gl_PointSize = (1.2 + 2.0 * fract(seed * 3.7)) * (2.0 / -mv.z);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `uniform float bright; varying float a;
+      void main() { float d = length(gl_PointCoord - 0.5); gl_FragColor = vec4(vec3(1.0, 0.93, 0.8) * 0.5 * a * bright * smoothstep(0.5, 0.0, d), 1.0); }`,
+  });
+  const pts = new THREE.Points(geo, mat); pts.frustumCulled = false; pts.name = 'dust';
+  return pts;
 }
 
 // If you bake lighting in Blender (Cycles -> Bake -> Combined into the

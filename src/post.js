@@ -15,7 +15,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 //
 // It watches the frame time and steps the quality down (ambient
 // occlusion first, then pixel ratio, then bloom) when the laptop can't keep up, so motion stays smooth.
-export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {}) {
+export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: withAO = true } = {}) {
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, target);
@@ -25,6 +25,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {})
   ao.updateGtaoMaterial({ radius: 0.3, distanceExponent: 1, thickness: 1, scale: 1, samples: 12 });
   ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 4, rings: 2, samples: 12 });
   ao.blendIntensity = 0.85;
+  ao.enabled = withAO; // `?record` turns it off: in software it is a third of the frame
   composer.addPass(ao);
 
   const outline = new OutlinePass(new THREE.Vector2(size.x, size.y), scene, camera);
@@ -32,7 +33,12 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {})
   outline.visibleEdgeColor.set('#ffd9a0'); outline.hiddenEdgeColor.set(accent).multiplyScalar(0.25);
   composer.addPass(outline);
 
-  const bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.55, 0.5, 0.92);
+  // Bloom works on the linear light, before tone mapping. At night only the
+  // emissive things (the bulb, the sign, the TV, the eyes) pass 0.92. By day
+  // a lit white wall is far above 1, so the threshold rises with the day
+  // (setDay below), or every bright surface glows and the frame goes white.
+  const BLOOM = { night: { threshold: 0.92, strength: 0.55 }, day: { threshold: 3, strength: 0.35 } };
+  const bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), BLOOM.night.strength, 0.5, BLOOM.night.threshold);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 
@@ -67,7 +73,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {})
     if (acc < 1.2) return;
     const avg = acc / frames; acc = 0; frames = 0;
     if (avg <= 1 / 48) return;
-    if (ao.enabled) ao.enabled = false;
+    if (ao.enabled) ao.enabled = false; // (already off under `?record`)
     else if (level < levels.length - 1) { level++; setSize(); }
     else if (bloom.enabled) bloom.enabled = false;
     else if (grade.enabled) grade.enabled = false;
@@ -76,7 +82,9 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {})
 
   return {
     composer,
+    bloom,
     setSize,
+    setDay(on) { Object.assign(bloom, on ? BLOOM.day : BLOOM.night); },
     select(obj) { outline.selectedObjects = obj ? [obj] : []; outline.enabled = !!obj; },
     render(dt, t, measure = true) {
       grade.uniforms.time.value = t % 100;

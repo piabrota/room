@@ -15,8 +15,11 @@ const canvas = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+// AgX rolls bright colours off gently where ACES clips them to white
+// (docs/SURVEY.md, section 7). Exposure is the same by day and night: the
+// day is brighter because of its light, not because of the camera.
+renderer.toneMapping = THREE.AgXToneMapping;
+renderer.toneMappingExposure = 1.1;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.shadowMap.autoUpdate = false; // the room is still: shadows are drawn again only when something moves
@@ -40,7 +43,8 @@ const setProgress = (p) => loading?.style.setProperty('--p', String(p));
 const room = await loadRoom(scene, config.roomModel, setProgress);
 const you = buildBody(config.body); scene.add(you); // your feet, when you look down
 const rig = createCameraRig(camera, config.shots, room.root.userData.cameras, { canvas });
-const post = createPost(renderer, scene, camera, { accent: config.theme.accent });
+const recording = new URLSearchParams(location.search).has('record'); // `just record`: no ambient occlusion
+const post = createPost(renderer, scene, camera, { accent: config.theme.accent, ao: !recording });
 const ui = createInteractions(camera, canvas, document.getElementById('tooltip'), { root: room.root, onHover: (o) => post.select(o), ignoreClick: () => rig.justDragged() });
 const audio = createAudio(camera);
 const tv = createTV(room.screen, { audio, signature: sig, config });
@@ -112,7 +116,7 @@ for (const h of config.hotspots) {
       if (h.action === 'shot') rig.go(h.value);
       if (h.action === 'link') window.open(h.value, '_blank', 'noopener');
       if (h.action === 'sfx') audio.play(config.sfx[h.value]);
-      if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : lampOn; redrawShadows(); }
+      if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : (room.lamp.userData.full ?? lampOn); redrawShadows(); }
       if (h.action === 'toggleRadio') radioBtn.click();
     },
   });
@@ -147,8 +151,7 @@ rainBtn.onclick = async () => {
 // ── day and night ──
 const dayBtn = document.getElementById('daylight');
 function setDay(on) {
-  room.setDay(on); redrawShadows();
-  renderer.toneMappingExposure = on ? 1.3 : 1.05;
+  room.setDay(on); post.setDay(on); redrawShadows();
   dayBtn.textContent = on ? words.day : words.night;
   dayBtn.setAttribute('aria-pressed', String(on));
   dayBtn.title = on ? words.toNight : words.toDay;
@@ -240,7 +243,7 @@ export function resume() {
   radio.resume();
 }
 // handy for debugging in the console; `step` drives the room by hand for `just record`
-window.__room = { rig, tv, radio, room, renderer, camera, ui, step: (dt) => {
+window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, step: (dt) => {
   if (!stepping) { stepping = true; renderer.setAnimationLoop(() => {}); } // frames keep coming, the room only moves on step
   tick(dt, false);
 } };

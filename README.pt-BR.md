@@ -42,6 +42,8 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 9 | 6 nov 00:50 | este README | |
 | 10 | 6 nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) as configurações do projeto, em [`docs/CLAUDE_PROJECT.pt-BR.md`](docs/CLAUDE_PROJECT.pt-BR.md) | 6 min |
 | 11 | 6 nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) a janela larga no meio, uma porta trancada, seus pés quando você olha para baixo, madeira fotografada, um computador bege, fitas VHS com etiquetas retrô, as fitas do CV, marola.dev e ouroboric-dev, um fax, os cartões de Pirsig e do pirsig, a pasta closed source | 35 min |
+| 12 | 6 nov 03:38 | [#16](https://github.com/piabrota/room/pull/16) um levantamento, [`docs/SURVEY.md`](docs/SURVEY.md): outros quartos, frameworks, animação, nossos próprios shaders, um `just record` mais rápido, a vista ▲ grid com o WW3 em triângulos, e por que o dia estoura em branco | 42 min |
+| 13 | 6 nov 04:07 | [#16](https://github.com/piabrota/room/pull/16), segundo commit: o dia não estoura mais em branco (bloom de dia e de noite, AgX, a luminária mais fraca de dia), `just light`, um `just record` mais rápido e `just stills`, vidro de CRT na TV, poeira na luz da janela, e cinco skills do Claude em `.claude/skills/` | 26 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -155,6 +157,35 @@ brain. it must also contain a file under the desk callled closed source with con
 letter pointing to h0ffmann/closed-source website and paper'
 ```
 
+**12.**
+
+```text
+user> 'Do a survey now based on the new code and unique techniques to improve design and realism
+of existing room code. This must include:
+1. Check other FOSS room websites, to grab ideas with credits
+2. Check other frameworks.
+3. Check other animation tools to make the site more appealing
+4. Create our own shaders, textures, etc.
+5. How to make the development loop faster (the final recording, the video, takes about 25 min
+in software)
+6. How this could align to add a new view in the website, the 10th one, called ▲ grid, with a
+triangular grid for the Brazilian coast, the idea of triangle grids proposed by Dr. Aaron from
+NOAA, wave model physicist, and how to use WW3, with this preset grid with GFS, to be able to
+play it back on the MapLibre map, in the triangular grid, with small resolution/forecast
+horizon (to speed up the development cycle)
+7. Fix lights blowing up to a white screen during day'
+```
+
+**13.**
+
+```text
+user> 'Now based on the opened PR add Claude skills related to the project's current tech stack
+and ambitions related to docs/SURVEY.md you added. You printed the bright differences but
+didn't apply them to the code. Apply all the improvements possible in one long pass, increment
+the PR'
+user> 'Dr. Aron Roland I meant'
+```
+
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
 
@@ -176,7 +207,9 @@ just dev         # http://localhost:5173
 
 No macOS sem Nix: `brew install node just ffmpeg`, depois as mesmas receitas `just`.
 `just check` roda as verificações do [`AGENTS.md`](AGENTS.md) e um build; `just build` escreve o
-site em `dist/`, pronto para qualquer hospedagem estática.
+site em `dist/`, pronto para qualquer hospedagem estática. `just light` mede o brilho de cada
+plano de noite e de dia, e `just stills` e `just record` fazem as imagens que um pull request leva.
+As skills em [`.claude/skills/`](.claude/skills/) ensinam essas regras ao Claude Code num fork também.
 
 ## Faça um fork, faça o seu
 
