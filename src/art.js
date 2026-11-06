@@ -153,6 +153,22 @@ export function noteArt({ glyph, lines, theme }) {
   return texture(c);
 }
 
+// A letter board: white letters pressed into black felt, a quotation in
+// capitals and who said it, under a ring that closes on itself.
+export function quoteArt({ text, by, theme }) {
+  const [c, ctx] = canvas(512, 352);
+  ctx.fillStyle = '#16171b'; ctx.fillRect(0, 0, 512, 352);
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+  for (let y = 10; y < 352; y += 12) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke(); } // the felt's grooves
+  ctx.strokeStyle = theme.accent; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(256, 62, 34, 34, 0, 0, 7); ctx.stroke();
+  ctx.fillStyle = '#f2efe6'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+  const words = text.toUpperCase().split(' '), rows = [];
+  for (const w of words) { const last = rows[rows.length - 1]; if (last && (last + ' ' + w).length <= 12) rows[rows.length - 1] = last + ' ' + w; else rows.push(w); }
+  rows.forEach((r, i) => { ctx.font = `38px ${FONT_MONO}`; ctx.fillText(r.split('').join(String.fromCharCode(8202)), 256, 140 + i * 50); });
+  ctx.fillStyle = '#b9b4a8'; ctx.font = `22px ${FONT_MONO}`; ctx.fillText(`— ${by.toUpperCase()}`, 256, 140 + rows.length * 50 + 14);
+  return texture(c);
+}
+
 function mulberry(a) {
   return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }

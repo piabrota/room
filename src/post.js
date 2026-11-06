@@ -11,7 +11,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 // HDR buffer, corners and contacts get ambient occlusion (GTAO, the soft
 // shadow where things meet), the hovered object gets an outline, bright things (the
 // sign, the bulb, the TV, the bots' eyes) bloom, then tone mapping, and
-// last a film grade: vignette, a little grain and lens fringe.
+// last a film grade: vignette and lens fringe (no grain: the room has no noise).
 //
 // It watches the frame time and steps the quality down (ambient
 // occlusion first, then pixel ratio, then bloom) when the laptop can't keep up, so motion stays smooth.
@@ -37,7 +37,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318' } = {})
   composer.addPass(new OutputPass());
 
   const grade = new ShaderPass({
-    uniforms: { tDiffuse: { value: null }, time: { value: 0 }, grain: { value: 0.035 }, vignette: { value: 0.32 }, fringe: { value: 0.0005 } },
+    uniforms: { tDiffuse: { value: null }, time: { value: 0 }, grain: { value: 0 }, vignette: { value: 0.32 }, fringe: { value: 0.0005 } },
     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: `
       uniform sampler2D tDiffuse; uniform float time, grain, vignette, fringe; varying vec2 vUv;

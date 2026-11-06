@@ -19,13 +19,11 @@ export function createTV(screenMesh, deps) {
   let tape = null, t = 0;
 
   function idle(dt) {
-    // static noise while nothing is playing
-    const img = ctx.createImageData(W / 4, H / 4);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const v = Math.random() * 60; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255;
-    }
-    ctx.putImageData(img, 0, 0); ctx.drawImage(canvas, 0, 0, W / 4, H / 4, 0, 0, W, H);
-    ctx.fillStyle = '#fff'; ctx.font = '20px monospace'; ctx.fillText('NO SIGNAL', 20, 36);
+    // no tape: a calm blue screen and the time, no static
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0d1f3c'); g.addColorStop(1, '#081428');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#cfe0ff'; ctx.font = '20px monospace'; ctx.fillText('NO SIGNAL', 20, 36);
+    ctx.fillStyle = '#7f95b8'; ctx.font = '14px monospace'; ctx.fillText('insert a tape', 20, 60);
   }
 
   function scanlines() {

@@ -35,7 +35,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 5 | 5 nov 22:28 | [#3](https://github.com/piabrota/room/pull/3) a fita piabrota e `just compose`; [#4](https://github.com/piabrota/room/pull/4) movimentos suaves, pós-processamento | 11 e 22 min |
 | 6 | 5 nov 22:51 | [#5](https://github.com/piabrota/room/pull/5) `just record`, a parede da direita e o teto | 17 min |
 | 7 | 5 nov 23:21 | [#6](https://github.com/piabrota/room/pull/6) o quarto em 360°, a janela para o Rio, a piabrota RADIO | 50 min |
-| 8 | 6 nov 00:33 | [#7](https://github.com/piabrota/room/pull/7) o orçamento próprio da rádio; o pull request das funcionalidades está em andamento | 3 min |
+| 8 | 6 nov 00:33 | [#7](https://github.com/piabrota/room/pull/7) o orçamento próprio da rádio; [#PRNUM](https://github.com/piabrota/room/pull/PRNUM) 40 faixas na rádio em duas estações e a contagem de ouvintes, dia e noite, o botão da chuva, o slipbox, o quadro de letras, o favicon | 3 e 45 min |
 | 9 | 6 nov 00:50 | este README | |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
@@ -159,11 +159,13 @@ Cada parte é um export próprio, então dá para trocar uma e manter o resto:
 | `signature`, `place` | o nome, o slogan, os links, a cidade e seu fuso | seu nome, suas palavras, seus links |
 | `theme` | as cores | sua paleta (e a fonte em `src/style.css`) |
 | `shots`, `startShot` | os planos de câmera nomeados | suas vistas, ou câmeras `shot_*` do Blender |
-| `radio` | as faixas da rádio | sua música, CC0 ou CC BY, cada uma com uma linha no `CREDITS.md` |
-| `ambience`, `sfx` | o som ambiente e os cliques | suas gravações (`just audio take.wav <nome>`) |
+| `ui` | as palavras dos botões | sua língua, suas gírias |
+| `radio` | as estações da rádio e suas faixas | sua música, CC0 ou CC BY, cada uma com uma linha no `CREDITS.md` |
+| `ambience`, `sfx` | o botão da chuva e os cliques | suas gravações (`just audio take.wav <nome>`) |
+| `outside` | a vista da janela, de dia e de noite | sua cidade, duas fotos creditadas no `CREDITS.md` |
 | `tapes` | o que o videocassete toca | suas fitas, um arquivo cada em `src/tapes/` |
 | `projects`, `bots`, `people`, `works` | as paredes, a mesa, o quadro, a estante | suas listas |
-| `sea`, `loop`, `records` | as outras três paredes | suas coleções, ou tire-as |
+| `sea`, `loop`, `slipbox` | as outras três paredes | suas coleções, ou tire-as |
 | `hotspots` | o que pode ser clicado, e o que faz | seus rótulos, suas palavras, seus links |
 
 Enquanto não houver modelo nem gravações, o quarto é montado com caixas e os sons são

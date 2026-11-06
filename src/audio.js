@@ -43,7 +43,9 @@ export function createAudio(camera) {
 
 function synth(ctx, kind) {
   const sr = ctx.sampleRate;
-  const len = { rain: 4, hum: 2, click: 0.05, thunk: 0.35, lofi: 8 }[kind] ?? 0.1;
+  const len = { rain: 4, click: 0.05, thunk: 0.35, lofi: 8 }[kind] ?? 0.1;
+  // rain: drops on the glass, each a short falling blip, and no hiss under them
+  const drops = kind === 'rain' ? Array.from({ length: 160 }, () => [Math.random() * len, 1800 + Math.random() * 2600, 0.04 + Math.random() * 0.1]) : [];
   // lofi: two soft seventh chords, four seconds each, a kick on the beat and vinyl crackle
   const chords = [[174.6, 220, 261.6, 329.6], [164.8, 196, 246.9, 293.7]];
   const b = ctx.createBuffer(2, Math.floor(sr * len), sr);
@@ -51,8 +53,7 @@ function synth(ctx, kind) {
     const d = b.getChannelData(ch); let lp = 0;
     for (let i = 0; i < d.length; i++) {
       const t = i / sr, n = Math.random() * 2 - 1;
-      if (kind === 'rain') { lp += (n - lp) * 0.35; d[i] = lp * 0.5 + (Math.random() < 0.0006 ? n : 0); }
-      else if (kind === 'hum') d[i] = 0.25 * Math.sin(2 * Math.PI * 60 * t) + 0.1 * Math.sin(2 * Math.PI * 120 * t);
+      if (kind === 'rain') { let v = 0; for (const [t0, f, a] of drops) { const u = t - t0; if (u >= 0 && u < 0.03) v += Math.sin(2 * Math.PI * f * (1 - u * 8) * u) * Math.exp(-u * 180) * a; } d[i] = v; }
       else if (kind === 'click') d[i] = n * Math.exp(-t * 120);
       else if (kind === 'lofi') {
         const c = chords[Math.floor(t / 4) % 2], u = t % 4, beat = t % (60 / 72);

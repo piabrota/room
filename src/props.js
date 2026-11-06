@@ -7,7 +7,7 @@ import { recordArt, crateArt, texture, FONT_TITLE, FONT_MONO } from './art.js';
 //   the sea    (right wall)  a wave tank, one buoy per marola-dev repo;
 //   the loop   (front wall)  a wheel that turns forever, one crate per
 //                            ouroboric-dev repo, each kept upright;
-//   the crate  (floor)       h0ffmann's repositories as records.
+//   the slipbox (floor)      a crate of records: Pirsig in front, h0ffmann's repositories behind.
 // Each returns the objects it adds and a function to animate them.
 
 const art = (kind) => hotspots.filter((h) => h.art?.kind === kind);
@@ -173,7 +173,7 @@ export function buildLoop(g, mesh, std) {
   };
 }
 
-// ── the records: a crate on the floor, sleeves leaning back ──
+// ── the slipbox: a crate on the floor, sleeves leaning back, two in front side by side ──
 export function buildRecords(g, mesh, std, part) {
   const crate = spot('crate'); if (!crate) return () => {};
   const X = -2.2, Z = -1.15, W = 0.38, D = 0.46, H = 0.26;
@@ -182,11 +182,16 @@ export function buildRecords(g, mesh, std, part) {
   for (const [s, p] of [[[W, H, 0.02], [0, H / 2, D / 2]], [[W, H, 0.02], [0, H / 2, -D / 2]], [[0.02, H, D], [W / 2, H / 2, 0]], [[0.02, H, D], [-W / 2, H / 2, 0]], [[W, 0.02, D], [0, 0.01, 0]]]) {
     mesh('', new THREE.BoxGeometry(...s), wood, p, grp);
   }
-  const sleeves = art('record');
+  const edge = std('#111', { roughness: 0.6 });
+  const sleeve = (h, pos) => mesh(h.name, new THREE.BoxGeometry(0.31, 0.31, 0.006), [edge, edge, edge, edge, new THREE.MeshStandardMaterial({ map: recordArt({ title: h.label, theme }), roughness: 0.6 }), edge], pos, grp);
+  // the two that start it, side by side, leaning on the front of the crate
+  for (const h of art('record').filter((x) => x.art.front !== undefined)) {
+    const s = sleeve(h, [(h.art.front - 0.5) * 0.33, 0.155, D / 2 + 0.045]);
+    s.rotation.x = -0.2; s.rotation.z = (h.art.front - 0.5) * -0.04;
+  }
+  const sleeves = art('record').filter((x) => x.art.front === undefined);
   sleeves.forEach((h, i) => {
-    const mat = new THREE.MeshStandardMaterial({ map: recordArt({ title: h.label, theme }), roughness: 0.6 });
-    const edge = std('#111', { roughness: 0.6 });
-    const s = mesh(h.name, new THREE.BoxGeometry(0.31, 0.31, 0.006), [edge, edge, edge, edge, mat, edge], [0, 0.17, D / 2 - 0.04 - i * (D - 0.08) / sleeves.length], grp);
+    const s = sleeve(h, [0, 0.17, D / 2 - 0.04 - i * (D - 0.08) / sleeves.length]);
     s.rotation.x = -0.12 - i * 0.045; // leaning back, the front ones most visible
   });
   return () => {};

@@ -1,7 +1,7 @@
 // Entry point. Two views of the same content:
 //   HIFI  the 3D room (needs WebGL), loaded lazily the first time it is shown;
 //   LOFI  the room as plain text (src/lofi.js).
-// The LOFI/HIFI button switches between them. `?lofi` (or the older
+// The LOFI/HIFI switch shows the two as buttons; the one in view is lit. `?lofi` (or the older
 // `?static`) opens in LOFI, and without WebGL LOFI is the only view.
 import '@fontsource/fjalla-one/latin-400.css';
 import '@fontsource/jetbrains-mono/latin-400.css';
@@ -34,13 +34,12 @@ renderLofi(document.getElementById('fallback'), config);
 
 const toggle = document.getElementById('view');
 toggle.hidden = !canHifi;
-toggle.onclick = () => show(mode === 'hifi' ? 'lofi' : 'hifi', true);
+toggle.querySelectorAll('[data-view]').forEach((b) => { b.onclick = () => { if (b.dataset.view !== mode) show(b.dataset.view, true); }; });
 
 async function show(next, remember) {
   mode = next;
   document.body.classList.toggle('lofi', mode === 'lofi');
-  toggle.querySelectorAll('[data-view]').forEach((s) => s.classList.toggle('on', s.dataset.view === mode));
-  toggle.setAttribute('aria-label', mode === 'hifi' ? 'switch to the plain text view' : 'switch to the 3D room');
+  toggle.querySelectorAll('[data-view]').forEach((b) => { b.classList.toggle('on', b.dataset.view === mode); b.setAttribute('aria-pressed', String(b.dataset.view === mode)); });
   if (remember) {
     store.set(mode);
     const url = new URL(location.href);

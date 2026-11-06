@@ -35,7 +35,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 5 | 5 Nov 22:28 | [#3](https://github.com/piabrota/room/pull/3) the piabrota tape and `just compose`; [#4](https://github.com/piabrota/room/pull/4) smooth moves, post-processing | 11 and 22 min |
 | 6 | 5 Nov 22:51 | [#5](https://github.com/piabrota/room/pull/5) `just record`, the right wall and the ceiling | 17 min |
 | 7 | 5 Nov 23:21 | [#6](https://github.com/piabrota/room/pull/6) the room in 360°, the window on Rio, piabrota RADIO | 50 min |
-| 8 | 6 Nov 00:33 | [#7](https://github.com/piabrota/room/pull/7) the radio's own budget; the feature pull request is in progress | 3 min |
+| 8 | 6 Nov 00:33 | [#7](https://github.com/piabrota/room/pull/7) the radio's own budget; [#PRNUM](https://github.com/piabrota/room/pull/PRNUM) 40 radio tracks in two stations and a listeners count, day and night, the rain button, the slipbox, the letter board, the favicon | 3 and 45 min |
 | 9 | 6 Nov 00:50 | this README | |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
@@ -159,11 +159,13 @@ is its own export, so you can replace one and keep the rest:
 | `signature`, `place` | the name, the tagline, the links, the city and its time zone | your name, your words, your links |
 | `theme` | the colours | your palette (and the type in `src/style.css`) |
 | `shots`, `startShot` | the named camera shots | your own views, or `shot_*` cameras from Blender |
-| `radio` | the radio's tracks | your music, CC0 or CC BY, each with a row in `CREDITS.md` |
-| `ambience`, `sfx` | the room tone and the clicks | your recordings (`just audio take.wav <name>`) |
+| `ui` | the words of the buttons | your language, your slang |
+| `radio` | the radio's stations and their tracks | your music, CC0 or CC BY, each with a row in `CREDITS.md` |
+| `ambience`, `sfx` | the rain button and the clicks | your recordings (`just audio take.wav <name>`) |
+| `outside` | the view from the window, by day and by night | your city, two photographs credited in `CREDITS.md` |
 | `tapes` | what the VCR plays | your tapes, one file each in `src/tapes/` |
 | `projects`, `bots`, `people`, `works` | the walls, the desk, the board, the shelf | your own lists |
-| `sea`, `loop`, `records` | the other three walls | your own collections, or remove them |
+| `sea`, `loop`, `slipbox` | the other three walls | your own collections, or remove them |
 | `hotspots` | what can be clicked, and what it does | your labels, your words, your links |
 
 Until there is a model and recordings, the room is built from boxes and the sounds are

@@ -47,6 +47,14 @@ audio src name lufs="-18":
 compose samples="samples" out="public/audio":
     node scripts/compose.mjs "{{samples}}" "{{out}}"
 
+# render the "lofi brasil" station of piabrota RADIO into public/audio/radio (scripts/brasil.mjs)
+brasil:
+    node scripts/brasil.mjs
+
+# the live listeners count of piabrota RADIO on :8787 (`just dev` passes /live/ to it)
+listeners:
+    node scripts/listeners.mjs
+
 # remove build output
 clean:
     rm -rf dist

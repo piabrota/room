@@ -112,36 +112,72 @@ for (const h of config.hotspots) {
       if (h.action === 'link') window.open(h.value, '_blank', 'noopener');
       if (h.action === 'sfx') audio.play(config.sfx[h.value]);
       if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : lampOn; redrawShadows(); }
-      if (h.action === 'toggleRadio') radio.toggle();
+      if (h.action === 'toggleRadio') radioBtn.click();
     },
   });
 }
 
 // ── enter gate: needed so the browser lets us play sound ──
+// Nothing plays on its own: the rain and the radio wait for their buttons.
+const words = config.ui;
 const soundBtn = document.getElementById('sound');
-const beds = [];
+soundBtn.textContent = `${words.sound}: ${words.off}`;
 document.querySelector('#enter button').onclick = async () => {
   document.getElementById('enter').classList.add('gone');
-  await audio.unlock(); soundBtn.textContent = 'sound: on';
-  config.ambience.forEach(async (a, i) => { // hum comes from the TV
-    const bed = await audio.loop(a, i === 1 ? room.screen : null); bed.userData = { volume: a.volume }; beds.push(bed);
-    if (radio.on) bed.setVolume(a.volume * config.radio.duck);
-  });
+  await audio.unlock(); soundBtn.textContent = `${words.sound}: ${words.on}`;
 };
-soundBtn.onclick = () => { soundBtn.textContent = `sound: ${audio.toggle() ? 'on' : 'off'}`; };
+soundBtn.onclick = () => { soundBtn.textContent = `${words.sound}: ${audio.toggle() ? words.on : words.off}`; };
+
+// ── the rain on the window: on and off ──
+const rainDef = config.ambience.find((a) => a.id === 'rain');
+const rainBtn = document.getElementById('rain');
+let rain = null, rainOn = false;
+const rainVolume = () => rainDef.volume * (radio.on ? config.radio.duck : 1);
+rainBtn.hidden = !rainDef; if (rainDef) rainBtn.textContent = `${rainDef.label}: ${words.off}`;
+rainBtn.onclick = async () => {
+  rainOn = !rainOn;
+  rainBtn.textContent = `${rainDef.label}: ${rainOn ? words.on : words.off}`;
+  rainBtn.classList.toggle('active', rainOn); rainBtn.setAttribute('aria-pressed', String(rainOn));
+  if (rainOn && audio.ctx.state !== 'running') { await audio.unlock(); soundBtn.textContent = `${words.sound}: ${words.on}`; }
+  if (rainOn) { rain ??= await audio.loop(rainDef, room.root.getObjectByName('window')); if (!rain.isPlaying) rain.play(); rain.setVolume(rainVolume()); }
+  else rain?.stop();
+};
+
+// ── day and night ──
+const dayBtn = document.getElementById('daylight');
+function setDay(on) {
+  room.setDay(on); redrawShadows();
+  renderer.toneMappingExposure = on ? 1.3 : 1.05;
+  dayBtn.textContent = on ? words.day : words.night;
+  dayBtn.setAttribute('aria-pressed', String(on));
+  dayBtn.title = on ? words.toNight : words.toDay;
+}
+dayBtn.onclick = () => setDay(!room.day);
+const hour = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: config.place.timeZone }).format(new Date()));
+const [dawn, dusk] = config.outside?.dayHours ?? [6, 18];
+setDay(new URLSearchParams(location.search).has('day') || (!new URLSearchParams(location.search).has('night') && hour >= dawn && hour < dusk));
 
 // ── piabrota RADIO: the button at the top and the radio on the sill ──
 const radioBtn = document.getElementById('radio'), radioNext = document.getElementById('radio-next');
+const radioMore = document.getElementById('radio-more'), listenersEl = document.getElementById('listeners');
+const stationsEl = document.getElementById('stations');
 const dial = room.find('radio_dial');
-radioBtn.onclick = () => radio.toggle();
+radioBtn.onclick = async () => { if (audio.ctx.state !== 'running') { await audio.unlock(); soundBtn.textContent = `${words.sound}: ${words.on}`; } radio.toggle(); };
 radioNext.onclick = () => radio.next();
-radio.onChange(({ on, track }) => {
-  radioBtn.textContent = on ? `${config.radio.name} · ${track.title}` : `${config.radio.name}: off`;
+for (const st of radio.stations) {
+  const b = document.createElement('button'); b.textContent = st.label; b.dataset.station = st.id;
+  b.onclick = () => radio.tune(st.id); stationsEl.append(b);
+}
+radio.onChange(({ on, station, track, listeners }) => {
+  radioBtn.textContent = on ? `${config.radio.name} · ${track.title}` : `${config.radio.name}: ${words.off}`;
   radioBtn.classList.toggle('active', on); radioBtn.setAttribute('aria-pressed', String(on));
-  radioBtn.title = on ? `${track.title}, by ${track.artist} (CC0)` : 'lofi, free-licensed';
-  radioNext.hidden = !on;
+  radioBtn.title = on ? words.by(track.title, track.artist) : words.radioHint;
+  radioNext.hidden = !on; radioMore.hidden = !on;
+  stationsEl.querySelectorAll('button').forEach((b) => { b.classList.toggle('active', b.dataset.station === station.id); b.setAttribute('aria-pressed', String(b.dataset.station === station.id)); });
+  listenersEl.hidden = listeners == null;
+  if (listeners != null) listenersEl.textContent = words.listening(listeners);
   if (dial) dial.material.emissiveIntensity = on ? 1.6 : 0;
-  for (const b of beds) b.setVolume(b.userData.volume * (on ? config.radio.duck : 1));
+  rain?.setVolume(rainVolume());
 });
 
 // ── size ──

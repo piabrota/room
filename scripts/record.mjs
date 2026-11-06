@@ -46,7 +46,7 @@ page.setDefaultTimeout(120000);
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 
-await page.goto(`${url}?hifi`);
+await page.goto(`${url}?hifi&night`); // the same light on every run
 await page.waitForSelector('#loading.done', { timeout: 120000 });
 await page.click('#enter button');
 await page.addStyleTag({ content: '#enter{display:none!important}' }); // skip its fade
@@ -127,13 +127,16 @@ await moveTo(...(await at('book_closed-source')), 0.6); await wait(0.5);        
 await moveTo(...(await button('desk')), 0.5); await click(); await land();
 await moveTo(...(await at('tape_bots')), 0.5); await click(); await wait(1.6);  // a tape into the VCR
 await moveTo(...(await at('lamp', 0.4)), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
-const r = await page.locator('#radio').boundingBox();
-await moveTo(r.x + r.width / 2, r.y + r.height / 2, 0.5); await click(); await wait(0.3); // piabrota RADIO on
-await page.keyboard.press('7'); await land();                                   // key 7: the marola-dev sea
-await moveTo(...(await at('buoy_marola')), 0.5); await wait(0.4);              // hover a buoy
-await drag(-380, 1.4);                                                          // drag: look around, 360°
-await page.keyboard.press('9'); await land();                                   // key 9: the ouroboric-dev loop
-await page.keyboard.press('Escape'); await land();                              // Esc: back to the start
+const box = async (sel) => { const r = await page.locator(sel).boundingBox(); return [r.x + r.width / 2, r.y + r.height / 2]; };
+await moveTo(...(await box('#radio')), 0.5); await click(); await wait(0.3);                        // piabrota RADIO on
+await moveTo(...(await box('#stations button[data-station="brasil"]')), 0.4); await click();         // the lofi brasil station
+await moveTo(...(await box('#rain')), 0.4); await click();                                          // the rain, on
+await page.keyboard.press('8'); await land();                                                       // key 8: the slipbox
+await moveTo(...(await at('record_pirsig-wikipedia')), 0.5); await wait(0.4);                       // Pirsig, first
+await moveTo(...(await at('record_pirsig')), 0.4); await wait(0.4);                                 // and pirsig beside it
+await moveTo(...(await box('#daylight')), 0.6); await click(); await wait(0.4);                     // day
+await page.keyboard.press('6'); await land(); await drag(-300, 1.2);                                // the window by day; drag to look
+await page.keyboard.press('Escape'); await land();                                                  // Esc: back to the start
 await wait(Math.max(0.5, (15 * FPS - n) / FPS));
 
 execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', join(frames, 'f%04d.jpg'),

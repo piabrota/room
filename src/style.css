@@ -11,7 +11,22 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
 #hud { position: fixed; inset: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); pointer-events: none;
   display: flex; flex-direction: column; justify-content: space-between; }
 #hud > * { pointer-events: auto; }
+#hud > #top { pointer-events: none; }
+#top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+#top > * { pointer-events: auto; }
 #signature { align-self: flex-start; }
+#controls { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-right: 128px; }
+#switches, #radio-bar, #radio-more { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+#radio-bar { margin-right: -128px; } /* under the view switch too */
+#radio-more { margin-right: -128px; }
+#radio-more[hidden], #listeners[hidden] { display: none; }
+#stations { display: flex; }
+#stations button { border-radius: 0; padding: 5px 9px; font-size: 12px; }
+#stations button:first-child { border-radius: 8px 0 0 8px; }
+#stations button:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
+#listeners { color: var(--dim); font-size: 12px; padding: 0 4px; }
+#listeners::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #3fb950; margin-right: 6px; vertical-align: 1px; animation: live 2s ease-in-out infinite; }
+@keyframes live { 50% { opacity: .35; } }
 #signature h1 { margin: 0; font: 400 30px/1 var(--title); letter-spacing: .02em; text-transform: lowercase; }
 #signature h1::before { content: ""; display: inline-block; width: 10px; height: 10px; margin: 0 10px 4px 0;
   background: var(--accent); border-radius: 3px; vertical-align: middle; }
@@ -27,8 +42,6 @@ button:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2p
 button.active { background: var(--accent); border-color: var(--accent); }
 kbd { font: inherit; opacity: .6; }
 button.active kbd { opacity: .85; }
-#sound { position: fixed; top: max(16px, env(safe-area-inset-top)); right: 128px; }
-#radio-bar { position: fixed; top: calc(max(16px, env(safe-area-inset-top)) + 42px); right: 16px; display: flex; gap: 6px; max-width: calc(100vw - 32px); }
 #radio { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .02em; }
 #radio-next[hidden] { display: none; }
 #tooltip { position: fixed; left: 0; top: 0; pointer-events: none; padding: 7px 10px; max-width: 260px;
@@ -47,10 +60,12 @@ button.active kbd { opacity: .85; }
 #enter p { margin: 0; color: var(--dim); }
 #enter.gone { opacity: 0; pointer-events: none; }
 #fallback { display: none; }
-#view { position: fixed; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 2; letter-spacing: .06em; }
+#view { position: fixed; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 2; display: flex; letter-spacing: .06em; }
 #view[hidden] { display: none; }
-#view span { opacity: .45; }
-#view span.on { opacity: 1; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+#view button { border-radius: 0; padding: 7px 10px; }
+#view button:first-child { border-radius: 8px 0 0 8px; }
+#view button:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
+#view button.on { background: var(--accent); border-color: var(--accent); }
 body.lofi { overflow: auto; }
 body.lofi #scene, body.lofi #hud, body.lofi #enter, body.lofi #tooltip, body.lofi #loading { display: none; }
 body.lofi #fallback { display: block; max-width: 44rem; margin: 12vh auto; padding: 0 16px; }
@@ -62,9 +77,12 @@ body.lofi #fallback ul { margin: 0; padding: 0; list-style: none; }
 body.lofi #fallback li { margin: .35em 0; }
 body.lofi #fallback li span:last-child { color: var(--dim); }
 @media (max-width: 600px) {
-  #signature { margin-top: 44px; } /* clear the sound and view buttons */
+  #top { flex-direction: column-reverse; align-items: stretch; }
+  #controls { margin-right: 0; align-items: flex-start; }
+  #switches { margin-right: 128px; justify-content: flex-start; } /* beside the view switch */
+  #radio-bar, #radio-more { margin-right: 0; justify-content: flex-start; }
+  #radio { max-width: calc(100vw - 80px); }
   #signature h1 { font-size: 24px; }
   #shots button { padding: 6px 8px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-@media (max-width: 600px) { #radio-bar { top: calc(max(16px, env(safe-area-inset-top)) + 132px); left: 16px; right: auto; } }
