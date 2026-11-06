@@ -42,7 +42,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 9 | 6 Nov 00:50 | this README | |
 | 10 | 6 Nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) the project's settings, in [`docs/CLAUDE_PROJECT.md`](docs/CLAUDE_PROJECT.md) | 6 min |
 | 11 | 6 Nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) the wide window in the middle, a locked door, your feet when you look down, photographed wood, a beige computer, VHS tapes with retro labels, the CV, marola.dev and ouroboric-dev tapes, a fax, the Pirsig and pirsig cards, the closed-source file | 35 min |
-| 12 | 6 Nov 03:38 | [#PR](https://github.com/piabrota/room/pull/PR) a survey, [`docs/SURVEY.md`](docs/SURVEY.md): other rooms, frameworks, animation, our own shaders, a faster `just record`, the ▲ grid view with WW3 on triangles, and why the day blows out to white | TOOK |
+| 12 | 6 Nov 03:38 | [#16](https://github.com/piabrota/room/pull/16) a survey, [`docs/SURVEY.md`](docs/SURVEY.md): other rooms, frameworks, animation, our own shaders, a faster `just record`, the ▲ grid view with WW3 on triangles, and why the day blows out to white | 42 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 

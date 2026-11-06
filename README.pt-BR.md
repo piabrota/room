@@ -42,7 +42,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 9 | 6 nov 00:50 | este README | |
 | 10 | 6 nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) as configurações do projeto, em [`docs/CLAUDE_PROJECT.pt-BR.md`](docs/CLAUDE_PROJECT.pt-BR.md) | 6 min |
 | 11 | 6 nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) a janela larga no meio, uma porta trancada, seus pés quando você olha para baixo, madeira fotografada, um computador bege, fitas VHS com etiquetas retrô, as fitas do CV, marola.dev e ouroboric-dev, um fax, os cartões de Pirsig e do pirsig, a pasta closed source | 35 min |
-| 12 | 6 nov 03:38 | [#PR](https://github.com/piabrota/room/pull/PR) um levantamento, [`docs/SURVEY.md`](docs/SURVEY.md): outros quartos, frameworks, animação, nossos próprios shaders, um `just record` mais rápido, a vista ▲ grid com o WW3 em triângulos, e por que o dia estoura em branco | TOOK |
+| 12 | 6 nov 03:38 | [#16](https://github.com/piabrota/room/pull/16) um levantamento, [`docs/SURVEY.md`](docs/SURVEY.md): outros quartos, frameworks, animação, nossos próprios shaders, um `just record` mais rápido, a vista ▲ grid com o WW3 em triângulos, e por que o dia estoura em branco | 42 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
