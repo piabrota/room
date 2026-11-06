@@ -54,9 +54,10 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    does not drift. The site works at phone width, and a tap does what a hover and a click do.
 9. **The room stays light.** `room.glb` is at most 10 MB (bake the lighting, compress with
    Draco or meshopt), a sound at most 4 MB (`.mp3` or `.ogg`, no `.wav`), an image at most
-   2 MB, and `public/` at most 25 MB. Keep draw calls under 100 and the frame rate smooth on a
-   laptop; lighting is baked into textures and only meshes named `*_live` are lit in real
-   time.
+   2 MB, and `public/` at most 25 MB. The radio's tracks (`public/audio/radio/`) do not count
+   toward those 25 MB: they have their own 100 MB, each still at most 4 MB (the owner,
+   6 November 2026). Keep draw calls under 100 and the frame rate smooth on a laptop; lighting
+   is baked into textures and only meshes named `*_live` are lit in real time.
 10. **One way to work: the justfile, on macOS or Nix.** Every task is a `just` recipe that
     runs the same with Node 20 or newer on macOS (Homebrew) and in `nix develop`
     ([`flake.nix`](flake.nix)). Dependencies are pinned in `package-lock.json` and installed

@@ -61,14 +61,17 @@ for (const s of [...(config.ambience ?? []), ...Object.values(config.sfx ?? {}),
 // 9. Budgets for what ships in public/.
 const walk = (d) => readdirSync(d).flatMap((f) => (statSync(join(d, f)).isDirectory() ? walk(join(d, f)) : [join(d, f)]));
 const budget = { '.glb': 10 * MB, '.gltf': 10 * MB, '.mp3': 4 * MB, '.ogg': 4 * MB, '.wav': 0, '.png': 2 * MB, '.jpg': 2 * MB, '.webp': 2 * MB, '.ktx2': 4 * MB };
-let total = 0;
+let total = 0, radio = 0;
+const radioDir = join(root, 'public', 'audio', 'radio');
 for (const f of walk(join(root, 'public'))) {
-  const size = statSync(f).size; total += size;
+  const size = statSync(f).size;
+  if (f.startsWith(radioDir)) radio += size; else total += size; // the radio has its own budget
   const max = budget[extname(f).toLowerCase()];
   if (max === 0) fail(9, `${f.slice(root.length)}: ship .mp3 or .ogg, not .wav`);
   else if (max && size > max) fail(9, `${f.slice(root.length)} is ${(size / MB).toFixed(1)} MB, budget ${max / MB} MB`);
 }
-if (total > 25 * MB) fail(9, `public/ is ${(total / MB).toFixed(1)} MB, budget 25 MB`);
+if (total > 25 * MB) fail(9, `public/ is ${(total / MB).toFixed(1)} MB without the radio, budget 25 MB`);
+if (radio > 100 * MB) fail(9, `public/audio/radio/ is ${(radio / MB).toFixed(1)} MB, budget 100 MB`);
 
 // 3. Config text is rendered as text: nothing in src/ uses innerHTML.
 for (const f of walk(join(root, 'src'))) {
