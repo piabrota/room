@@ -59,6 +59,12 @@ for (const s of [...(config.ambience ?? []), ...Object.values(config.sfx ?? {}),
   if (!fallbacks.has(s.fallback)) fail(7, `sound ${s.src} needs a fallback, one of ${[...fallbacks].join(', ')}`);
 }
 
+// 3. The posts of LOFI: each has a title, a date (YYYY-MM-DD) and a summary.
+const { readPosts } = await import('./feed.mjs');
+for (const p of readPosts()) {
+  if (!p.title || !/^\d{4}-\d{2}-\d{2}$/.test(p.date ?? '') || !p.summary) fail(3, `posts/${p.file} needs front matter: title, date (YYYY-MM-DD) and summary`);
+}
+
 // 9. Budgets for what ships in public/.
 const walk = (d) => readdirSync(d).flatMap((f) => (statSync(join(d, f)).isDirectory() ? walk(join(d, f)) : [join(d, f)]));
 const budget = { '.glb': 10 * MB, '.gltf': 10 * MB, '.mp3': 4 * MB, '.ogg': 4 * MB, '.wav': 0, '.png': 2 * MB, '.jpg': 2 * MB, '.webp': 2 * MB, '.ktx2': 4 * MB };

@@ -42,6 +42,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 9 | 6 Nov 00:50 | this README | |
 | 10 | 6 Nov 01:24 | [#13](https://github.com/piabrota/room/pull/13) the project's settings, in [`docs/CLAUDE_PROJECT.md`](docs/CLAUDE_PROJECT.md) | 6 min |
 | 11 | 6 Nov 01:40 | [#15](https://github.com/piabrota/room/pull/15) the wide window in the middle, a locked door, your feet when you look down, photographed wood, a beige computer, VHS tapes with retro labels, the CV, marola.dev and ouroboric-dev tapes, a fax, the Pirsig and pirsig cards, the closed-source file | 35 min |
+| 13 | 5 Nov 23:23 | [#PRNUM](https://github.com/piabrota/room/pull/PRNUM) LOFI as a page to read: home, about, work, posts from Markdown, online, subscribe by RSS (built 6 Nov) | 15 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -155,6 +156,19 @@ brain. it must also contain a file under the desk callled closed source with con
 letter pointing to h0ffmann/closed-source website and paper'
 ```
 
+**13.**
+
+```text
+user> 'also hifi is the sound solution, lofi is the text only with blogposts'
+user> '[the address of Felix Rieseberg's room, in its reading mode] lofi version'
+user> 'Home
+About
+Work
+Posts
+Online
+Subscribe'
+```
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -196,6 +210,7 @@ is its own export, so you can replace one and keep the rest:
 | `tapes` | what the VCR plays | your tapes, one file each in `src/tapes/` |
 | `projects`, `bots`, `people`, `works` | the walls, the desk, the board, the shelf | your own lists |
 | `sea`, `loop`, `slipbox` | the other three walls | your own collections, or remove them |
+| `reading`, `posts/` | the LOFI page: about, online, subscribe; the posts | your words, your profiles; your posts, one Markdown file each |
 | `hotspots` | what can be clicked, and what it does | your labels, your words, your links |
 
 Until there is a model and recordings, the room is built from boxes and the sounds are
