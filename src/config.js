@@ -34,10 +34,18 @@ export const theme = {
 // a placeholder room is built from config so you can still develop.
 export const roomModel = '/models/room.glb';
 
-// The view from the window: a photograph of Rio at night (CREDITS.md),
-// set far behind the glass with drawn layers around it. Without the file
-// the drawn view alone is shown (src/outside.js).
-export const outside = { photo: '/textures/rio-night.jpg' };
+// The view from the window: Botafogo bay and the Sugarloaf, a photograph
+// for the night and one for the day (CREDITS.md), set far behind the
+// glass with drawn layers around it. `anchor` is where the Sugarloaf is
+// in the picture (from the top left), so it sits where the window looks.
+// Without the night file the drawn view is shown (src/outside.js).
+// The room opens in day or night by the hour in Rio (`place.timeZone`):
+// day from `dayHours[0]` to `dayHours[1]`. The day/night button switches.
+export const outside = {
+  night: { photo: '/textures/rio-night.jpg', anchor: [0.63, 0.25] },
+  day:   { photo: '/textures/rio-day.jpg',   anchor: [0.72, 0.4] },
+  dayHours: [6, 18],
+};
 
 // Named camera shots. Keys 1..n or the buttons switch between them.
 // `fov` is optional (degrees, landscape). In Blender, cameras named
@@ -50,37 +58,88 @@ export const shots = {
   board:    { position: [1.15, 1.6, 0.25], target: [1.15, 1.6, -2.0], fov: 44 },
   window:   { position: [2.1, 1.6, -0.05], target: [2.4, 1.68, -2.0], fov: 46 },
   sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
-  records:  { position: [-1.45, 1.05, -0.35], target: [-2.25, 0.3, -1.25], fov: 48 },
+  slipbox:  { position: [-1.62, 0.88, -0.22], target: [-2.2, 0.18, -0.98], fov: 46 },
   loop:     { position: [0.4, 1.6, 1.0], target: [0.9, 1.65, 3.8], fov: 54 },
 };
 export const startShot = 'overview';
 
-// piabrota RADIO: lofi under a free licence only (CC0, CREDITS.md), one
-// track after another from a random start. It plays through the room's
-// sound, so the sound button mutes it too, and the ambience steps back
-// while it plays. A missing file falls back to a synthesized lofi bed.
+// The words of the buttons, in one place, so a fork can speak its own
+// language or slang without touching the code.
+export const ui = {
+  sound: 'sound', on: 'on', off: 'off',
+  day: 'day', night: 'night', toDay: 'switch to day', toNight: 'switch to night',
+  listening: (n) => `${n} listening`, by: (title, artist) => `${title}, by ${artist}`, radioHint: 'lofi, free-licensed',
+};
+
+// piabrota RADIO: lofi under a free licence only (CC0 or CC BY,
+// CREDITS.md), in two stations. A station plays its tracks one after
+// another from a random start. The radio plays through the room's sound,
+// so the sound button mutes it too, and the rain steps back while it
+// plays. A missing file falls back to a synthesized lofi bed.
+// `listeners` is where the live count of listeners comes from (a small
+// service beside the site, scripts/listeners.mjs); without it the count
+// stays hidden.
 export const radio = {
   name: 'piabrota RADIO',
   volume: 0.6,
-  duck: 0.35, // the ambience's volume while the radio plays
-  tracks: [
-    { src: '/audio/radio/ocean-memory.mp3', title: 'Ocean Memory', artist: 'HoliznaCC0', fallback: 'lofi' },
-    { src: '/audio/radio/washed-up.mp3', title: 'Washed Up', artist: 'HoliznaCC0', fallback: 'lofi' },
-    { src: '/audio/radio/ease-into-night.mp3', title: 'Ease into Night', artist: 'HoliznaCC0', fallback: 'lofi' },
-    { src: '/audio/radio/moon-unit.mp3', title: 'Moon Unit', artist: 'HoliznaCC0', fallback: 'lofi' },
-    { src: '/audio/radio/roof-tops.mp3', title: 'Roof Tops', artist: 'HoliznaCC0', fallback: 'lofi' },
+  duck: 0.35, // the rain's volume while the radio plays
+  listeners: '/live/radio',
+  stations: [
+    { id: 'lofi', label: 'lofi', tracks: [
+      { src: '/audio/radio/ocean-memory.mp3', title: 'Ocean Memory', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/washed-up.mp3', title: 'Washed Up', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/ease-into-night.mp3', title: 'Ease into Night', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/moon-unit.mp3', title: 'Moon Unit', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/roof-tops.mp3', title: 'Roof Tops', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/tranquil-mindscape.mp3', title: 'Tranquil Mindscape', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/fractured.mp3', title: 'Fractured', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/bubbles.mp3', title: 'Bubbles', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/still-life.mp3', title: 'Still Life', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/when-time-called-me-darling.mp3', title: 'When Time Called Me Darling', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/calm-currents.mp3', title: 'Calm Currents', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/one-night-in-france.mp3', title: 'One Night In France', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/canon-event.mp3', title: 'Canon Event', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/birds.mp3', title: 'Birds', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/waiting-around.mp3', title: 'Waiting Around', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/doodles.mp3', title: 'Doodles', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/lucid.mp3', title: 'Lucid', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/ghost-town.mp3', title: 'Ghost Town', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/theta-frequency.mp3', title: 'Theta Frequency', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/tokyo-sunset.mp3', title: 'Tokyo Sunset', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/peaceful-drift.mp3', title: 'Peaceful Drift', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/reminders.mp3', title: 'Reminders', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/going-home.mp3', title: 'Going Home', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/shimmer.mp3', title: 'Shimmer', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/down-time.mp3', title: 'Down Time', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/warm-fuzz.mp3', title: 'Warm Fuzz', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/nine-to-death.mp3', title: 'Nine To Death', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/walking-away.mp3', title: 'Walking Away', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/forgotten-keep-sakes.mp3', title: 'Forgotten Keep Sakes', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/when-i-was-human.mp3', title: 'When I Was Human', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/one-good-day.mp3', title: 'One Good Day', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/color-of-a-soul.mp3', title: 'Color Of A Soul', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/before-everything.mp3', title: 'Before Everything', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/yet-again.mp3', title: 'Yet Again', artist: 'HoliznaCC0', fallback: 'lofi' },
+      { src: '/audio/radio/ode-to-forgetting.mp3', title: 'Ode To Forgetting', artist: 'HoliznaCC0', fallback: 'lofi' },
+    ] },
+    // lofi brasil: four bossa-lofi pieces written in code for the room
+    // (`just brasil`, scripts/brasil.mjs) and one by Popoi (CC BY 3.0)
+    { id: 'brasil', label: 'lofi brasil', tracks: [
+      { src: '/audio/radio/brasil-urca.mp3', title: 'Urca, depois da chuva', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/brasil-botafogo.mp3', title: 'Botafogo às duas', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/brasil-leme.mp3', title: 'Leme, maré baixa', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/brasil-santa-teresa.mp3', title: 'Bonde em Santa Teresa', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/brasil-cafezinho-com-leite.mp3', title: 'Cafezinho com Leite', artist: 'Popoi', fallback: 'lofi' },
+    ] },
   ],
 };
 
-// Ambient beds. Put your own files in /public/audio. If a file is
-// missing, a synthesized fallback (rain-ish noise / hum) is used.
-// ambience.mp3 is a city at night and rain.mp3 rain on a windowsill,
-// both cut from field recordings (CREDITS.md) by `just compose`.
-// The second entry plays from the TV (src/app.js).
+// The rain on the window: the room's one ambient sound, and it is off
+// until the visitor turns it on with the rain button. Nothing hums or
+// hisses on its own. rain.mp3 is a public-domain recording (CREDITS.md);
+// without it, synthesized drops stand in.
 export const ambience = [
-  { src: '/audio/ambience.mp3', volume: 0.45, fallback: 'rain' },
-  { src: '/audio/hum.mp3',      volume: 0.15, fallback: 'hum' },
-  { src: '/audio/rain.mp3',     volume: 0.3,  fallback: 'rain' },
+  { id: 'rain', label: 'rain', src: '/audio/rain.mp3', volume: 0.5, fallback: 'rain' },
 ];
 
 // One-shot effects keyed by name; used by interactions below.
@@ -193,10 +252,16 @@ export const loop = {
   ],
 };
 
-// ── the records: h0ffmann's own repositories, in a crate on the floor.
+// ── the slipbox: a crate of records on the floor. In front, side by
+// side, where it starts: Robert M. Pirsig and piabrota's pirsig, the
+// slip-box. Behind them, h0ffmann's own repositories, one sleeve each.
 // Each sleeve's cover is drawn from its name, so no two are alike.
-export const records = {
-  label: 'the records', hint: 'h0ffmann\'s repositories, one sleeve each', url: 'https://github.com/h0ffmann',
+export const slipbox = {
+  label: 'slipbox', hint: 'Pirsig first, then h0ffmann\'s repositories', url: 'https://github.com/h0ffmann',
+  front: [
+    { id: 'pirsig-wikipedia', title: 'Robert M. Pirsig', line: 'on Wikipedia', url: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig' },
+    { id: 'pirsig',           title: 'pirsig',           line: 'a second brain: PARA and a slip-box', url: 'https://github.com/piabrota/pirsig' },
+  ],
   sleeves: [
     { id: 'ww3-gpu',        line: 'WAVEWATCH III on the GPU, bit for bit',     url: 'https://github.com/h0ffmann/ww3-gpu' },
     { id: 'picasso',        line: 'deterministic toolchains: just, nix, rust', url: 'https://github.com/h0ffmann/picasso' },
@@ -221,6 +286,7 @@ export const hotspots = [
   { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },
   { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
+  { name: 'quote',  label: '"Time is a flat circle."', hint: 'Rust Cohle', action: 'link', value: 'https://en.wikipedia.org/wiki/Rust_Cohle', group: 'inspiration', art: { kind: 'quote', text: 'Time is a flat circle', by: 'Rust Cohle' } },
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
   { name: 'note',   label: 'inspiration: Robert M. Pirsig', hint: 'Zen and the Art of Motorcycle Maintenance', action: 'link', value: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig', group: 'inspiration', art: { kind: 'note', glyph: '無' } },
   ...projects.map((p) => ({
@@ -249,9 +315,13 @@ export const hotspots = [
     name: `crate_${c.id}`, label: c.id, hint: c.line, action: 'link', value: c.url, group: 'ouroboric-dev',
     art: { kind: 'crate' },
   })),
-  { name: 'crate', label: records.label, hint: records.hint, action: 'shot', value: 'records', group: 'h0ffmann' },
-  ...records.sleeves.map((r) => ({
-    name: `record_${r.id}`, label: r.id, hint: r.line, action: 'link', value: r.url, group: 'h0ffmann',
+  { name: 'crate', label: slipbox.label, hint: slipbox.hint, action: 'shot', value: 'slipbox', group: 'slipbox' },
+  ...slipbox.front.map((r, i) => ({
+    name: `record_${r.id}`, label: r.title, hint: r.line, action: 'link', value: r.url, group: 'slipbox',
+    art: { kind: 'record', front: i },
+  })),
+  ...slipbox.sleeves.map((r) => ({
+    name: `record_${r.id}`, label: r.id, hint: r.line, action: 'link', value: r.url, group: 'slipbox',
     art: { kind: 'record' },
   })),
 ];

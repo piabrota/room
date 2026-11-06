@@ -52,9 +52,10 @@ for (const t of config.tapes ?? []) {
   }
 }
 
+const radioTracks = (config.radio?.stations ?? []).flatMap((s) => s.tracks);
 // 7. Every sound has a synthesized fallback.
-const fallbacks = new Set(['rain', 'hum', 'click', 'thunk', 'lofi']);
-for (const s of [...(config.ambience ?? []), ...Object.values(config.sfx ?? {}), ...(config.radio?.tracks ?? [])]) {
+const fallbacks = new Set(['rain', 'click', 'thunk', 'lofi']);
+for (const s of [...(config.ambience ?? []), ...Object.values(config.sfx ?? {}), ...radioTracks]) {
   if (!fallbacks.has(s.fallback)) fail(7, `sound ${s.src} needs a fallback, one of ${[...fallbacks].join(', ')}`);
 }
 
@@ -86,17 +87,19 @@ for (const f of walk(join(root, 'src'))) {
   }
 }
 
-for (const src of [config.roomModel, config.outside?.photo, ...(config.ambience ?? []).map((a) => a.src), ...Object.values(config.sfx ?? {}).map((s) => s.src), ...(config.radio?.tracks ?? []).map((t) => t.src)].filter(Boolean)) {
+for (const src of [config.roomModel, config.outside?.night?.photo, config.outside?.day?.photo, ...(config.ambience ?? []).map((a) => a.src), ...Object.values(config.sfx ?? {}).map((s) => s.src), ...radioTracks.map((t) => t.src)].filter(Boolean)) {
   if (!String(src).startsWith('/')) fail(1, `${src}: assets load from public/, as /path`);
 }
 
 // 1. Every third-party asset in public/ is listed in CREDITS.md.
 const credits = existsSync(join(root, 'CREDITS.md')) ? readFileSync(join(root, 'CREDITS.md'), 'utf8') : '';
 if (!credits) fail(1, 'CREDITS.md is missing');
-for (const t of config.radio?.tracks ?? []) {
+for (const t of radioTracks) {
   if (!credits.includes(`\`public${t.src}\``)) fail(1, `radio track ${t.src} has no row in CREDITS.md`);
 }
-if (config.outside?.photo && !credits.includes(`\`public${config.outside.photo}\``)) fail(1, `${config.outside.photo} has no row in CREDITS.md`);
+for (const ph of [config.outside?.night?.photo, config.outside?.day?.photo].filter(Boolean)) {
+  if (!credits.includes(`\`public${ph}\``)) fail(1, `${ph} has no row in CREDITS.md`);
+}
 
 // 2. The idea is credited by name, with no link to the original's site, code or issues.
 const readme = readFileSync(join(root, 'README.md'), 'utf8');

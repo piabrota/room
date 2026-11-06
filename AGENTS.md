@@ -78,6 +78,8 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just check` | `scripts/check.mjs` (the invariants), then a build |
 | `just record` | stills of every shot and 15 s of video of navigating and clicking, into `docs/record/` |
 | `just audio <file> <name>` | normalizes a sound into `public/audio/<name>.mp3` |
+| `just brasil` | renders the "lofi brasil" station into `public/audio/radio/` (`scripts/brasil.mjs`) |
+| `just listeners` | the radio's live listeners count on :8787; `just dev` passes `/live/` to it |
 | `just compose [samples]` | makes the ambience, the VCR sounds and the piabrota tape from the field recordings in `samples/` (`scripts/compose.mjs`, `CREDITS.md`) |
 
 On Nix, `nix develop` (or `direnv allow`, with `.envrc`) gives Node 22, just and ffmpeg. On
@@ -87,14 +89,14 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, theme, shots, tapes, sounds, the radio, the view from the window, and the room's content: projects, bots, people, works with a DOI, hotspots (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, hotspots (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8) |
 | `src/lofi.js` | the LOFI view: the signature, the tapes and the link hotspots as plain text |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
 | `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material |
 | `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note, record sleeves, crates |
-| `src/props.js` | the other walls: the marola-dev wave tank and its buoys, the ouroboric-dev crate belt, the crate of h0ffmann's records |
-| `src/outside.js` | Rio behind the window, in layers at their own distances: the photograph of `config.outside`, its lights twinkling, trees in front; a drawn view when the file is missing |
+| `src/props.js` | the other walls: the marola-dev wave tank and its buoys, the ouroboric-dev crate belt, the slipbox (a crate of records, two side by side in front) |
+| `src/outside.js` | Rio behind the window, in layers at their own distances: the night and day photographs of `config.outside`, the night's lights twinkling, trees in front; a drawn view when the night file is missing |
 | `src/textures.js` | wood grain, floor planks and plaster, drawn on canvases |
 | `src/post.js` | post-processing: MSAA HDR buffer, ambient occlusion (GTAO), hover outline, bloom, tone mapping, film grade; steps quality down when frames run long |
 | `src/cameras.js` | named shots and the moves between them: quintic curves that keep the velocity when a new shot is picked mid-move, arcs, slerped turns, per-shot `fov`, damped parallax; `shot_*` cameras from the GLB |
@@ -102,16 +104,18 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/tv.js` | the TV canvas and the tape contract |
 | `src/tapes/*.js` | one tape each |
 | `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
-| `src/radio.js` | piabrota RADIO: the free-licensed lofi of `config.radio`, one track after another through the room's sound |
+| `src/radio.js` | piabrota RADIO: the stations of `config.radio`, one track after another through the room's sound, and the live listeners count |
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |
 | `scripts/check.mjs` | what `just check` tests |
 | `scripts/record.mjs` | what `just record` makes: the stills and the video for a pull request |
+| `scripts/brasil.mjs` | what `just brasil` makes: the four bossa-lofi pieces of the "lofi brasil" station |
+| `scripts/listeners.mjs` | `just listeners`: the live listeners count, a small server with no dependency that runs beside the site (nix-os runs it on the host) |
 
 Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
 `shelf`, `frame_<project>`, `bot_<id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`,
-`belt`, `crate`, `crate_<repo>`, `record_<repo>`, `radio` and its lit `radio_dial`), and cameras
+`belt`, `crate`, `crate_<repo>`, `record_<id>`, `quote`, `radio` and its lit `radio_dial`), and cameras
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
 the pointer.
 
@@ -127,7 +131,10 @@ shot, `Esc` for `startShot`, and a drag (mouse or finger) to look around from wh
 - A new sound: `just audio recording.wav <name>`, then add it to `config.ambience` or
   `config.sfx` with a `fallback`.
 - A new radio track: lofi under CC0 or CC BY only. `just audio track.mp3 radio/<name>`, add it
-  to `config.radio.tracks` with `fallback: 'lofi'`, and a row to `CREDITS.md` (the check asks).
+  to a station's `tracks` in `config.radio` with `fallback: 'lofi'`, and a row to `CREDITS.md`
+  (the check asks). A new station is one more entry in `config.radio.stations`.
+- The room is made to be forked: a word, a list, a track or a picture that makes it someone's goes
+  in `src/config.js`, never in the code.
 - A new model: export from Blender as glTF binary to `public/models/room.glb`, with the mesh
   names above. Check the size before you commit it.
 - Every pull request that changes the site carries at least three screenshots of the room and
@@ -137,4 +144,7 @@ shot, `Esc` for `startShot`, and a drag (mouse or finger) to look around from wh
   request.
 - After a change you cannot see from the terminal (look, motion, sound), say so in the pull
   request, or check it in a headless browser and attach a screenshot.
+- Every pull request that changes the site adds its prompt to the replay in `README.md` and
+  `README.pt-BR.md`: a row in the table (prompt time in UTC, the pull request and what it did,
+  how long it took) and the prompt as typed, in a `text` block (the owner, 6 November 2026).
 - Work on a branch and open a pull request; do not push to `main`.

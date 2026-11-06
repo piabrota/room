@@ -7,7 +7,7 @@ import { tapes, hotspots, theme, people, outside } from './config.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { woodGrain, planks, plaster } from './textures.js';
-import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt } from './art.js';
+import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt } from './art.js';
 
 // Loads your GLB if it exists, otherwise builds the placeholder room
 // from config. Either way it returns the same handles, so the rest of
@@ -45,10 +45,29 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   const moon = new THREE.DirectionalLight(0x9db4ff, 0.55); // through the window
   moon.position.set(2.6, 2.6, -3); moon.target.position.set(0.5, 0, 0.5);
   scene.add(moon, moon.target);
-  scene.add(new THREE.HemisphereLight(0x55628a, 0x1a1410, 0.8));
+  const sky = new THREE.HemisphereLight(0x55628a, 0x1a1410, 0.8);
+  scene.add(sky);
+  // the day: the sun comes in through the window, warm, and the sky fills the room
+  const sun = new THREE.DirectionalLight(0xfff0d8, 0);
+  sun.position.set(3.6, 4.2, -4.5); sun.target.position.set(0.2, 0, 0.8);
+  sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.001;
+  Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 14 });
+  scene.add(sun, sun.target);
+  const NIGHT = { sky: [0x55628a, 0x1a1410, 0.8], moon: 0.55, sun: 0, neon: 1.2, env: scene.environmentIntensity ?? 0.18, bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
+  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 3.4], moon: 0, sun: 5, neon: 0.5, env: 0.55, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
+  let day = false;
+  function setDay(on) {
+    day = on; const m = on ? DAY : NIGHT;
+    sky.color.set(m.sky[0]); sky.groundColor.set(m.sky[1]); sky.intensity = m.sky[2];
+    moon.intensity = m.moon; sun.intensity = m.sun; neon.intensity = m.neon;
+    scene.environmentIntensity = m.env;
+    if (m.bg) scene.background = m.bg; if (m.fog && scene.fog) scene.fog.color.copy(m.fog);
+    root.userData.outside?.setDay?.(on);
+  }
 
   return {
     root, find, lamp, tvLight, screen, vcr: find('vcr'),
+    get day() { return day; }, setDay,
     update(t) { for (const a of animated) a(t); },
   };
 }
@@ -105,7 +124,7 @@ function placeholderRoom() {
   const wallMat = wall('#2f3442');
   // the back wall, with an opening for the window (x 1.75..2.95, y 1.22..2.18)
   for (const [w, h, x, y] of [[4.75, 3.2, -0.625, 1.6], [1.05, 3.2, 3.475, 1.6], [1.2, 1.22, 2.35, 0.61], [1.2, 1.02, 2.35, 2.69]]) {
-    const piece = mesh('wall_back', new THREE.PlaneGeometry(w, h), wallMat, [x, y, -2.0]); piece.castShadow = false;
+    mesh('wall_back', new THREE.PlaneGeometry(w, h), wallMat, [x, y, -2.0]); // it casts: the day's sun comes in by the window only
   }
   const left = mesh('wall_left', new THREE.PlaneGeometry(7, 3.2), wall('#2a2f3c'), [-3.0, 1.6, 0.5]);
   left.rotation.y = Math.PI / 2; left.castShadow = false;
@@ -186,6 +205,13 @@ function placeholderRoom() {
     });
   });
 
+  // ── a letter board on the wall, beside the eye: a line someone said ──
+  for (const h of art('quote')) {
+    const board = named(h.name); board.position.set(-0.78, 2.02, -1.975);
+    mesh('', new THREE.BoxGeometry(0.62, 0.44, 0.025), std('#5a3d28', { roughness: 0.7 }), [0, 0, 0], board);
+    mesh('', new THREE.PlaneGeometry(0.58, 0.4), new THREE.MeshStandardMaterial({ map: quoteArt({ text: h.art.text, by: h.art.by, theme }), roughness: 0.95 }), [0, 0, 0.0135], board).castShadow = false;
+  }
+
   // ── the sign: the piabrota eye, glowing above the TV ──
   for (const h of hotspots.filter((x) => x.name === 'sign')) {
     const sign = named(h.name); sign.position.set(0.05, 2.08, -1.97);
@@ -200,7 +226,8 @@ function placeholderRoom() {
   // the glass: a faint reflection, and Rio behind it in depth (outside.js)
   const glass = mesh('window', new THREE.PlaneGeometry(1.2, 0.96), new THREE.MeshPhysicalMaterial({ color: '#9fb6d8', roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.08, depthWrite: false }), [wx, wy, -1.995]);
   glass.renderOrder = 3;
-  animated.push(buildOutside(g, { center: new THREE.Vector3(wx, wy, -2), photo: outside?.photo }));
+  const view = buildOutside(g, { center: new THREE.Vector3(wx, wy, -2), night: outside?.night, day: outside?.day });
+  animated.push(view); g.userData.outside = view;
   glass.castShadow = false;
   for (const [s, p] of [[[1.32, 0.06, 0.08], [wx, wy + 0.51, -1.97]], [[1.32, 0.06, 0.08], [wx, wy - 0.51, -1.97]], [[0.06, 1.08, 0.08], [wx - 0.63, wy, -1.97]], [[0.06, 1.08, 0.08], [wx + 0.63, wy, -1.97]], [[0.03, 0.96, 0.03], [wx, wy, -1.98]], [[1.2, 0.03, 0.03], [wx, wy + 0.1, -1.98]]]) box(s, p, '#d8d2c4');
   box([1.4, 0.04, 0.2], [wx, wy - 0.56, -1.92], '#d8d2c4');
@@ -270,7 +297,7 @@ function placeholderRoom() {
   part(new THREE.CylinderGeometry(0.16, 0.12, 0.34, 16), [-2.6, 0.17, 0.9], '#c9c2b4');
   for (let i = 0; i < 9; i++) part(new THREE.ConeGeometry(0.06, 0.7, 6), [-2.6 + Math.cos(i * 2.4) * 0.07, 0.62, 0.9 + Math.sin(i * 2.4) * 0.07], '#2f6b3a', { rot: [Math.sin(i * 2.4) * 0.35, 0, -Math.cos(i * 2.4) * 0.35] });
 
-  // ── the other walls: marola-dev's sea, ouroboric-dev's loop, h0ffmann's records ──
+  // ── the other walls: marola-dev's sea, ouroboric-dev's loop, the slipbox ──
   animated.push(buildSea(g, mesh, std, part), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
 
   // merge the static parts: one mesh per material

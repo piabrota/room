@@ -6,8 +6,8 @@ import * as THREE from 'three';
 // layers slide past the far ones, so the window has a real view and not
 // a picture.
 //
-// With `photo` (config.outside, a photograph credited in CREDITS.md) the
-// city is the photograph, 25 m behind the glass, its sky fading into the
+// With the photographs of config.outside (credited in CREDITS.md), one
+// for the night and one for the day, the city is a photograph, 25 m behind the glass, its sky fading into the
 // drawn one, its brightest lights twinkling, and the drawn hills, city and
 // bay are hidden. Without it, or while it loads, the drawn view shows.
 
@@ -26,7 +26,7 @@ const ridge = (ctx, w, h, pts, color) => {
   ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
 };
 
-export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2), photo } = {}) {
+export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2), night: nightPhoto, day: dayPhoto } = {}) {
   const root = new THREE.Group(); root.name = 'outside'; parent.add(root);
   const drawn = new THREE.Group(); root.add(drawn);
   let g = root;
@@ -47,7 +47,12 @@ export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2)
     ctx.fillStyle = halo; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = '#f4ecd6'; ctx.beginPath(); ctx.arc(mx, my, 22, 0, 7); ctx.fill();
   });
-  plane(sky.tex, 120, 60, [0, 8, -60], { transparent: false });
+  const nightSky = plane(sky.tex, 120, 60, [0, 8, -60], { transparent: false });
+  const daySky = plane(layer(256, 256, (ctx, w, h) => {
+    const gr = ctx.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#6f9fd6'); gr.addColorStop(0.65, '#b9cde0'); gr.addColorStop(1, '#d9dfe3');
+    ctx.fillStyle = gr; ctx.fillRect(0, 0, w, h);
+  }).tex, 120, 60, [0, 8, -60.5], { transparent: false });
+  daySky.visible = false;
   g = drawn; // what follows is the drawn view, hidden when the photograph is in
 
   // far hills across the bay
@@ -99,62 +104,88 @@ export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2)
   // near trees and a rooftop, a few metres out: they slide across the
   // view when the camera moves, which gives the window its depth
   g = root;
-  const trees = layer(1024, 256, (ctx, w, h) => {
-    const r = mulberry(23); ctx.fillStyle = '#04060b';
+  const drawTrees = (leaf, lit) => layer(1024, 256, (ctx, w, h) => {
+    const r = mulberry(23); ctx.fillStyle = leaf;
     ctx.beginPath(); ctx.moveTo(0, h);
     for (let x = 0; x <= w; x += 8) ctx.lineTo(x, h * (0.45 + 0.25 * Math.sin(x * 0.011) * Math.sin(x * 0.003 + 1) + r() * 0.06));
     ctx.lineTo(w, h); ctx.fill();
-    ctx.fillRect(w * 0.62, h * 0.28, w * 0.2, h); // a neighbour's roof
-    for (let i = 0; i < 9; i++) { ctx.fillStyle = r() < 0.5 ? '#ffcf8a' : '#2a2416'; ctx.fillRect(w * (0.64 + (i % 3) * 0.06), h * (0.4 + Math.floor(i / 3) * 0.18), 14, 10); }
+    ctx.fillStyle = lit ? leaf : '#8d8a84'; ctx.fillRect(w * 0.62, h * 0.28, w * 0.2, h); // a neighbour's roof
+    for (let i = 0; i < 9; i++) { ctx.fillStyle = lit ? (r() < 0.5 ? '#ffcf8a' : '#2a2416') : '#4d5a66'; ctx.fillRect(w * (0.64 + (i % 3) * 0.06), h * (0.4 + Math.floor(i / 3) * 0.18), 14, 10); }
     for (const px of [0.18, 0.86]) { // two palms
-      ctx.fillStyle = '#04060b'; const bx = w * px; ctx.fillRect(bx - 2, h * 0.08, 4, h);
+      ctx.fillStyle = leaf; const bx = w * px; ctx.fillRect(bx - 2, h * 0.08, 4, h);
       for (let k = 0; k < 7; k++) { const a = -Math.PI + (k / 6) * Math.PI; ctx.beginPath(); ctx.ellipse(bx + Math.cos(a) * 26, h * 0.1 + Math.sin(a) * 8 + 10, 30, 5, a + Math.PI / 2 + 1.4, 0, 7); ctx.fill(); }
     }
   });
-  plane(trees.tex, 14, 3.5, [0.6, -2.7, -6]);
+  const nightTrees = plane(drawTrees('#04060b', true).tex, 14, 3.5, [0.6, -2.7, -6]);
+  const dayTrees = plane(drawTrees('#2f4a2c', false).tex, 14, 3.5, [0.6, -2.7, -6]);
+  dayTrees.visible = false;
 
-  let twinkle = null;
-  if (photo) {
+  // The photographs: each is set 25 m behind the glass so that its
+  // landmark (`anchor`, as a fraction of the picture from the top left)
+  // sits where the window looks.
+  let twinkle = null, isDay = false;
+  const photos = {};
+  const aim = new THREE.Vector2(2.65, 1.8);
+  function loadPhoto(kind, { photo, anchor = [0.5, 0.5] }) {
     const img = new Image();
     img.onload = () => {
       const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H;
       const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
-      // night: a darker sky at the top, fading into the drawn one
-      const dark = ctx.createLinearGradient(0, 0, 0, H * 0.45); dark.addColorStop(0, 'rgba(3,6,14,0.85)'); dark.addColorStop(1, 'rgba(3,6,14,0)');
-      ctx.fillStyle = dark; ctx.fillRect(0, 0, W, H * 0.45);
+      if (kind === 'night') { // a darker sky at the top
+        const dark = ctx.createLinearGradient(0, 0, 0, H * 0.45); dark.addColorStop(0, 'rgba(3,6,14,0.85)'); dark.addColorStop(1, 'rgba(3,6,14,0)');
+        ctx.fillStyle = dark; ctx.fillRect(0, 0, W, H * 0.45);
+      }
       const data = ctx.getImageData(0, 0, W, H).data;
-      ctx.globalCompositeOperation = 'destination-in';
+      ctx.globalCompositeOperation = 'destination-in'; // the top fades into the drawn sky
       const fade = ctx.createLinearGradient(0, 0, 0, H * 0.12); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, 'rgba(0,0,0,1)');
       ctx.fillStyle = fade; ctx.fillRect(0, 0, W, H);
       const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-      const PW = 44, PH = PW * H / W, at = [-3.05, -4.5, -25];
-      plane(tex, PW, PH, at, { color: new THREE.Color(0.86, 0.86, 0.9) });
-      // the brightest lights twinkle: points over them, faded in and out
-      const pts = [], phase = [], r = mulberry(31);
-      for (let k = 0; k < 40000 && pts.length < 3 * 420; k++) {
-        const x = (r() * W) | 0, y = (H * 0.15 + r() * H * 0.85) | 0, i = (y * W + x) * 4;
-        if (data[i] > 235 && data[i + 1] > 190) {
-          pts.push(center.x + at[0] + (x / W - 0.5) * PW, center.y + at[1] + (0.5 - y / H) * PH, center.z + at[2] + 0.05);
-          phase.push(r() * 6.28);
+      const PW = 44, PH = PW * H / W, at = [aim.x - (anchor[0] - 0.5) * PW, aim.y - (0.5 - anchor[1]) * PH, -25];
+      g = root;
+      photos[kind] = plane(tex, PW, PH, at, { color: kind === 'night' ? new THREE.Color(0.86, 0.86, 0.9) : new THREE.Color(0.95, 0.95, 0.95) });
+      if (kind === 'night') {
+        // the brightest lights twinkle: points over them, faded in and out
+        const pts = [], phase = [], r = mulberry(31);
+        for (let k = 0; k < 40000 && pts.length < 3 * 420; k++) {
+          const x = (r() * W) | 0, y = (H * 0.15 + r() * H * 0.85) | 0, i = (y * W + x) * 4;
+          if (data[i] > 235 && data[i + 1] > 190) {
+            pts.push(center.x + at[0] + (x / W - 0.5) * PW, center.y + at[1] + (0.5 - y / H) * PH, center.z + at[2] + 0.05);
+            phase.push(r() * 6.28);
+          }
         }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+        geo.setAttribute('phase', new THREE.Float32BufferAttribute(phase, 1));
+        const mat = new THREE.ShaderMaterial({
+          uniforms: { time: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+          vertexShader: 'attribute float phase; uniform float time; varying float a; void main() { a = 0.5 + 0.5 * sin(time * (1.3 + fract(phase) * 2.0) + phase); a = a * a * a; gl_PointSize = 2.5; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+          fragmentShader: 'varying float a; void main() { vec2 d = gl_PointCoord - 0.5; gl_FragColor = vec4(vec3(1.0, 0.85, 0.6) * a * smoothstep(0.5, 0.1, length(d)), 1.0); }',
+        });
+        twinkle = new THREE.Points(geo, mat); root.add(twinkle);
       }
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-      geo.setAttribute('phase', new THREE.Float32BufferAttribute(phase, 1));
-      const mat = new THREE.ShaderMaterial({
-        uniforms: { time: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
-        vertexShader: 'attribute float phase; uniform float time; varying float a; void main() { a = 0.5 + 0.5 * sin(time * (1.3 + fract(phase) * 2.0) + phase); a = a * a * a; gl_PointSize = 2.5; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-        fragmentShader: 'varying float a; void main() { vec2 d = gl_PointCoord - 0.5; gl_FragColor = vec4(vec3(1.0, 0.85, 0.6) * a * smoothstep(0.5, 0.1, length(d)), 1.0); }',
-      });
-      twinkle = new THREE.Points(geo, mat); root.add(twinkle);
-      drawn.visible = false;
+      show();
     };
     img.src = photo;
   }
+  // night: the night photograph (or the drawn view while it loads), the
+  // moon's sky, dark trees with lit windows; day: the day photograph,
+  // a blue sky, green trees
+  function show() {
+    nightSky.visible = !isDay; daySky.visible = isDay;
+    nightTrees.visible = !isDay; dayTrees.visible = isDay;
+    if (photos.night) photos.night.visible = !isDay;
+    if (twinkle) twinkle.visible = !isDay;
+    if (photos.day) photos.day.visible = isDay;
+    drawn.visible = !isDay && !photos.night;
+  }
+  if (nightPhoto) loadPhoto('night', nightPhoto);
+  if (dayPhoto) loadPhoto('day', dayPhoto);
 
   let last = -1;
-  return (t) => {
+  const update = (t) => {
     if (twinkle) { twinkle.material.uniforms.time.value = t; return; }
-    if (t - last > 1 / 10) { last = t; drawCity(t); setGlints(t); }
+    if (!isDay && t - last > 1 / 10) { last = t; drawCity(t); setGlints(t); }
   };
+  update.setDay = (day) => { isDay = day; show(); };
+  return update;
 }
