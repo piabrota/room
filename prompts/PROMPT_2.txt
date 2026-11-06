@@ -1,0 +1,4 @@
+# PROMPT_2: the repository and its rules
+# 2026-11-05 14:35 UTC, Hoffmann, in the same Claude project chat.
+
+user> 'I have added piabrota/room. Create the first PR, with AGENTS.md 10 invariantes, derive the invariants based on the first prompts (including threads). Idea must be credited to original creator, but dont link any external repo or issue. Consider this will be tested with macos or nix with just and Claude Code assistance'
