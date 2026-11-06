@@ -36,7 +36,16 @@ export function createTV(screenMesh, deps) {
   tex.colorSpace = THREE.SRGBColorSpace;
   screenMesh.material = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
   crt(screenMesh.material);
-  let tape = null, t = 0;
+  let tape = null, t = 0, frames = 0, brightness = 0.5;
+  // how bright the picture is, from a 4×3 copy of it, so the TV's light in the room follows the tape
+  const probe = document.createElement('canvas'); probe.width = 4; probe.height = 3;
+  const pctx = probe.getContext('2d', { willReadFrequently: true });
+  function measure() {
+    pctx.drawImage(canvas, 0, 0, 4, 3);
+    const d = pctx.getImageData(0, 0, 4, 3).data; let sum = 0;
+    for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+    brightness += (sum / 12 / 255 - brightness) * 0.5;
+  }
 
   function idle(dt) {
     // no tape: a calm blue screen and the time, no static
@@ -53,6 +62,7 @@ export function createTV(screenMesh, deps) {
 
   return {
     get playing() { return tape; },
+    get brightness() { return brightness; },
     async insert(def) {
       this.eject();
       const mod = (await def.module()).default;
@@ -65,6 +75,7 @@ export function createTV(screenMesh, deps) {
       t += dt;
       if (tape) tape.mod.frame?.(ctx, t, dt); else idle(dt);
       scanlines(); tex.needsUpdate = true;
+      if (tape && ++frames % 4 === 0) measure();
     },
   };
 }

@@ -30,8 +30,35 @@ The second commit of #16 applied what can land without the owner changing an inv
 - **Skills:** `.claude/skills/` has `room-pr`, `room-light`, `room-content`, `room-shaders` and
   `ww3-grid`, so a Claude working here (or on a fork) starts from these rules and plans.
 
-Left for later, each its own pull request: the tenth view (invariant 4 first), a Blender bake,
-Vite 6, `WebGPURenderer`, `camera-controls`, KTX2.
+### Applied in #18
+
+- **6, the tenth view:** invariant 4 now gives a tenth shot key `0` (its own commit, first). "▲ grid"
+  is a chart on the right wall; its shot opens a MapLibre map over the room
+  (`src/grid.js`): the coast's triangle mesh, 11 905 nodes and 22 366 triangles from Natural
+  Earth's coastline (`just grid`), coloured by the sea of each hour, with the triangles' edges and
+  the wind on top, 24 h played by the room's clock, a node's numbers on hover. Land and data ship
+  in `public/grid/` (1.2 MB); nothing is hotlinked, and the map has no text layer, so it needs no
+  fonts. The wind is NOAA's GFS 0.25° at 10 m, through Open-Meteo's API (CC BY 4.0). **The sea is
+  estimated from that wind** (Pierson–Moskowitz, a fully developed sea), and the view says so:
+  WAVEWATCH III itself is not run yet (below).
+- **3, life:** the TV's light follows the brightness of the tape's picture, the rain button
+  puts drops on the glass that cling and run, and the plants' leaves sway (vertex shaders, driven
+  by the room's clock, still under reduced motion).
+- **2, Vite 6** (6.4.5): the build, the preview and the dev server run as before.
+
+Still left, and why:
+
+- **WAVEWATCH III on the mesh.** It needs a Fortran toolchain (gfortran, NetCDF-Fortran, MPI) and
+  a Nix devShell to build WW3 v7; neither is in this repository yet, and the cloud session that
+  made #18 had none. The mesh and the export format are ready for it (`.claude/skills/ww3-grid`):
+  write `mesh.bin` as Gmsh `.msh`, run `ww3_grid`, `ww3_prnc` with the same GFS hours,
+  `ww3_shel`, `ww3_ounf`, and write `frames.bin` from its Hs.
+- **Bathymetry** on the mesh (GEBCO): not needed until WW3 runs.
+- **A Blender bake and KTX2:** they need the owner's Blender model (`room.glb`); the placeholder
+  room is built in code.
+- **`WebGPURenderer` and TSL:** a rewrite of the post chain, worth it when something needs compute.
+- **`camera-controls`:** the hand-written rig already eases, keeps velocity and is deterministic
+  for `just record`; replacing it would lose that for little.
 
 ---
 

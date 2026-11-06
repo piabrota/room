@@ -106,11 +106,20 @@ const button = async (shot) => {
   const b = await page.locator(`#shots button[data-shot="${shot}"]`).boundingBox();
   return [b.x + b.width / 2, b.y + b.height / 2];
 };
+async function gridReady() {
+  for (let i = 0; i < 600 && !(await page.evaluate(() => window.__room.grid?.ready && window.__room.grid.covering)); i++) {
+    await page.evaluate(() => window.__room.step(1 / 30)); await page.waitForTimeout(100);
+  }
+}
 const still = async (name) => (await page.waitForTimeout(400), page.screenshot({ path: join(out, `shot-${name}.jpg`), type: 'jpeg', quality: 88 }));
 
 // ── the stills: one per shot, before the video ──
 const shots = await page.evaluate(() => window.__room.rig.names);
-for (const s of shots) { await page.evaluate((x) => { window.__room.rig.go(x, true); window.__room.step(1 / 30); }, s); await still(s); }
+for (const s of shots) {
+  await page.evaluate((x) => { window.__room.rig.go(x, true); window.__room.step(1 / 30); }, s);
+  if (s === 'grid') await gridReady(); // the map opens over the room: wait for it to draw
+  await still(s);
+}
 await page.evaluate((x) => { window.__room.rig.go(x, true); window.__room.step(1 / 30); }, shots[0]);
 
 if (stillsOnly) { await browser.close(); await server.close(); console.log(`✓ ${shots.length} stills in docs/record/`); process.exit(errors.length ? 1 : 0); }
@@ -147,6 +156,9 @@ await moveTo(...(await at('record_pirsig-wikipedia')), 0.5); await wait(0.4);   
 await moveTo(...(await at('record_pirsig')), 0.4); await wait(0.4);                                 // and pirsig beside it
 await moveTo(...(await box('#daylight')), 0.6); await click(); await wait(0.4);                     // day
 await page.keyboard.press('6'); await land(); await drag(-300, 1.2);                                // the window by day; drag to look
+await page.keyboard.press('0'); await land();                                                       // key 0: ▲ grid, the chart
+for (let i = 0; i < 600 && !(await page.evaluate(() => window.__room.grid?.ready && window.__room.grid.covering)); i++) await step(); // the map opens
+await moveTo(W * 0.45, H * 0.55, 0.6); await wait(1.4);                                             // hover the mesh while the hours play
 await page.keyboard.press('9'); await land();                                                       // key 9: the loop
 await moveTo(...(await at('door')), 0.5); await wait(0.5);                                           // the door, locked
 await page.keyboard.press('Escape'); await land();                                                  // Esc: back to the start

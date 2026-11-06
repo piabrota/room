@@ -9,6 +9,7 @@ import { createTV } from './tv.js';
 import { createRadio } from './radio.js';
 import { createPost } from './post.js';
 import { renderSignature } from './signature.js';
+import { createGrid } from './grid.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 const canvas = document.getElementById('scene');
@@ -55,18 +56,23 @@ const redrawShadows = () => { renderer.shadowMap.needsUpdate = true; };
 const nav = document.getElementById('shots');
 rig.names.forEach((name, i) => {
   const b = document.createElement('button');
-  const k = document.createElement('kbd'); k.textContent = String(i + 1);
-  b.append(k, document.createTextNode(` ${name}`));
+  const k = document.createElement('kbd'); k.textContent = String((i + 1) % 10); // the tenth is 0
+  b.append(k, document.createTextNode(` ${config.shots[name]?.label ?? name}`));
   b.onclick = () => rig.go(name); b.dataset.shot = name;
   nav.appendChild(b);
 });
+// ── ▲ grid: when the camera lands on the chart (key 0), the map opens; any other shot closes it ──
+const gridView = config.grid ? createGrid(config.grid, { still: matchMedia('(prefers-reduced-motion: reduce)').matches }) : null;
+let gridPending = false;
+gridView?.onBack(() => rig.go(config.startShot));
+rig.onChange((n) => { gridPending = n === 'grid'; if (n !== 'grid') gridView?.hide(); });
 rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => {
   b.classList.toggle('active', b.dataset.shot === n);
   b.setAttribute('aria-pressed', String(b.dataset.shot === n));
 }));
 addEventListener('keydown', (e) => {
   if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
-  const i = Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]);
+  const i = e.key === '0' ? 9 : Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]); // 1..9, and 0 for the tenth
   if (e.key === 'Escape') rig.go(config.startShot);
   if (e.key === 'ArrowRight') rig.next(1);
   if (e.key === 'ArrowLeft') rig.next(-1);
@@ -144,6 +150,7 @@ rainBtn.onclick = async () => {
   rainBtn.textContent = `${rainDef.label}: ${rainOn ? words.on : words.off}`;
   rainBtn.classList.toggle('active', rainOn); rainBtn.setAttribute('aria-pressed', String(rainOn));
   if (rainOn && audio.ctx.state !== 'running') { await audio.unlock(); soundBtn.textContent = `${words.sound}: ${words.on}`; }
+  room.setRain(rainOn);
   if (rainOn) { rain ??= await audio.loop(rainDef, room.root.getObjectByName('window')); if (!rain.isPlaying) rain.play(); rain.setVolume(rainVolume()); }
   else rain?.stop();
 };
@@ -221,8 +228,13 @@ function tick(dt, measure) {
   }
   const moving = rig.moving;
   rig.update(dt); you.follow(camera); room.update(elapsed); tv.update(dt);
+  if (tv.playing && room.tvLight.intensity) room.tvLight.intensity = 0.8 + 4.5 * tv.brightness; // the room flickers with the picture
   ui.update(moving || tweens.length > 0 || ++frames % 3 === 0); // things on the wheel and the waves move too
-  post.render(dt, elapsed, measure);
+  if (gridView) {
+    if (gridPending && !rig.moving) { gridPending = false; gridView.show(); }
+    gridView.update(dt);
+  }
+  if (!gridView?.covering) post.render(dt, elapsed, measure); // under the open map the room rests
 }
 renderer.setAnimationLoop(frame);
 
@@ -243,7 +255,7 @@ export function resume() {
   radio.resume();
 }
 // handy for debugging in the console; `step` drives the room by hand for `just record`
-window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, step: (dt) => {
+window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, grid: gridView, step: (dt) => {
   if (!stepping) { stepping = true; renderer.setAnimationLoop(() => {}); } // frames keep coming, the room only moves on step
   tick(dt, false);
 } };

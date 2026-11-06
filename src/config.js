@@ -61,6 +61,8 @@ export const shots = {
   sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
   slipbox:  { position: [-1.62, 0.88, -0.22], target: [-2.2, 0.18, -0.98], fov: 46 },
   loop:     { position: [0.4, 1.6, 1.0], target: [0.9, 1.65, 3.8], fov: 54 },
+  // the tenth, on key 0: the chart on the right wall, which opens the map (`grid` below)
+  grid:     { position: [1.75, 1.62, 1.55], target: [3.4, 1.62, 1.55], fov: 44, label: '▲ grid' },
 };
 export const startShot = 'overview';
 
@@ -365,7 +367,30 @@ export const reading = {
 // Hoverable things. `name` matches a mesh name in your GLB (or the
 // placeholder room, which builds one for each `art`). `action` is one
 // of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio'. `group` titles the LOFI list.
+// ── ▲ grid: the Brazilian coast on a triangle mesh, its waves played back
+// on a map (src/grid.js, docs/SURVEY.md, section 6). The chart hangs on
+// the right wall; its shot (key 0) opens the map. `just grid` makes the
+// files in public/grid/: the land (Natural Earth), the mesh, and 24 h of
+// GFS winds over it with the sea they raise. The sea is an estimate from
+// the wind (Pierson-Moskowitz, a fully developed sea), not yet a WAVEWATCH
+// III run: that is the next step (the ww3-grid skill).
+export const grid = {
+  label: '▲ grid', hint: 'the Brazilian coast on triangles: 24 h of wind and sea',
+  title: '▲ grid · the Brazilian coast',
+  credit: 'Triangle grids for WAVEWATCH III: Dr. Aron Roland (with Fabrice Ardhuin); at NOAA, Dr. Ali Abdolali.',
+  note: 'The sea here is estimated from the wind (Pierson–Moskowitz, fully developed), not a WAVEWATCH III run.',
+  sources: 'Land: Natural Earth · Wind: NOAA GFS 0.25°, through Open-Meteo (CC BY 4.0)',
+  // the domain of `just grid`: west, south, east, north; how far out the mesh goes, in km;
+  // the spacing of its nodes near the coast and far out, in km
+  bbox: [-56, -35.5, -27, 6.5], reach: 550, spacing: [9, 70],
+  files: { run: '/grid/run.json', mesh: '/grid/mesh.bin', frames: '/grid/frames.bin', land: '/grid/land.json' },
+  // places to name on the map: [label, longitude, latitude]
+  places: [['Rio de Janeiro', -43.2, -22.9], ['Salvador', -38.5, -12.97], ['Recife', -34.88, -8.05], ['Fortaleza', -38.53, -3.73], ['Florianópolis', -48.55, -27.6], ['Belém', -48.5, -1.45]],
+  words: { play: 'play', pause: 'pause', back: 'back to the room', hs: 'sea (Hs)', wind: 'wind', node: 'node', m: 'm', ms: 'm/s', loading: 'loading the grid…', missing: 'no run yet: just grid' },
+};
+
 export const hotspots = [
+  { name: 'chart', label: grid.label, hint: grid.hint, action: 'shot', value: 'grid' },
   { name: 'window', label: 'Rio at night', hint: 'where piabrota is made', action: 'shot', value: 'window' },
   { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },

@@ -34,6 +34,10 @@ check: _deps
     npx vite build --logLevel warn
     @echo "✓ just check"
 
+# the ▲ grid view's files in public/grid/: the coast's triangle mesh and 24 h of GFS wind and sea (just grid --offline reuses the fetched wind)
+grid *args: _deps
+    node scripts/grid.mjs {{args}}
+
 # the brightness of every shot, by night and by day; fails when one burns to white (just light day desk)
 light *args: build
     node scripts/light.mjs {{args}}
