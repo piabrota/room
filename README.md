@@ -1,42 +1,138 @@
 # room
 
+English · [Português (Brasil)](README.pt-BR.md)
+
 A personal site that is a 3D room. Switch between camera shots, hover over things to see what
 they are, put a tape into the VCR to play it on the TV, and listen to the room. Built with
 [three.js](https://threejs.org) and [Vite](https://vite.dev), as static files.
 
-The idea of a room like this comes from **Felix Rieseberg**, who made one as his own personal
-site. This is a separate build, with its own assets, signature, sounds and interactions
+The idea of a room like this comes from **Felix Rieseberg** (`felixrieseberg` on GitHub), who
+made one as his own personal site. His name and login are written as text, with no link
+([`AGENTS.md`](AGENTS.md), invariant 2). This is a separate build, with its own assets, signature, sounds and interactions
 ([`CREDITS.md`](CREDITS.md)).
 
-## What is in the room
+![the room](docs/record/shot-overview.jpg)
 
-This is piabrota's room. The left wall holds the fabric, one framed print per project, each a
-link to its repository. The two bots of the org, piabrota-ops and piabrota-hermes, sit on the
-desk; the board holds the people; the shelf holds the works with a DOI by Matheus Hoffmann:
-marola ([10.5281/zenodo.23224155](https://doi.org/10.5281/zenodo.23224155)), ww3-gpu
-([10.5281/zenodo.23221351](https://doi.org/10.5281/zenodo.23221351)), picasso
-([10.5281/zenodo.23311208](https://doi.org/10.5281/zenodo.23311208)), closed source
-([10.5281/zenodo.23333656](https://doi.org/10.5281/zenodo.23333656)), marola-bench
-([10.5281/zenodo.23352633](https://doi.org/10.5281/zenodo.23352633)) and nashkell, the open book
-([10.5281/zenodo.23356739](https://doi.org/10.5281/zenodo.23356739)). The window looks on Rio at
-night, Sugarloaf and Botafogo bay in a photograph set far behind the glass, with trees and a
-neighbour's roof in front of it, so the view moves in depth as the camera does. The eye above
-the TV is the piabrota sign.
+## Replay: how it was built
 
-The other walls hold the rest. On the right, a wave tank with a buoy for each marola-dev
-repository. Behind you, a belt of crates that loops along the wall, one crate for each
-ouroboric-dev repository. On the floor by the shelf, a crate of records, one sleeve for each of
-h0ffmann's public repositories, its cover drawn from its name.
+The room was built from prompts, in one Claude project, in about two hours of agent time
+spread over a day. A coordinator (Claude Fable 5.1) read each prompt and started a thread for
+it; each thread (Claude Opus 5.5, 1M context, in Claude Code) did the work and opened the pull
+request. Only the owner's prompts are shown, as they were typed; the replies are left out. The
+first two are in files, so you can read them whole:
 
-piabrota RADIO plays lofi in the room, from the button at the top or the radio on the window sill:
-free-licensed tracks only (CC0, [`CREDITS.md`](CREDITS.md)), and the ambience steps back while it
-plays.
+- [`prompts/PROMPT_1.txt`](prompts/PROMPT_1.txt): understand the reference room, start a starter
+- [`prompts/PROMPT_2.txt`](prompts/PROMPT_2.txt): the repository, its ten invariants ([`AGENTS.md`](AGENTS.md))
 
-Move with the shot buttons, the keys 1 to 9, `←` `→`, or drag to look around the room (360°);
-`Esc` steps back. The camera
-moves on quintic curves that keep their speed when you change your mind halfway, so no move
-ever jerks. The picture goes through a post-processing chain (ambient occlusion, outline on hover,
-bloom, a film grade) that lowers its own quality when the frame rate drops.
+Times are UTC. "Took" runs from the prompt to the pull request being ready for review.
+
+| # | Prompt (UTC) | Result | Took |
+|---|---|---|---|
+| 1 | 4 Nov 21:20 | a starter scaffold, outside this repository | 7 min |
+| 2 | 5 Nov 14:35 | [#1](https://github.com/piabrota/room/pull/1) starter, `AGENTS.md`, just and Nix | 7 min |
+| 3 | 5 Nov 16:51 | [#2](https://github.com/piabrota/room/pull/2) the LOFI/HIFI toggle | 4 min |
+| 4 | 5 Nov 19:17 | the deploy to room.piabrota.art, in [piabrota/nix-os#146](https://github.com/piabrota/nix-os/pull/146) (live 22:11) | 4 min |
+| 5 | 5 Nov 22:28 | [#3](https://github.com/piabrota/room/pull/3) the piabrota tape and `just compose`; [#4](https://github.com/piabrota/room/pull/4) smooth moves, post-processing | 11 and 22 min |
+| 6 | 5 Nov 22:51 | [#5](https://github.com/piabrota/room/pull/5) `just record`, the right wall and the ceiling | 17 min |
+| 7 | 5 Nov 23:21 | [#6](https://github.com/piabrota/room/pull/6) the room in 360°, the window on Rio, piabrota RADIO | 50 min |
+| 8 | 6 Nov 00:33 | [#7](https://github.com/piabrota/room/pull/7) the radio's own budget; the feature pull request is in progress | 3 min |
+| 9 | 6 Nov 00:50 | this README | |
+
+**1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
+
+```text
+user> '[the address of Felix Rieseberg's room] Check the website of this Anthropic Engineer. Is
+not something professional, is his personal website. I just want to understand structure,
+frameworks, and try to build one on my own, with my assets, my signature, my sounds, my
+interaction'
+```
+
+**2.** [`PROMPT_2.txt`](prompts/PROMPT_2.txt)
+
+```text
+user> 'I have added piabrota/room. Create the first PR, with AGENTS.md 10 invariantes, derive
+the invariants based on the first prompts (including threads). Idea must be credited to
+original creator, but dont link any external repo or issue. Consider this will be tested with
+macos or nix with just and Claude Code assistance'
+```
+
+**3.**
+
+```text
+user> 'merged, now add a LOFI HIFI button for switching between 3d rendered view vs plain text'
+```
+
+**4.**
+
+```text
+user> 'please create a new PR in piabrota/nix-os to deploy room site under piabrota.art/room
+(KVM 4) or room.piabrota.art (KVM 4) as well'
+```
+
+**5.**
+
+```text
+user> 'Fix the room, the navigation vetween views of the room is not smooth, room design should
+contain piabrota github org bot repos, names, art, inspiration. also improve tech stack to match
+[the address of Felix Rieseberg's room]
+https://freesound.org/people/magedu/sounds/267832/
+https://freesound.org/people/klankbeeld/sounds/219877/
+https://freesound.org/people/klankbeeld/sounds/174242/
+https://freesound.org/people/YleArkisto/sounds/350358/
+
+Do a sound composition to have a track to talk about piabrota, its members, my personal
+projects, link to repositories. The site is very poor at moment it needs a a lot of refinement'
+```
+
+**6.**
+
+```text
+user> 'continue improving the site, every site must have at least 3 scrrenshots of the
+ambient, and a screen record of 15s, doing navigation and clicking on things'
+```
+
+**7.**
+
+```text
+user> 'keep improving, more originality, bring marola-dev work, ouroboric-dev work, h0ffmann
+all IP'
+user> 'the room must have 360 experience, other walls should reflect marola-dev, ouroboric-dev'
+```
+
+**8.**
+
+```text
+user> 'create a live listeners button, and increase the number of musics to 33 at least, if
+possible another set of specific lofi brazilian, also do the switch between lofi and hifi
+views, they look opsite in the site (hifi is the 3d room). add favico the same the company
+logo, check on piabrota/.github. remove the noise form the website completely (the rain sound
+must be toggle, on and off). The site also lacks day and night modes (with different lights).
+Records must be named slipbox and first item should be wikipedia link for pirsig, and pirsig
+github repository side by side'
+user> 'also add a board, on the wall with Time is a flat circle with Rust Cohle, neat the
+piabrota logo above the computer'
+```
+
+**9.**
+
+```text
+user> 'refactor README.md to be more in replay style, it must have direct links for
+PROMPT_1.txt and PROMPT_2.txt so people can see how it was build, using wach model, when, how
+much it took. Thead responde is not important user> 'original prompt' is enought'
+user> 'for example remove dois number, its just noise, this repo should be easy reforkable'
+user> 'and modular, so people can user their own slangs, lists, musics'
+user> 'Felix Rieseberg github user must be cited on README.md, also create a README.pt-BR.md
+version'
+```
+
+The address of the reference room is left out of the prompts: this repository credits Felix
+Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
+
+| Overview | Window | Sea wall |
+|---|---|---|
+| ![overview](docs/record/shot-overview.jpg) | ![window](docs/record/shot-window.jpg) | ![sea](docs/record/shot-sea.jpg) |
+
+Fifteen seconds of moving and clicking: [`docs/record/room.mp4`](docs/record/room.mp4).
 
 ## Run it
 
@@ -49,15 +145,29 @@ just dev         # http://localhost:5173
 ```
 
 On macOS without Nix: `brew install node just ffmpeg`, then the same `just` recipes.
-
 `just check` runs the checks of [`AGENTS.md`](AGENTS.md) and a build; `just build` writes the
 site to `dist/`, ready for any static host.
 
-## Make it yours
+## Fork it, make it yours
 
-Everything personal is in [`src/config.js`](src/config.js): the name and links, the camera
-shots, the tapes, the hotspots and the sounds. Until there is a model and recordings, the room
-is built from boxes and the sounds are synthesized, so it always runs.
+Fork the repository and change [`src/config.js`](src/config.js). It is the one file that holds
+what makes this room piabrota's, and no other file names a person, a link or a sound. Each part
+is its own export, so you can replace one and keep the rest:
+
+| Export | What it is | Make it yours |
+|---|---|---|
+| `signature`, `place` | the name, the tagline, the links, the city and its time zone | your name, your words, your links |
+| `theme` | the colours | your palette (and the type in `src/style.css`) |
+| `shots`, `startShot` | the named camera shots | your own views, or `shot_*` cameras from Blender |
+| `radio` | the radio's tracks | your music, CC0 or CC BY, each with a row in `CREDITS.md` |
+| `ambience`, `sfx` | the room tone and the clicks | your recordings (`just audio take.wav <name>`) |
+| `tapes` | what the VCR plays | your tapes, one file each in `src/tapes/` |
+| `projects`, `bots`, `people`, `works` | the walls, the desk, the board, the shelf | your own lists |
+| `sea`, `loop`, `records` | the other three walls | your own collections, or remove them |
+| `hotspots` | what can be clicked, and what it does | your labels, your words, your links |
+
+Until there is a model and recordings, the room is built from boxes and the sounds are
+synthesized, so a fork runs from its first commit.
 
 1. **Model.** Block the room out in Blender at real scale, name the meshes (`screen`, `vcr`,
    `lamp`, `tape_<id>`, hotspots) and the cameras (`shot_desk`, ...), bake the lighting, and
@@ -65,15 +175,11 @@ is built from boxes and the sounds are synthesized, so it always runs.
 2. **Sounds.** Record a room tone and a few clicks, then `just audio take.wav ambience`.
 3. **Tapes.** Copy `src/tapes/hello.js`; a tape draws on the TV canvas and can be a CV, a
    slideshow, a game or an instrument.
-4. **Signature.** Name, colours and type in `src/config.js` and `src/style.css`.
+4. **Replay.** Keep your own prompts in `prompts/`, and the room tells how it was made.
 
 The LOFI/HIFI button in the corner switches between the 3D room (HIFI) and the same content as
-plain text (LOFI): the name, the links and the tapes. The choice is remembered, and `?lofi` in the
-address opens the text view (`?static` still works). Without WebGL, LOFI is the only view.
-
-| Placeholder room, hover | A tape playing | LOFI |
-|---|---|---|
-| ![hover](docs/preview-hover.png) | ![tape](docs/preview-tape.png) | ![lofi](docs/preview-lofi.png) |
+plain text (LOFI). `?lofi` in the address opens the text view; without WebGL, LOFI is the only
+view.
 
 ## Licence
 

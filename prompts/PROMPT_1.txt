@@ -1,0 +1,10 @@
+# PROMPT_1: the first exploration
+# 2026-11-04 21:20 UTC, Hoffmann, in a Claude project chat.
+# The first line was the address of Felix Rieseberg's room, his personal site. It is left out
+# here: this repository credits him by name and links none of his pages (AGENTS.md, invariant 2).
+
+user> '[the address of Felix Rieseberg's room]
+
+Check the website of this Anthropic Engineer. Is not something professional, is his personal website.
+
+I just want to understand structure, frameworks, and try to build one on my own, with my assets, my signature, my sounds, my interaction'
