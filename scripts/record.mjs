@@ -78,10 +78,10 @@ async function click() {
   await page.evaluate(([a, b]) => window.__rec(a, b, false), [mx, my]);
 }
 // a drag across the room: the 360° look
-async function drag(dx, seconds) {
+async function drag(dx, seconds, dy = 0) {
   await page.evaluate(([a, b]) => window.__rec(a, b, true), [mx, my]);
   await page.mouse.down();
-  await moveTo(mx + dx, my, seconds);
+  await moveTo(mx + dx, my + dy, seconds);
   await page.mouse.up(); await page.evaluate(([a, b]) => window.__rec(a, b, false), [mx, my]);
   await step(4);
 }
@@ -125,7 +125,9 @@ await moveTo(...(await at('frame_pirsig')), 0.7); await wait(0.6);              
 await page.keyboard.press('4'); await land();                                   // key 4: the shelf
 await moveTo(...(await at('book_closed-source')), 0.6); await wait(0.5);        // hover a book
 await moveTo(...(await button('desk')), 0.5); await click(); await land();
-await moveTo(...(await at('tape_bots')), 0.5); await click(); await wait(1.6);  // a tape into the VCR
+await moveTo(...(await at('tape_cv')), 0.5); await click(); await wait(2.4);    // the CV tape into the VCR
+await moveTo(...(await at('fax', 0.22)), 0.5); await wait(0.5);                      // the fax: the address
+await moveTo(...(await at('fax_linkedin')), 0.4); await wait(0.5);              // and its LinkedIn button
 await moveTo(...(await at('lamp', 0.4)), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
 const box = async (sel) => { const r = await page.locator(sel).boundingBox(); return [r.x + r.width / 2, r.y + r.height / 2]; };
 await moveTo(...(await box('#radio')), 0.5); await click(); await wait(0.3);                        // piabrota RADIO on
@@ -136,7 +138,11 @@ await moveTo(...(await at('record_pirsig-wikipedia')), 0.5); await wait(0.4);   
 await moveTo(...(await at('record_pirsig')), 0.4); await wait(0.4);                                 // and pirsig beside it
 await moveTo(...(await box('#daylight')), 0.6); await click(); await wait(0.4);                     // day
 await page.keyboard.press('6'); await land(); await drag(-300, 1.2);                                // the window by day; drag to look
+await page.keyboard.press('9'); await land();                                                       // key 9: the loop
+await moveTo(...(await at('door')), 0.5); await wait(0.5);                                           // the door, locked
 await page.keyboard.press('Escape'); await land();                                                  // Esc: back to the start
+await moveTo(...(await at('folder_closed-source')), 0.6); await wait(0.6);                          // the file under the desk
+await drag(0, 1.8, -1150); await wait(0.8);                                                          // look down: your feet
 await wait(Math.max(0.5, (15 * FPS - n) / FPS));
 
 execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', join(frames, 'f%04d.jpg'),

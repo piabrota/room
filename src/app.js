@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import * as config from './config.js';
-import { loadRoom } from './room.js';
+import { loadRoom, buildBody } from './room.js';
 import { createCameraRig } from './cameras.js';
 import { createInteractions } from './interact.js';
 import { createAudio } from './audio.js';
@@ -38,6 +38,7 @@ const loading = document.getElementById('loading');
 const setProgress = (p) => loading?.style.setProperty('--p', String(p));
 
 const room = await loadRoom(scene, config.roomModel, setProgress);
+const you = buildBody(config.body); scene.add(you); // your feet, when you look down
 const rig = createCameraRig(camera, config.shots, room.root.userData.cameras, { canvas });
 const post = createPost(renderer, scene, camera, { accent: config.theme.accent });
 const ui = createInteractions(camera, canvas, document.getElementById('tooltip'), { root: room.root, onHover: (o) => post.select(o), ignoreClick: () => rig.justDragged() });
@@ -216,7 +217,7 @@ function tick(dt, measure) {
     if (tw.t === 1) { tweens.splice(i, 1); tw.done?.(); }
   }
   const moving = rig.moving;
-  rig.update(dt); room.update(elapsed); tv.update(dt);
+  rig.update(dt); you.follow(camera); room.update(elapsed); tv.update(dt);
   ui.update(moving || tweens.length > 0 || ++frames % 3 === 0); // things on the wheel and the waves move too
   post.render(dt, elapsed, measure);
 }
