@@ -46,7 +46,7 @@ light *args: build
 stills: build
     node scripts/record.mjs --stills
 
-# stills of every shot and 15 s of video into docs/record/ (headless Chrome, ffmpeg); every pull request carries them
+# stills of every shot and a video of the four walls by night into docs/record/ (headless Chrome, ffmpeg); every pull request carries them
 record: build
     node scripts/record.mjs
 

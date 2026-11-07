@@ -77,7 +77,7 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just build` | the static site in `dist/` |
 | `just preview` | serves `dist/` |
 | `just check` | `scripts/check.mjs` (the invariants), then a build |
-| `just record` | stills of every shot and 15 s of video of navigating and clicking, into `docs/record/`; on the GPU on macOS, in software at 960×540 elsewhere |
+| `just record` | stills of every shot and a video of the four walls by night, each 5 s or more, navigating and clicking (`room.mp4`, and `room.webp` for the READMEs), into `docs/record/`; on the GPU on macOS, in software at 960×540 elsewhere |
 | `just stills` | only the stills, into `docs/record/` (fast; use it while working) |
 | `just light [day\|night] [shots]` | the mean brightness and the share of pixels burnt to white of every shot, by night and by day; fails above 1 % (`scripts/light.mjs`) |
 | `just grid [--offline]` | the ▲ grid view's files in `public/grid/`: the coast's triangle mesh (Natural Earth, Delaunay) and 24 h of GFS wind with the sea it raises, and the sea's temperature from Copernicus Marine (OSTIA) (`scripts/grid.mjs`) |
