@@ -48,6 +48,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 15 | 6 nov 04:29 | [#18](https://github.com/piabrota/room/pull/18) ▲ grid, a décima vista na tecla 0: uma carta na parede que abre um mapa da costa brasileira em 22 366 triângulos, com 24 h de vento do GFS e o mar que ele levanta; a luz da TV segue a fita, chuva no vidro, folhas que balançam, Vite 6 | 52 min |
 | 16 | 6 nov 05:15 | [#19](https://github.com/piabrota/room/pull/19) ▲ grid: a temperatura do mar do Copernicus Marine (OSTIA, lida do seu repositório zarr aberto) como segunda camada, e partículas que fluem para onde as ondas vão, no lugar dos traços do vento | 30 min |
 | 17 | 7 nov 18:24 | [#20](https://github.com/piabrota/room/pull/20) o vídeo do README, só de noite, as quatro paredes cinco segundos ou mais cada, também como `docs/record/room.webp`; o mesmo no perfil do h0ffmann ([h0ffmann/h0ffmann#144](https://github.com/h0ffmann/h0ffmann/pull/144)) | 30 min |
+| 18 | 7 nov 18:53 | [#21](https://github.com/piabrota/room/pull/21) a noite não estoura mais em branco na mesa (a luminária a 0,7 de noite, um bloom mais suave), e `scripts/blow_light.sh` (`just blow-light`), que reprova um vídeo quando um quadro estoura; o `just record` o roda. Os dois vídeos de novo no perfil ([h0ffmann/h0ffmann#145](https://github.com/h0ffmann/h0ffmann/pull/145)) | 45 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -223,6 +224,15 @@ user> 'improve the grid
 user> 'update readme.md, the 2 vids, the first video should only show night display and all the 4
 walls in the room 2 with at least 5 seconds (with same hover over the screen already exists)'
 user> 'README.md of h0ffmann/h0ffmann and piabrota/room, to be clear'
+```
+
+**18.**
+
+```text
+user> 'now fix the brights in both room videos, the bright is exploding again, you should fix it
+in the video, create a blow_light.sh script to detect when the video has controlled light. You
+must use this script to pass (script must lives in room repository). Dont forget to update
+h0ffmann/h0ffmann as well'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix

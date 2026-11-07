@@ -48,6 +48,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 15 | 6 Nov 04:29 | [#18](https://github.com/piabrota/room/pull/18) ▲ grid, the tenth view on key 0: a chart on the wall that opens a map of the Brazilian coast on 22 366 triangles, with 24 h of GFS wind and the sea it raises; the TV's light follows the tape, rain on the glass, swaying leaves, Vite 6 | 52 min |
 | 16 | 6 Nov 05:15 | [#19](https://github.com/piabrota/room/pull/19) ▲ grid: the sea's temperature from Copernicus Marine (OSTIA, read from its open zarr store) as a second layer, and particles that flow where the waves travel, in place of the wind's ticks | 30 min |
 | 17 | 7 Nov 18:24 | [#20](https://github.com/piabrota/room/pull/20) the README's video, by night only, the four walls five seconds or more each, also as `docs/record/room.webp`; the same in h0ffmann's profile ([h0ffmann/h0ffmann#144](https://github.com/h0ffmann/h0ffmann/pull/144)) | 30 min |
+| 18 | 7 Nov 18:53 | [#21](https://github.com/piabrota/room/pull/21) the night no longer burns white at the desk (the lamp at 0.7 by night, a softer bloom), and `scripts/blow_light.sh` (`just blow-light`), which fails a video when a frame burns; `just record` runs it. Both videos again in the profile ([h0ffmann/h0ffmann#145](https://github.com/h0ffmann/h0ffmann/pull/145)) | 45 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -223,6 +224,15 @@ user> 'improve the grid
 user> 'update readme.md, the 2 vids, the first video should only show night display and all the 4
 walls in the room 2 with at least 5 seconds (with same hover over the screen already exists)'
 user> 'README.md of h0ffmann/h0ffmann and piabrota/room, to be clear'
+```
+
+**18.**
+
+```text
+user> 'now fix the brights in both room videos, the bright is exploding again, you should fix it
+in the video, create a blow_light.sh script to detect when the video has controlled light. You
+must use this script to pass (script must lives in room repository). Dont forget to update
+h0ffmann/h0ffmann as well'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix
