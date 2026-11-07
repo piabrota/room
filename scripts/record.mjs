@@ -3,7 +3,8 @@
 // the pictures every pull request carries (AGENTS.md, "Working here"):
 //
 //   docs/record/shot-<name>.jpg  one still per camera shot
-//   docs/record/room.mp4         15 s of navigating and clicking
+//   docs/record/room.mp4         the four walls by night, hovered and clicked
+//   docs/record/room.webp        the same, for the READMEs
 //
 // `--stills` makes only the stills and keeps the video that is there.
 //
@@ -140,39 +141,57 @@ await page.evaluate(() => {
   window.__rec = (x, y, down) => { c.style.left = x + 'px'; c.style.top = y + 'px'; c.classList.toggle('down', !!down); };
 });
 
-// ── the video: 15 s ──
-await moveTo(...(await at('sign')), 0.8); await wait(0.6);                      // hover the sign
-await moveTo(...(await button('fabric')), 0.6); await click(); await land();    // a shot button
-await moveTo(...(await at('frame_pirsig')), 0.7); await wait(0.6);              // hover a project
-await page.keyboard.press('4'); await land();                                   // key 4: the shelf
-await moveTo(...(await at('book_closed-source')), 0.6); await wait(0.5);        // hover a book
-await moveTo(...(await button('desk')), 0.5); await click(); await land();
-await moveTo(...(await at('tape_cv')), 0.5); await click(); await wait(2.4);    // the CV tape into the VCR
-await moveTo(...(await at('fax', 0.22)), 0.5); await wait(0.5);                      // the fax: the address
-await moveTo(...(await at('fax_linkedin')), 0.4); await wait(0.5);              // and its LinkedIn button
-await moveTo(...(await at('lamp', 0.4)), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
+// ── the video: the four walls, by night ──
+// The room stays at night (`?night`, the day button is not pressed), and
+// each wall is on screen for at least 5 s, hovered and clicked: the back
+// wall (the desk, the TV, the window), the left (the projects), the right
+// (the sea) and the front (the loop and the door). The README of this
+// repository and of h0ffmann's profile show this video (the owner,
+// 7 November 2026). ▲ grid has its own video in the profile.
 const box = async (sel) => { const r = await page.locator(sel).boundingBox(); return [r.x + r.width / 2, r.y + r.height / 2]; };
-await moveTo(...(await box('#radio')), 0.5); await click(); await wait(0.3);                        // piabrota RADIO on
-await moveTo(...(await box('#stations button[data-station="brasil"]')), 0.4); await click();         // the lofi brasil station
-await moveTo(...(await box('#rain')), 0.4); await click();                                          // the rain, on
-await page.keyboard.press('8'); await land();                                                       // key 8: the slipbox
-await moveTo(...(await at('record_pirsig-wikipedia')), 0.5); await wait(0.4);                       // Pirsig, first
-await moveTo(...(await at('record_pirsig')), 0.4); await wait(0.4);                                 // and pirsig beside it
-await moveTo(...(await box('#daylight')), 0.6); await click(); await wait(0.4);                     // day
-await page.keyboard.press('6'); await land(); await drag(-300, 1.2);                                // the window by day; drag to look
-await page.keyboard.press('0'); await land();                                                       // key 0: ▲ grid, the chart
-for (let i = 0; i < 600 && !(await page.evaluate(() => window.__room.grid?.ready && window.__room.grid.covering)); i++) await step(); // the map opens
-await moveTo(W * 0.45, H * 0.55, 0.6); await wait(1.2);                                             // hover the mesh while the hours play and the sea flows
-await moveTo(...(await box('#grid .layers button:nth-child(2)')), 0.5); await click(); await wait(1.2); // the sea's temperature
-await page.keyboard.press('9'); await land();                                                       // key 9: the loop
-await moveTo(...(await at('door')), 0.5); await wait(0.5);                                           // the door, locked
-await page.keyboard.press('Escape'); await land();                                                  // Esc: back to the start
-await moveTo(...(await at('folder_closed-source')), 0.6); await wait(0.6);                          // the file under the desk
-await drag(0, 1.8, -1150); await wait(0.8);                                                          // look down: your feet
-await wait(Math.max(0.5, (15 * FPS - n) / FPS));
+async function wall(fn, seconds = 5.5) { const from = n; await fn(); await wait(Math.max(0, seconds - (n - from) / FPS)); }
+
+await wall(async () => {                                                        // the back wall
+  await moveTo(...(await at('sign')), 0.8); await wait(0.6);                    // hover the sign
+  await moveTo(...(await button('desk')), 0.6); await click(); await land();    // a shot button: the desk
+  await moveTo(...(await at('tape_cv')), 0.5); await click(); await wait(1.6);  // the CV tape into the VCR
+  await moveTo(...(await at('screen')), 0.5); await wait(1.2);                  // over the TV while it plays
+  await moveTo(...(await at('fax', 0.22)), 0.5); await wait(0.5);               // the fax: the address
+  await moveTo(...(await at('fax_linkedin')), 0.4); await wait(0.5);            // and its LinkedIn button
+  await moveTo(...(await at('lamp', 0.4)), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
+  await moveTo(...(await box('#radio')), 0.5); await click(); await wait(0.3);  // piabrota RADIO on
+  await moveTo(...(await box('#stations button[data-station="brasil"]')), 0.4); await click(); // the lofi brasil station
+  await moveTo(...(await box('#rain')), 0.4); await click();                    // the rain, on
+  await page.keyboard.press('6'); await land();                                 // key 6: the window, Rio at night
+  await moveTo(...(await at('window')), 0.6); await wait(1.0);
+});
+await wall(async () => {                                                        // the left wall: the projects
+  await page.keyboard.press('3'); await land();
+  await moveTo(...(await at('frame_pirsig')), 0.6); await wait(0.8);
+  await moveTo(...(await at('frame_nix-os')), 0.6); await wait(0.8);
+  await moveTo(...(await at('frame_rax')), 0.6); await wait(0.8);
+});
+await wall(async () => {                                                        // the right wall: the sea
+  await page.keyboard.press('7'); await land();
+  await moveTo(...(await at('tank')), 0.6); await wait(0.8);
+  await moveTo(...(await at('buoy_marola')), 0.6); await wait(0.8);
+  await moveTo(...(await at('buoy_marola-research')), 0.6); await wait(0.8);
+});
+await wall(async () => {                                                        // the front wall: the loop and the door
+  await page.keyboard.press('9'); await land();
+  await moveTo(...(await at('belt')), 0.6); await wait(0.8);
+  await moveTo(...(await at('crate_odin')), 0.6); await wait(0.8);
+  await moveTo(...(await at('door')), 0.6); await click(); await wait(0.8);     // the door, locked
+});
+await page.keyboard.press('Escape'); await land();                              // Esc: back to the start
+await moveTo(...(await at('folder_closed-source')), 0.6); await wait(0.6);      // the file under the desk
+await drag(0, 1.8, -1150); await wait(0.8);                                     // look down: your feet
 
 execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', join(frames, 'f%04d.jpg'),
   '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '26', '-preset', 'slow', '-movflags', '+faststart', join(out, 'room.mp4')]);
+// and the same as an animated WebP, which a README on GitHub plays (an MP4 it does not)
+execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', join(out, 'room.mp4'), '-vf', 'fps=10,hqdn3d=4:3:6:6,scale=720:-1:flags=lanczos',
+  '-c:v', 'libwebp', '-q:v', '55', '-compression_level', '6', '-loop', '0', '-an', join(out, 'room.webp')]);
 rmSync(frames, { recursive: true, force: true });
 await browser.close(); await server.close();
 

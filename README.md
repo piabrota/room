@@ -11,7 +11,7 @@ made one as his own personal site. His name and login are written as text, with 
 ([`AGENTS.md`](AGENTS.md), invariant 2). This is a separate build, with its own assets, signature, sounds and interactions
 ([`CREDITS.md`](CREDITS.md)).
 
-![the room](docs/record/shot-overview.jpg)
+![the room by night: the back wall with the desk, the TV and the window over Rio, then the left wall of projects, the right wall of the sea and the front wall with the loop and the door, five seconds or more each, the pointer hovering over things and clicking](docs/record/room.webp)
 
 ## Replay: how it was built
 
@@ -47,6 +47,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 14 | 5 Nov 23:23 | [#17](https://github.com/piabrota/room/pull/17) LOFI as a page to read: home, about, work, posts from Markdown, online, subscribe by RSS (built 6 Nov) | 15 min |
 | 15 | 6 Nov 04:29 | [#18](https://github.com/piabrota/room/pull/18) ▲ grid, the tenth view on key 0: a chart on the wall that opens a map of the Brazilian coast on 22 366 triangles, with 24 h of GFS wind and the sea it raises; the TV's light follows the tape, rain on the glass, swaying leaves, Vite 6 | 52 min |
 | 16 | 6 Nov 05:15 | [#19](https://github.com/piabrota/room/pull/19) ▲ grid: the sea's temperature from Copernicus Marine (OSTIA, read from its open zarr store) as a second layer, and particles that flow where the waves travel, in place of the wind's ticks | 30 min |
+| 17 | 7 Nov 18:24 | [#20](https://github.com/piabrota/room/pull/20) the README's video, by night only, the four walls five seconds or more each, also as `docs/record/room.webp`; the same in h0ffmann's profile ([h0ffmann/h0ffmann#144](https://github.com/h0ffmann/h0ffmann/pull/144)) | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -216,6 +217,14 @@ user> 'improve the grid
   * instead of plain traces pointing to wave direction, it must use a flow animation, usually like the one used in wind, to get better idea of propagation direction'
 ```
 
+**17.**
+
+```text
+user> 'update readme.md, the 2 vids, the first video should only show night display and all the 4
+walls in the room 2 with at least 5 seconds (with same hover over the screen already exists)'
+user> 'README.md of h0ffmann/h0ffmann and piabrota/room, to be clear'
+```
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -223,7 +232,7 @@ Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invaria
 |---|---|---|
 | ![overview](docs/record/shot-overview.jpg) | ![window](docs/record/shot-window.jpg) | ![sea](docs/record/shot-sea.jpg) |
 
-Fifteen seconds of moving and clicking: [`docs/record/room.mp4`](docs/record/room.mp4).
+The video at the top, by night, the four walls in turn, hovered and clicked: [`docs/record/room.mp4`](docs/record/room.mp4).
 
 ## Run it
 
