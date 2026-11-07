@@ -50,6 +50,10 @@ stills: build
 record: build
     node scripts/record.mjs
 
+# is the light of a video or a still under control? (no frame burns to white)
+blow-light +files="docs/record/room.mp4":
+    scripts/blow_light.sh {{files}}
+
 # normalize a sound into public/audio (loop beds at -18 LUFS): just audio in.wav ambience
 audio src name lufs="-18":
     ffmpeg -hide_banner -y -i "{{src}}" -af loudnorm=I={{lufs}}:TP=-1.5:LRA=11 -ar 44100 -c:a libmp3lame -q:a 3 "public/audio/{{name}}.mp3"

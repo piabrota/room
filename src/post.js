@@ -37,7 +37,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
   // emissive things (the bulb, the sign, the TV, the eyes) pass 0.92. By day
   // a lit white wall is far above 1, so the threshold rises with the day
   // (setDay below), or every bright surface glows and the frame goes white.
-  const BLOOM = { night: { threshold: 0.92, strength: 0.55 }, day: { threshold: 3, strength: 0.35 } };
+  const BLOOM = { night: { threshold: 0.95, strength: 0.38 }, day: { threshold: 3, strength: 0.35 } };
   const bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), BLOOM.night.strength, 0.5, BLOOM.night.threshold);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());

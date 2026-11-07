@@ -196,4 +196,7 @@ rmSync(frames, { recursive: true, force: true });
 await browser.close(); await server.close();
 
 if (errors.length) { console.error('page errors:\n' + errors.join('\n')); process.exit(1); }
+// the light must be under control in every frame (scripts/blow_light.sh, the owner, 7 November 2026)
+try { execFileSync(join(root, 'scripts/blow_light.sh'), [join(out, 'room.mp4')], { stdio: 'inherit' }); }
+catch { console.error('✗ the video burns to white: fix the light, then record again'); process.exit(1); }
 console.log(`✓ ${shots.length} stills and ${(n / FPS).toFixed(1)} s of video (${W}×${H}, ${gpu ? 'GPU' : 'software'}) in docs/record/`);
