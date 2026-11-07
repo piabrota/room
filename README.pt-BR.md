@@ -47,7 +47,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 14 | 5 nov 23:23 | [#17](https://github.com/piabrota/room/pull/17) o LOFI como página de leitura: início, sobre, trabalho, posts em Markdown, online, assinar por RSS (feito em 6 nov) | 15 min |
 | 15 | 6 nov 04:29 | [#18](https://github.com/piabrota/room/pull/18) ▲ grid, a décima vista na tecla 0: uma carta na parede que abre um mapa da costa brasileira em 22 366 triângulos, com 24 h de vento do GFS e o mar que ele levanta; a luz da TV segue a fita, chuva no vidro, folhas que balançam, Vite 6 | 52 min |
 | 16 | 6 nov 05:15 | [#19](https://github.com/piabrota/room/pull/19) ▲ grid: a temperatura do mar do Copernicus Marine (OSTIA, lida do seu repositório zarr aberto) como segunda camada, e partículas que fluem para onde as ondas vão, no lugar dos traços do vento | 30 min |
-| 17 | 7 nov 18:24 | [#PR](https://github.com/piabrota/room/pull/PR) o vídeo do README, só de noite, as quatro paredes cinco segundos ou mais cada, também como `docs/record/room.webp`; o mesmo no perfil do h0ffmann ([h0ffmann/h0ffmann#HPR](https://github.com/h0ffmann/h0ffmann/pull/HPR)) | TOOK |
+| 17 | 7 nov 18:24 | [#20](https://github.com/piabrota/room/pull/20) o vídeo do README, só de noite, as quatro paredes cinco segundos ou mais cada, também como `docs/record/room.webp`; o mesmo no perfil do h0ffmann ([h0ffmann/h0ffmann#144](https://github.com/h0ffmann/h0ffmann/pull/144)) | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
