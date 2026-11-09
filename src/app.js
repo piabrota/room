@@ -13,6 +13,7 @@ import { createGrid } from './grid.js';
 import { createPlayer } from './player.js';
 import { pick } from './quality.js';
 import { createLock } from './lock.js';
+import { createCat } from './cat.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 const canvas = document.getElementById('scene');
@@ -120,6 +121,10 @@ function eject() {
 ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), hint: () => (tv.playing ? tv.playing.def.label : 'pick a tape beside it'), onClick: eject });
 ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClick: (hit) => hit.uv && tv.input(hit.uv) });
 
+// ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
+const nash = config.cat ? createCat(config.cat, { still: matchMedia('(prefers-reduced-motion: reduce)').matches }) : null;
+if (nash) room.root.add(nash.group);
+
 // ── the door's lock: the keypad over the room; the right code swings the door open ──
 const doorState = { k: 0, to: 0 };
 const DOOR_KEY = 'room:door';
@@ -146,6 +151,7 @@ for (const h of config.hotspots) {
       if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : (room.lamp.userData.full ?? lampOn); redrawShadows(); }
       if (h.action === 'toggleRadio') radioBtn.click();
       if (h.action === 'playlist') player.open();
+      if (h.action === 'cat') { audio.play(config.sfx.meow); nash?.call(camera.position); }
       if (h.action === 'door') { if (doorOpen()) { openDoor(false); try { localStorage.removeItem(DOOR_KEY); } catch { /* fine */ } } else lock.open(); }
     },
   });
@@ -276,7 +282,7 @@ function tick(dt, measure) {
     room.setDoor?.(S(doorState.k)); if (doorState.k === doorState.to) redrawShadows();
   }
   const moving = rig.moving;
-  rig.update(dt); you.follow(camera); room.update(elapsed); tv.update(dt);
+  rig.update(dt); you.follow(camera); room.update(elapsed); tv.update(dt); nash?.update(dt);
   if (tv.playing && room.tvLight.intensity) room.tvLight.intensity = 0.8 + 4.5 * tv.brightness; // the room flickers with the picture
   ui.update(moving || tweens.length > 0 || ++frames % 3 === 0); // things on the wheel and the waves move too
   if (gridView) {
@@ -304,7 +310,7 @@ export function resume() {
   radio.resume();
 }
 // handy for debugging in the console; `step` drives the room by hand for `just record`
-window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, lock, quality, grid: gridView, step: (dt) => {
+window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, lock, quality, nash, grid: gridView, step: (dt) => {
   if (!stepping) { stepping = true; renderer.setAnimationLoop(() => {}); } // frames keep coming, the room only moves on step
   tick(dt, false);
 } };

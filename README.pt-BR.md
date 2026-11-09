@@ -55,6 +55,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 22 | 9 nov 11:18 | [#28](https://github.com/piabrota/room/pull/28) ▲ grid no seu próprio nome, grid.piabrota.art: lá (ou com `?grid`) a sala abre direto no mapa, e Esc ou "back to the room" entra na sala, onde o portão do som espera; servido por [piabrota/nix-os#186](https://github.com/piabrota/nix-os/pull/186) | 40 min |
 | 23 | 9 nov 16:54 | [#29](https://github.com/piabrota/room/pull/29) vistas do ▲ grid: uma fileira de botões no painel do mapa (Brasil, Rio de Janeiro, Bahia, Salvador) que ajusta o mapa a cada caixa de `config.grid.presets`, suave, ou de uma vez com movimento reduzido; uma checagem das caixas; `just record-grid` para os stills e o clipe delas | 15 min |
 | 24 | 9 nov 10:56 | [#27](https://github.com/piabrota/room/pull/27) uma lousa ao lado do mural das pessoas para o tyler-durden-bot, o GitHub App que resume um pull request grande: sua marca desenhada em código (a cabeça de um robô partida em duas), seu nome e uma fita zebrada que diz "work in progress"; ela leva ao pull request dele no piabrota/agents | 35 min |
+| 25 | 9 nov 19:43 | [#NN](https://github.com/piabrota/room/pull/NN) a sala no celular: um visual `lite` para celulares, tablets e máquinas fracas (razão de pixels de no máximo 1,25, 30 quadros por segundo, sem oclusão de ambiente, mapas de sombra menores), o mar do grid e a foto do dia carregados só quando precisa (3,1 MB → 1,8 MB antes de a sala aparecer), `just mobile` para medir, e duas skills, `room-mobile` e `room-phone-test`; a fechadura de código da porta, com os quatro dígitos contados na sala; uma guarda de tela (preto no PrintScreen e enquanto a janela está fora de foco, as palavras da fechadura não selecionáveis); Nash, um gato preto que passeia do tapete à estante; o quadro grande do tyler-durden-bot na parede da frente, o retrato em pixels do dono num anel de lâmpadas vermelhas que piscam à noite (com a #27) | TOOK |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -287,6 +288,23 @@ user> 'add tyler-durden-bot representation in the website, add one more board in
 tyler-durden bot logo in the piabrota room (work in progress)'
 ```
 
+**25.**
+
+```text
+user> 'please address the mobile experience, it is terrible, super heavy, maybe on mobile we should
+use less resolution'
+user> 'in the same PR add a puzzle behind the door of the first space'
+user> 'add skills related to mobile-3d'
+user> 'in the same PR, this website should not allow printscreen, like platforms like UFC do: if
+you printscreen you just get a black screen. Some texts should also not be selectable, especially
+the ones related to the new section, the puzzle'
+user> 'make a cat in the room, it should be a black cat called nash, just a cat, he should move
+randomly (but naturally), over the things, especially the shelf, etc'
+user> 'also the scene is missing a big board on the wall with the tyler-durden-bot icon, with hover'
+user> 'in the scene, it should blink randomly with red lights'
+user> 'durden blink should only happen at night'
+```
+
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
 
@@ -331,6 +349,7 @@ Cada parte é um export próprio, então dá para trocar uma e manter o resto:
 | `projects`, `bots`, `wip`, `people`, `works` | as paredes, a mesa, a lousa do que ainda está sendo feito, o quadro, a estante | suas listas |
 | `sea`, `loop`, `slipbox` | as outras três paredes | suas coleções, ou tire-as |
 | `reading`, `posts/` | a página LOFI: sobre, online, assinar; os posts | suas palavras, seus perfis; seus posts, um arquivo Markdown cada |
+| `door`, `cat`, `guard` | a fechadura de código da porta e suas pistas; Nash, o gato preto, e onde ele senta; a guarda de tela | seu enigma, seu gato (ou nenhum), `guard: { screenshots: false }` |
 | `hotspots` | o que pode ser clicado, e o que faz | seus rótulos, suas palavras, seus links |
 
 Enquanto não houver modelo nem gravações, o quarto é montado com caixas e os sons são

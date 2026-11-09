@@ -25,7 +25,7 @@ for (const [name, s] of shots) {
 if (!config.shots?.[config.startShot]) fail(4, `startShot "${config.startShot}" is not a shot`);
 
 // 5. Every hotspot has a label and a known action.
-const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door']);
+const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat']);
 const names = new Set();
 for (const h of config.hotspots ?? []) {
   if (names.has(h.name)) fail(5, `hotspot name "${h.name}" is used twice`);
@@ -54,7 +54,7 @@ for (const t of config.tapes ?? []) {
 
 const radioTracks = (config.radio?.stations ?? []).flatMap((s) => s.tracks);
 // 7. Every sound has a synthesized fallback.
-const fallbacks = new Set(['rain', 'click', 'thunk', 'lofi']);
+const fallbacks = new Set(['rain', 'click', 'thunk', 'lofi', 'meow']);
 for (const s of [...(config.ambience ?? []), ...Object.values(config.sfx ?? {}), ...radioTracks]) {
   if (!fallbacks.has(s.fallback)) fail(7, `sound ${s.src} needs a fallback, one of ${[...fallbacks].join(', ')}`);
 }

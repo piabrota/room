@@ -55,6 +55,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 22 | 9 Nov 11:18 | [#28](https://github.com/piabrota/room/pull/28) ▲ grid on its own name, grid.piabrota.art: there (or with `?grid`) the room opens straight on the map, and Esc or "back to the room" steps into the room, where the gate for the sound waits; served by [piabrota/nix-os#186](https://github.com/piabrota/nix-os/pull/186) | 40 min |
 | 23 | 9 Nov 16:54 | [#29](https://github.com/piabrota/room/pull/29) ▲ grid views: a row of buttons in the map's panel (Brasil, Rio de Janeiro, Bahia, Salvador) that fits the map to each box of `config.grid.presets`, eased, or at once with reduced motion; a check for the boxes; `just record-grid` for their stills and clip | 15 min |
 | 24 | 9 Nov 10:56 | [#27](https://github.com/piabrota/room/pull/27) a slate beside the people's board for tyler-durden-bot, the GitHub App that sums up a large pull request: its mark drawn in code (a bot's head split in two), its name, and hazard tape that says "work in progress"; it links to its pull request in piabrota/agents | 35 min |
+| 25 | 9 Nov 19:43 | [#NN](https://github.com/piabrota/room/pull/NN) the room on a phone: a `lite` look for phones, tablets and weak machines (pixel ratio 1.25 at most, 30 frames a second, no ambient occlusion, smaller shadow maps), the grid's sea and the day photo loaded only when needed (3.1 MB → 1.8 MB before the room shows), `just mobile` to measure, and two skills, `room-mobile` and `room-phone-test`; the door's code lock, its four digits counted in the room; a screen guard (black on PrintScreen and while the window is away, the lock's words not selectable); Nash, a black cat who wanders from the rug to the shelf; tyler-durden-bot's big board on the front wall, the owner's pixel portrait in a ring of red bulbs that blink at night (with #27) | TOOK |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -287,6 +288,23 @@ user> 'add tyler-durden-bot representation in the website, add one more board in
 tyler-durden bot logo in the piabrota room (work in progress)'
 ```
 
+**25.**
+
+```text
+user> 'please address the mobile experience, it is terrible, super heavy, maybe on mobile we should
+use less resolution'
+user> 'in the same PR add a puzzle behind the door of the first space'
+user> 'add skills related to mobile-3d'
+user> 'in the same PR, this website should not allow printscreen, like platforms like UFC do: if
+you printscreen you just get a black screen. Some texts should also not be selectable, especially
+the ones related to the new section, the puzzle'
+user> 'make a cat in the room, it should be a black cat called nash, just a cat, he should move
+randomly (but naturally), over the things, especially the shelf, etc'
+user> 'also the scene is missing a big board on the wall with the tyler-durden-bot icon, with hover'
+user> 'in the scene, it should blink randomly with red lights'
+user> 'durden blink should only happen at night'
+```
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -331,6 +349,7 @@ is its own export, so you can replace one and keep the rest:
 | `projects`, `bots`, `wip`, `people`, `works` | the walls, the desk, the slate of what is still being built, the board, the shelf | your own lists |
 | `sea`, `loop`, `slipbox` | the other three walls | your own collections, or remove them |
 | `reading`, `posts/` | the LOFI page: about, online, subscribe; the posts | your words, your profiles; your posts, one Markdown file each |
+| `door`, `cat`, `guard` | the door's code lock and its clues; Nash, the black cat, and where he sits; the screen guard | your puzzle, your cat (or none), `guard: { screenshots: false }` |
 | `hotspots` | what can be clicked, and what it does | your labels, your words, your links |
 
 Until there is a model and recordings, the room is built from boxes and the sounds are

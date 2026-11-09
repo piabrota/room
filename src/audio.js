@@ -43,14 +43,14 @@ export function createAudio(camera) {
 
 function synth(ctx, kind) {
   const sr = ctx.sampleRate;
-  const len = { rain: 4, click: 0.05, thunk: 0.35, lofi: 8 }[kind] ?? 0.1;
+  const len = { rain: 4, click: 0.05, thunk: 0.35, lofi: 8, meow: 0.75 }[kind] ?? 0.1;
   // rain: drops on the glass, each a short falling blip, and no hiss under them
   const drops = kind === 'rain' ? Array.from({ length: 160 }, () => [Math.random() * len, 1800 + Math.random() * 2600, 0.04 + Math.random() * 0.1]) : [];
   // lofi: two soft seventh chords, four seconds each, a kick on the beat and vinyl crackle
   const chords = [[174.6, 220, 261.6, 329.6], [164.8, 196, 246.9, 293.7]];
   const b = ctx.createBuffer(2, Math.floor(sr * len), sr);
   for (let ch = 0; ch < 2; ch++) {
-    const d = b.getChannelData(ch); let lp = 0;
+    const d = b.getChannelData(ch); let lp = 0, ph = 0;
     for (let i = 0; i < d.length; i++) {
       const t = i / sr, n = Math.random() * 2 - 1;
       if (kind === 'rain') { let v = 0; for (const [t0, f, a] of drops) { const u = t - t0; if (u >= 0 && u < 0.03) v += Math.sin(2 * Math.PI * f * (1 - u * 8) * u) * Math.exp(-u * 180) * a; } d[i] = v; }
@@ -61,6 +61,11 @@ function synth(ctx, kind) {
         v *= (0.7 + 0.3 * Math.sin(2 * Math.PI * 4.5 * t)) * Math.min(1, u * 8) * Math.min(1, (4 - u) * 8);
         v += Math.sin(2 * Math.PI * (60 - beat * 40) * beat) * Math.exp(-beat * 18) * 0.3;
         d[i] = v + (Math.random() < 0.0004 ? n * 0.25 : n * 0.004);
+      }
+      else if (kind === 'meow') { // a cat: the pitch rises and falls, the mouth opens and closes (harmonics)
+        const u = t / len, f = 480 + 360 * Math.sin(Math.PI * Math.min(1, u * 1.3)) + 12 * Math.sin(2 * Math.PI * 6 * t);
+        ph += 2 * Math.PI * f / sr; const open = Math.sin(Math.PI * u);
+        d[i] = Math.pow(open, 0.7) * (0.5 * Math.sin(ph) + 0.3 * open * Math.sin(2 * ph) + 0.18 * open * Math.sin(3 * ph) + 0.02 * n) * 0.6;
       }
       else if (kind === 'thunk') d[i] = Math.sin(2 * Math.PI * (90 - t * 120) * t) * Math.exp(-t * 14) + n * 0.2 * Math.exp(-t * 60);
     }

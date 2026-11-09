@@ -27,7 +27,7 @@ export function pick(search = location.search, nav = navigator, mq = (q) => matc
   if (p.has('lite')) return LITE;
   if (p.has('record')) return FULL; // `just record` films the laptop's look, on any machine
   const touchOnly = mq('(pointer: coarse)') && !mq('(any-pointer: fine)');
-  const small = Math.min(scr.width, scr.height) <= 820;
+  const small = Math.min(scr.width, scr.height) <= 600; // a phone; a 1366×768 laptop is not small
   const weak = (nav.deviceMemory ?? 8) <= 2 || (nav.hardwareConcurrency ?? 8) <= 2 || !!nav.connection?.saveData;
   return touchOnly || small || weak ? LITE : FULL;
 }

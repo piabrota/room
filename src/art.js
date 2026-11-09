@@ -178,51 +178,44 @@ export function quoteArt({ text, by, theme }) {
   return texture(c);
 }
 
-// A board for a thing still being built: its mark, its name and its line on
-// slate, and a strip of hazard tape across it with the words that say so.
-// The mark is drawn here, not loaded: a bot's head in a ring, split down the
-// middle into a light half and a dark half, one eye open on each.
-export function wipArt({ initials, title, line, tag, color, theme }) {
-  const W = 448, H = 512;
+// The big board of tyler-durden-bot: a dark slate with the owner's pixel portrait (`logo`, drawn
+// sharp, in the room's white), its name and line, and the hazard tape across the bottom. The
+// picture loads after the room shows; the texture is drawn again when it does.
+export function wipBoardArt({ logo, title, line, tag, theme }) {
+  const W = 512, H = 600;
   const [c, ctx] = canvas(W, H);
-  ctx.fillStyle = '#1d2229'; ctx.fillRect(0, 0, W, H);
-  const smudge = ctx.createRadialGradient(W / 2, 190, 20, W / 2, 190, 260);
-  smudge.addColorStop(0, 'rgba(255,255,255,0.07)'); smudge.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = smudge; ctx.fillRect(0, 0, W, H);
-  // the mark
-  const cx = W / 2, cy = 172;
-  ctx.strokeStyle = color; ctx.lineWidth = 9; ctx.beginPath(); ctx.arc(cx, cy, 116, 0, Math.PI * 2); ctx.stroke();
-  ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, 128, 0, Math.PI * 2); ctx.stroke();
-  const hw = 132, hh = 112, hx = cx - hw / 2, hy = cy - hh / 2 + 10, r = 26;
-  const head = () => { roundRect(ctx, hx, hy, hw, hh, r); };
-  ctx.save(); head(); ctx.clip();
-  ctx.fillStyle = theme.eye.white; ctx.fillRect(hx, hy, hw / 2, hh);
-  ctx.fillStyle = theme.bg; ctx.fillRect(cx, hy, hw / 2, hh);
-  ctx.restore();
-  ctx.strokeStyle = theme.eye.white; ctx.lineWidth = 4; head(); ctx.stroke();
-  ctx.fillStyle = theme.bg; ctx.beginPath(); ctx.arc(cx - 32, hy + 48, 14, 0, Math.PI * 2); ctx.fill(); // the eye on the light half
-  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(cx + 32, hy + 48, 14, 0, Math.PI * 2); ctx.fill(); // the eye on the dark half
-  ctx.fillStyle = theme.bg; ctx.fillRect(cx - 40, hy + 82, 32, 6); ctx.fillStyle = theme.eye.white; ctx.fillRect(cx + 8, hy + 82, 32, 6); // the mouth, in two
-  ctx.strokeStyle = theme.eye.white; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(cx, hy); ctx.lineTo(cx, hy - 26); ctx.stroke();
-  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(cx, hy - 32, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = theme.eye.white; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.font = `22px ${FONT_MONO}`; ctx.fillText(initials, cx + 92, cy + 92);
-  // the name and its line
-  ctx.fillStyle = theme.text; fit(ctx, title, W - 60, 46, FONT_TITLE); ctx.fillText(title, cx, 340);
-  ctx.fillStyle = theme.muted; fit(ctx, line, W - 56, 19, FONT_MONO); ctx.fillText(line, cx, 380);
-  // the hazard tape, across the bottom
-  ctx.save(); ctx.translate(cx, 446); ctx.rotate(-0.09);
-  const tw = W + 80, th = 54;
-  ctx.fillStyle = '#f2c230'; ctx.fillRect(-tw / 2, -th / 2, tw, th);
-  ctx.save(); ctx.beginPath(); ctx.rect(-tw / 2, -th / 2, tw, th); ctx.clip();
-  ctx.fillStyle = '#16171b';
-  for (let x = -tw / 2 - th; x < tw / 2 + th; x += 44) { ctx.beginPath(); ctx.moveTo(x, th / 2); ctx.lineTo(x + 22, th / 2); ctx.lineTo(x + 22 + th, -th / 2); ctx.lineTo(x + th, -th / 2); ctx.fill(); }
-  ctx.restore();
-  ctx.fillStyle = '#f2c230'; ctx.font = `26px ${FONT_TITLE}`;
-  const lw = ctx.measureText(tag).width + 36; ctx.fillRect(-lw / 2, -th / 2 + 6, lw, th - 12);
-  ctx.fillStyle = '#16171b'; ctx.fillText(tag, 0, 1);
-  ctx.restore();
-  return texture(c);
+  const tex = texture(c);
+  const draw = (img) => {
+    ctx.fillStyle = '#15181d'; ctx.fillRect(0, 0, W, H);
+    const smudge = ctx.createRadialGradient(W / 2, 220, 20, W / 2, 220, 300);
+    smudge.addColorStop(0, 'rgba(255,60,40,0.10)'); smudge.addColorStop(1, 'rgba(255,60,40,0)');
+    ctx.fillStyle = smudge; ctx.fillRect(0, 0, W, H);
+    if (img) {
+      const h = 330, w = h * img.naturalWidth / img.naturalHeight, x = (W - w) / 2, y = 40;
+      const [lc, lx] = canvas(Math.round(w), h);
+      lx.imageSmoothingEnabled = false; lx.drawImage(img, 0, 0, w, h);
+      lx.globalCompositeOperation = 'source-in'; lx.fillStyle = theme.eye.white; lx.fillRect(0, 0, w, h);
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(lc, x, y);
+    }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = theme.text; fit(ctx, title, W - 60, 50, FONT_TITLE); ctx.fillText(title, W / 2, 418);
+    ctx.fillStyle = theme.muted; fit(ctx, line, W - 56, 20, FONT_MONO); ctx.fillText(line, W / 2, 462);
+    ctx.save(); ctx.translate(W / 2, 534); ctx.rotate(-0.07);
+    const tw = W + 80, th = 54;
+    ctx.fillStyle = '#f2c230'; ctx.fillRect(-tw / 2, -th / 2, tw, th);
+    ctx.save(); ctx.beginPath(); ctx.rect(-tw / 2, -th / 2, tw, th); ctx.clip();
+    ctx.fillStyle = '#16171b';
+    for (let x = -tw / 2 - th; x < tw / 2 + th; x += 44) { ctx.beginPath(); ctx.moveTo(x, th / 2); ctx.lineTo(x + 22, th / 2); ctx.lineTo(x + 22 + th, -th / 2); ctx.lineTo(x + th, -th / 2); ctx.fill(); }
+    ctx.restore();
+    ctx.fillStyle = '#f2c230'; ctx.font = `26px ${FONT_TITLE}`;
+    const lw = ctx.measureText(tag).width + 36; ctx.fillRect(-lw / 2, -th / 2 + 6, lw, th - 12);
+    ctx.fillStyle = '#16171b'; ctx.fillText(tag, 0, 1);
+    ctx.restore();
+    tex.needsUpdate = true;
+  };
+  draw(null);
+  if (logo) { const img = new Image(); img.onload = () => draw(img); img.src = logo; }
+  return tex;
 }
 
 function mulberry(a) {

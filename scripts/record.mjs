@@ -203,8 +203,7 @@ await wall(async () => {                                                        
   await moveTo(...(await at('mixtape')), 0.6); await wait(0.9);               // the mixtape on the sill: the playlist
   await moveTo(...(await box('#playlist')), 0.5); await wait(0.6);              // and its button at the top
   await page.keyboard.press('5'); await land();                                 // key 5: the board
-  await moveTo(...(await at('photo_h0ffmann')), 0.5); await wait(0.5);          // the people
-  await moveTo(...(await at('board_tyler-durden-bot')), 0.6); await wait(1.4); // and the slate beside it: tyler-durden-bot, work in progress
+  await moveTo(...(await at('photo_h0ffmann')), 0.5); await wait(1.0);          // the people
 });
 await wall(async () => {                                                        // the left wall: the projects
   await page.keyboard.press('3'); await land();
@@ -222,8 +221,13 @@ await wall(async () => {                                                        
   await page.keyboard.press('9'); await land();
   await moveTo(...(await at('belt')), 0.6); await wait(0.8);
   await moveTo(...(await at('crate_odin')), 0.6); await wait(0.8);
-  await moveTo(...(await at('door')), 0.6); await click(); await wait(0.8);     // the door, locked
-});
+  await moveTo(...(await at('board_tyler-durden-bot')), 0.6); await wait(1.4); // tyler-durden-bot's big board, its red bulbs blinking
+  await drag(-300, 1.0); await wait(0.3);                                      // look right, to the door
+  await moveTo(...(await at('door', 1.2)), 0.6); await click(); await wait(0.6); // the door: its lock opens
+  const { door } = await import(join(root, 'src/config.js'));
+  for (const k of door.lock.code) { await moveTo(...(await box(`#lock [data-key="${k}"]`)), 0.25); await click(); } // the code, counted in the room
+  await wait(1.6);                                                              // and the door swings open
+}, 9);
 await page.keyboard.press('Escape'); await land();                              // Esc: back to the start
 await moveTo(...(await at('folder_closed-source')), 0.6); await wait(0.6);      // the file under the desk
 await drag(0, 1.8, -1150); await wait(0.8);                                     // look down: your feet

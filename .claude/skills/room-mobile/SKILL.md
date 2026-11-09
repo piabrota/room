@@ -11,7 +11,7 @@ was 780×1688 pixels through five passes, 60 times a second. Every rule here com
 
 ## The two looks (`src/quality.js`)
 
-- `pick()` gives `lite` to a touch-only screen, a screen whose short side is 820 CSS px or less, a
+- `pick()` gives `lite` to a touch-only screen, a screen whose short side is 600 CSS px or less, a
   device with 2 GB or 2 cores or fewer, or the data saver; `full` to the rest. `?lite` and `?full`
   force one; `?record` is always `full`, so `just record` films the laptop.
 - `lite`: pixel ratio 1.25 at most (stepping down to 0.75), 30 frames a second (`quality.fps`, the

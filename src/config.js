@@ -169,6 +169,8 @@ export const sfx = {
   click:  { src: '/audio/click.mp3',  fallback: 'click' },
   insert: { src: '/audio/insert.mp3', fallback: 'thunk' },
   eject:  { src: '/audio/eject.mp3',  fallback: 'thunk' },
+  // Nash's meow: no recording yet, so the synthesized one plays (src/audio.js)
+  meow:   { src: '/audio/meow.mp3',   fallback: 'meow' },
 };
 
 // Tapes: each one is a module in src/tapes with mount/frame/input/stop.
@@ -230,11 +232,13 @@ export const bots = [
 
 // ── tyler-durden-bot: a third GitHub App, still being built, on its own board ──
 // It sums up a large pull request on h0ffmann/proof in one comment. Its code is
-// in piabrota/agents#6 (the agent) and piabrota/nix-os#173 (the host). It has no
-// logo file: src/art.js draws its mark from these words (a bot's head split in
-// two halves, one eye open on each), with the tape that says it is not done.
+// in piabrota/agents#6 (the agent) and piabrota/nix-os#173 (the host). Its board is
+// the big one on the front wall, beside the loop: the owner's pixel portrait (`logo`,
+// CREDITS.md), its name and line, the tape that says it is not done, and a ring of
+// red bulbs that blink at random, by night only (`lights`: how many, and their colour).
 export const wip = {
   id: 'tyler-durden-bot', name: 'tyler-durden-bot', initials: 'TD', color: '#D29922',
+  logo: '/textures/tyler-durden-bot.png', lights: { count: 26, color: '#ff1a0a' },
   line: 'one comment for a large pull request',
   hint: 'work in progress: a GitHub App that sums up a large pull request',
   tag: 'WORK IN PROGRESS',
@@ -386,6 +390,27 @@ export const door = {
   beyond: ['you found', 'the way out.', '', 'it was a flat circle', 'all along.'],
 };
 
+// ── Nash, the black cat: he wanders the room on his own, from the top of the shelf to the
+// monitor, the sill, the chair, the crate and the rug; a click calls him: he stops, looks at
+// you and meows (src/cat.js). `perches` are where he sits: a name, the point he sits on
+// [x, y, z] in metres, the way he faces (radians, 0 is toward the window), and `via`, a perch
+// he leaps from when it is too high to jump to from the floor (the shelf from the desk).
+export const cat = {
+  name: 'Nash', hint: 'a black cat. he goes where he wants', color: '#0c0c0f', eyes: '#d9e84a',
+  perches: [
+    { id: 'rug', at: [-0.2, 0.017, -0.15], face: 2.6 },
+    { id: 'rug2', at: [1.0, 0.017, 0.2], face: -2.2 },
+    { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8 },
+    { id: 'chair', at: [0.1, 0.51, -0.78], face: 3.1 },
+    { id: 'desk', at: [0.72, 0.805, -1.15], face: 2.8 },
+    { id: 'deskLeft', at: [-0.75, 0.805, -1.05], face: 2.4 },
+    { id: 'monitor', at: [0.05, 1.405, -1.6], face: 3.14, via: 'desk' },
+    { id: 'sill', at: [1.3, 1.44, -1.87], face: 3.0, via: 'desk' },
+    { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2 },
+    { id: 'shelf', at: [-2.4, 1.915, -1.8], face: 3.14, via: 'deskLeft' },
+  ],
+};
+
 // ── the screen guard (src/guard.js): the page goes black on PrintScreen and while the window is
 // away, and the room's words cannot be selected. `false` turns it off for a fork that wants none.
 export const guard = { screenshots: true };
@@ -483,6 +508,7 @@ export const hotspots = [
   { name: 'quote',  label: '"Time is a flat circle."', hint: 'Rust Cohle', action: 'link', value: 'https://en.wikipedia.org/wiki/Rust_Cohle', group: 'inspiration', art: { kind: 'quote', text: 'Time is a flat circle', by: 'Rust Cohle' } },
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
   { name: 'door',   label: door.label, hint: door.hint, action: 'door' },
+  { name: 'cat',    label: cat.name, hint: cat.hint, action: 'cat' },
   { name: 'fax',    label: contact.label, hint: emailText, action: 'link', value: mailto, group: 'contact', art: { kind: 'fax' } },
   { name: 'fax_linkedin', label: contact.linkedin.label, hint: contact.name, action: 'link', value: contact.linkedin.url, group: 'contact' },
   { name: 'folder_closed-source', label: closedSource.label, hint: closedSource.hint, action: 'link', value: closedSource.url, group: 'closed source', art: { kind: 'folder' } },
@@ -498,7 +524,7 @@ export const hotspots = [
   })),
   {
     name: `board_${wip.id}`, label: `${wip.name} (wip)`, hint: wip.hint, action: 'link', value: wip.url, group: 'bots',
-    art: { kind: 'wip', initials: wip.initials, title: wip.name, line: wip.line, tag: wip.tag, color: wip.color },
+    art: { kind: 'wip', initials: wip.initials, title: wip.name, line: wip.line, tag: wip.tag, color: wip.color, logo: wip.logo, lights: wip.lights },
   },
   ...people.map((p) => ({
     name: `photo_${p.id}`, label: `@${p.name}`, hint: p.line, action: 'link', value: p.url, group: 'people',
