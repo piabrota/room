@@ -68,6 +68,7 @@ asset gets a row here in the same commit that adds it.
 |---|---|---|---|
 | `public/audio/ambience.mp3` | klankbeeld, with the owner's edit | "city hum 3am winter 140217_0090" (freesound 219877) and "traffic along flat LONG 130104_00" (freesound 174242), cut, mixed, looped and normalized by `just compose` | CC BY 4.0 |
 | `public/audio/rain.mp3`, the rain toggle | cori | "Rain against the Window" (pdsounds.org, 2008) on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rain_against_the_window.ogg), looped with a crossfade at the seam and normalized to -18 LUFS. `just compose` can replace it with YleArkisto's "Rain on a metal windowsill" (freesound 350358, CC BY 4.0) | public domain |
+| `public/audio/meow.mp3`, Nash's meow | Heismark | "Meow of a pleading cat" (2010) on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Meow_of_a_pleading_cat.oga), the second of its four meows, cut, denoised, band-passed (220 Hz to 3.8 kHz) and normalized to -18 LUFS | public domain |
 | `public/audio/eject.mp3` | magedu, with the owner's edit | "video_recorder_eject_cassette" (freesound 267832), trimmed and normalized | CC BY 4.0 |
 | `public/audio/insert.mp3` | magedu, with the owner's edit | the same recording, reversed | CC BY 4.0 |
 | `public/audio/tape-piabrota.mp3` | the owner; klankbeeld, YleArkisto and magedu | the score of `src/score.js`, mixed with freesound 350358, 219877 and 267832 by `just compose` | CC BY 4.0 |

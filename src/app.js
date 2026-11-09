@@ -14,6 +14,7 @@ import { createPlayer } from './player.js';
 import { pick } from './quality.js';
 import { createLock } from './lock.js';
 import { createCat } from './cat.js';
+import { buildNav } from './catnav.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 const canvas = document.getElementById('scene');
@@ -123,7 +124,10 @@ ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), hint: () => (tv.
 ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClick: (hit) => hit.uv && tv.input(hit.uv) });
 
 // ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
-const nash = config.cat ? createCat(config.cat, { still: matchMedia('(prefers-reduced-motion: reduce)').matches }) : null;
+// On the full look he reads the room first, to walk around things and leap clear of them (src/catnav.js);
+// on the lite look (phones) he keeps the cheap life, with nothing to compute.
+const catStill = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const nash = config.cat ? createCat(config.cat, { still: catStill, nav: quality.name === 'full' && !catStill ? buildNav(room.root, { radius: 0.2 }) : null }) : null;
 if (nash) room.root.add(nash.group);
 
 // ── the door's lock: the keypad over the room; the right code swings the door open ──

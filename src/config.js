@@ -169,7 +169,7 @@ export const sfx = {
   click:  { src: '/audio/click.mp3',  fallback: 'click' },
   insert: { src: '/audio/insert.mp3', fallback: 'thunk' },
   eject:  { src: '/audio/eject.mp3',  fallback: 'thunk' },
-  // Nash's meow: no recording yet, so the synthesized one plays (src/audio.js)
+  // Nash's meow: a real cat, public domain (CREDITS.md); the synthesized one is its fallback (src/audio.js)
   meow:   { src: '/audio/meow.mp3',   fallback: 'meow' },
 };
 
