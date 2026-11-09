@@ -56,7 +56,7 @@ export const shots = {
   desk:     { position: [0.05, 1.42, 0.75], target: [0.05, 1.08, -1.0], fov: 45 },
   fabric:   { position: [-0.7, 1.6, 0.55], target: [-3.0, 1.6, -0.2], fov: 52 },
   shelf:    { position: [-1.75, 1.35, 0.15], target: [-2.05, 1.25, -1.9], fov: 46 },
-  board:    { position: [2.45, 1.8, 0.25], target: [2.45, 1.82, -2.0], fov: 50 },
+  board:    { position: [2.55, 1.8, 0.25], target: [2.55, 1.82, -2.0], fov: 50 },
   window:   { position: [0.2, 1.62, 0.7], target: [0.2, 2.12, -2.0], fov: 56 },
   sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
   slipbox:  { position: [-1.62, 0.88, -0.22], target: [-2.2, 0.18, -0.98], fov: 46 },
@@ -169,6 +169,8 @@ export const sfx = {
   click:  { src: '/audio/click.mp3',  fallback: 'click' },
   insert: { src: '/audio/insert.mp3', fallback: 'thunk' },
   eject:  { src: '/audio/eject.mp3',  fallback: 'thunk' },
+  // Nash's meow: no recording yet, so the synthesized one plays (src/audio.js)
+  meow:   { src: '/audio/meow.mp3',   fallback: 'meow' },
 };
 
 // Tapes: each one is a module in src/tapes with mount/frame/input/stop.
@@ -227,6 +229,21 @@ export const bots = [
     agents: [],
   },
 ];
+
+// ── tyler-durden-bot: a third GitHub App, still being built, on its own board ──
+// It sums up a large pull request on h0ffmann/proof in one comment. Its code is
+// in piabrota/agents#6 (the agent) and piabrota/nix-os#173 (the host). Its board is
+// the big one on the front wall, beside the loop: the owner's pixel portrait (`logo`,
+// CREDITS.md), its name and line, the tape that says it is not done, and a ring of
+// red bulbs that blink at random, by night only (`lights`: how many, and their colour).
+export const wip = {
+  id: 'tyler-durden-bot', name: 'tyler-durden-bot', initials: 'TD', color: '#D29922',
+  logo: '/textures/tyler-durden-bot.png', lights: { count: 26, color: '#ff1a0a' },
+  line: 'one comment for a large pull request',
+  hint: 'work in progress: a GitHub App that sums up a large pull request',
+  tag: 'WORK IN PROGRESS',
+  url: 'https://github.com/piabrota/agents/pull/6',
+};
 
 // ── the people, pinned to the board ──
 export const people = [
@@ -355,8 +372,48 @@ export const closedSource = {
   },
 };
 
-// ── the door: locked, for now ──
-export const door = { label: 'door', hint: 'locked, for now' };
+// ── the door: a lock of four digits, the room's one puzzle ──
+// Each digit counts something in the room (its last digit, past nine), so the code stays true when
+// a list changes: the tapes beside the VCR, the works on the shelf, the faces on the board, the
+// bots on the desk. The keypad (src/lock.js) gives the four clues; the right code swings the door
+// open on a warm light and the lines of `beyond`. A visitor's solved door stays open
+// in their browser (localStorage), and `?locked` locks it again.
+export const door = {
+  label: 'door', hint: 'locked: four digits open it',
+  openLabel: 'the open door', openHint: 'close it',
+  lock: {
+    title: 'the lock', prompt: 'four digits. count them in the room:',
+    clues: ['the tapes beside the VCR', 'the works with a DOI on the shelf', 'the faces pinned on the board', 'the bots on the desk'],
+    code: [tapes.length, works.length, people.length, bots.length].map((n) => n % 10).join(''),
+    clear: 'clear', enter: 'open', close: 'close', wrong: 'not that one', right: 'the lock turns',
+  },
+  beyond: ['you found', 'the way out.', '', 'it was a flat circle', 'all along.'],
+};
+
+// ── Nash, the black cat: he wanders the room on his own, from the top of the shelf to the
+// monitor, the sill, the chair, the crate and the rug; a click calls him: he stops, looks at
+// you and meows (src/cat.js). `perches` are where he sits: a name, the point he sits on
+// [x, y, z] in metres, the way he faces (radians, 0 is toward the window), and `via`, a perch
+// he leaps from when it is too high to jump to from the floor (the shelf from the desk).
+export const cat = {
+  name: 'Nash', hint: 'a black cat. he goes where he wants', color: '#0c0c0f', eyes: '#d9e84a',
+  perches: [
+    { id: 'rug', at: [-0.2, 0.017, -0.15], face: 2.6 },
+    { id: 'rug2', at: [1.0, 0.017, 0.2], face: -2.2 },
+    { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8 },
+    { id: 'chair', at: [0.1, 0.51, -0.78], face: 3.1 },
+    { id: 'desk', at: [0.72, 0.805, -1.15], face: 2.8 },
+    { id: 'deskLeft', at: [-0.75, 0.805, -1.05], face: 2.4 },
+    { id: 'monitor', at: [0.05, 1.405, -1.6], face: 3.14, via: 'desk' },
+    { id: 'sill', at: [1.3, 1.44, -1.87], face: 3.0, via: 'desk' },
+    { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2 },
+    { id: 'shelf', at: [-2.4, 1.915, -1.8], face: 3.14, via: 'deskLeft' },
+  ],
+};
+
+// ── the screen guard (src/guard.js): the page goes black on PrintScreen and while the window is
+// away, and the room's words cannot be selected. `false` turns it off for a fork that wants none.
+export const guard = { screenshots: true };
 
 // ── you: a pair of feet under the camera, seen when you look down ──
 export const body = { shoes: '#e9e6df', soles: '#f7f5f0', jeans: '#2b3a55', laces: '#c9c3b6' };
@@ -450,7 +507,8 @@ export const hotspots = [
   { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'playlist', art: { kind: 'mixtape' } },
   { name: 'quote',  label: '"Time is a flat circle."', hint: 'Rust Cohle', action: 'link', value: 'https://en.wikipedia.org/wiki/Rust_Cohle', group: 'inspiration', art: { kind: 'quote', text: 'Time is a flat circle', by: 'Rust Cohle' } },
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
-  { name: 'door',   label: door.label, hint: door.hint, action: 'sfx', value: 'click' },
+  { name: 'door',   label: door.label, hint: door.hint, action: 'door' },
+  { name: 'cat',    label: cat.name, hint: cat.hint, action: 'cat' },
   { name: 'fax',    label: contact.label, hint: emailText, action: 'link', value: mailto, group: 'contact', art: { kind: 'fax' } },
   { name: 'fax_linkedin', label: contact.linkedin.label, hint: contact.name, action: 'link', value: contact.linkedin.url, group: 'contact' },
   { name: 'folder_closed-source', label: closedSource.label, hint: closedSource.hint, action: 'link', value: closedSource.url, group: 'closed source', art: { kind: 'folder' } },
@@ -464,6 +522,10 @@ export const hotspots = [
     name: `bot_${b.id}`, label: b.name, hint: b.role, action: 'link', value: b.url, group: 'bots',
     art: { kind: 'bot', color: b.color },
   })),
+  {
+    name: `board_${wip.id}`, label: `${wip.name} (wip)`, hint: wip.hint, action: 'link', value: wip.url, group: 'bots',
+    art: { kind: 'wip', initials: wip.initials, title: wip.name, line: wip.line, tag: wip.tag, color: wip.color, logo: wip.logo, lights: wip.lights },
+  },
   ...people.map((p) => ({
     name: `photo_${p.id}`, label: `@${p.name}`, hint: p.line, action: 'link', value: p.url, group: 'people',
     art: { kind: 'photo' },

@@ -14,6 +14,7 @@ import '@fontsource/vt323/latin-400.css';
 import '@fontsource/special-elite/latin-400.css';
 import * as config from './config.js';
 import { renderLofi } from './lofi.js';
+import { guard } from './guard.js';
 
 function hasWebGL() {
   try {
@@ -40,6 +41,7 @@ let room = null; // the HIFI app, once loaded
 document.title = gridHome ? `${config.grid.title} · ${config.signature.name}` : `${config.signature.name} · room`;
 document.body.classList.toggle('grid-home', gridHome);
 renderLofi(document.getElementById('fallback'), config);
+guard(config.guard); // a black page for a screenshot, where a page can tell (src/guard.js)
 
 const toggle = document.getElementById('view');
 toggle.hidden = !canHifi;

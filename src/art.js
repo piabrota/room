@@ -178,6 +178,46 @@ export function quoteArt({ text, by, theme }) {
   return texture(c);
 }
 
+// The big board of tyler-durden-bot: a dark slate with the owner's pixel portrait (`logo`, drawn
+// sharp, in the room's white), its name and line, and the hazard tape across the bottom. The
+// picture loads after the room shows; the texture is drawn again when it does.
+export function wipBoardArt({ logo, title, line, tag, theme }) {
+  const W = 512, H = 600;
+  const [c, ctx] = canvas(W, H);
+  const tex = texture(c);
+  const draw = (img) => {
+    ctx.fillStyle = '#15181d'; ctx.fillRect(0, 0, W, H);
+    const smudge = ctx.createRadialGradient(W / 2, 220, 20, W / 2, 220, 300);
+    smudge.addColorStop(0, 'rgba(255,60,40,0.10)'); smudge.addColorStop(1, 'rgba(255,60,40,0)');
+    ctx.fillStyle = smudge; ctx.fillRect(0, 0, W, H);
+    if (img) {
+      const h = 330, w = h * img.naturalWidth / img.naturalHeight, x = (W - w) / 2, y = 40;
+      const [lc, lx] = canvas(Math.round(w), h);
+      lx.imageSmoothingEnabled = false; lx.drawImage(img, 0, 0, w, h);
+      lx.globalCompositeOperation = 'source-in'; lx.fillStyle = theme.eye.white; lx.fillRect(0, 0, w, h);
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(lc, x, y);
+    }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = theme.text; fit(ctx, title, W - 60, 50, FONT_TITLE); ctx.fillText(title, W / 2, 418);
+    ctx.fillStyle = theme.muted; fit(ctx, line, W - 56, 20, FONT_MONO); ctx.fillText(line, W / 2, 462);
+    ctx.save(); ctx.translate(W / 2, 534); ctx.rotate(-0.07);
+    const tw = W + 80, th = 54;
+    ctx.fillStyle = '#f2c230'; ctx.fillRect(-tw / 2, -th / 2, tw, th);
+    ctx.save(); ctx.beginPath(); ctx.rect(-tw / 2, -th / 2, tw, th); ctx.clip();
+    ctx.fillStyle = '#16171b';
+    for (let x = -tw / 2 - th; x < tw / 2 + th; x += 44) { ctx.beginPath(); ctx.moveTo(x, th / 2); ctx.lineTo(x + 22, th / 2); ctx.lineTo(x + 22 + th, -th / 2); ctx.lineTo(x + th, -th / 2); ctx.fill(); }
+    ctx.restore();
+    ctx.fillStyle = '#f2c230'; ctx.font = `26px ${FONT_TITLE}`;
+    const lw = ctx.measureText(tag).width + 36; ctx.fillRect(-lw / 2, -th / 2 + 6, lw, th - 12);
+    ctx.fillStyle = '#16171b'; ctx.fillText(tag, 0, 1);
+    ctx.restore();
+    tex.needsUpdate = true;
+  };
+  draw(null);
+  if (logo) { const img = new Image(); img.onload = () => draw(img); img.src = logo; }
+  return tex;
+}
+
 function mulberry(a) {
   return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }

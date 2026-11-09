@@ -21,13 +21,17 @@ const LAYERS = {
   sst: { ramp: [[14, '#26185a'], [17, '#2c4f9e'], [20, '#2a98b4'], [23, '#7fcf9a'], [25.5, '#f0d468'], [28, '#ef8a4a'], [31, '#c22d3c']], ticks: [14, 18, 22, 26, 30] },
 };
 
+// The coast's mesh: enough for the chart on the wall. The 24 h of the sea (`frames`, most of the
+// bytes) and its temperature load only when the map opens (`data`), so a visit that never opens
+// the grid does not download them.
+let meshPromise = null;
+const meshData = (files) => (meshPromise ??= Promise.all([
+  fetch(files.run).then((r) => (r.ok ? r.json() : Promise.reject(new Error('no run')))),
+  fetch(files.mesh).then((r) => r.arrayBuffer()),
+]).then(([run, mesh]) => ({ run, n: run.nodes, lonlat: new Float32Array(mesh, 0, run.nodes * 2), tris: new Uint16Array(mesh, run.nodes * 8, run.triangles * 3) })));
+
 async function load(files) {
-  const [run, mesh, frames] = await Promise.all([
-    fetch(files.run).then((r) => (r.ok ? r.json() : Promise.reject(new Error('no run')))),
-    fetch(files.mesh).then((r) => r.arrayBuffer()),
-    fetch(files.frames).then((r) => r.arrayBuffer()),
-  ]);
-  const n = run.nodes, tris = new Uint16Array(mesh, n * 8, run.triangles * 3);
+  const [{ run, n, lonlat, tris }, frames] = await Promise.all([meshData(files), fetch(files.frames).then((r) => r.arrayBuffer())]);
   // the sea's temperature, when `just grid` could read it; a node without one takes its neighbours'
   let sst = null;
   if (run.sst && files.sst) {
@@ -42,7 +46,7 @@ async function load(files) {
       for (let i = 0; i < n; i++) if (Number.isNaN(sst[i])) sst[i] = 0;
     }
   }
-  return { run, n, lonlat: new Float32Array(mesh, 0, n * 2), tris, frames: new Uint8Array(frames), sst };
+  return { run, n, lonlat, tris, frames: new Uint8Array(frames), sst };
 }
 let dataPromise = null;
 const data = (files) => (dataPromise ??= load(files));
@@ -58,7 +62,7 @@ export function chartTexture(grid) {
     ctx.font = '400 22px "JetBrains Mono", monospace'; ctx.fillStyle = '#4a5866'; ctx.fillText(grid.hint, 46, 128);
   };
   paper(); tex.needsUpdate = true;
-  data(grid.files).then(({ n, lonlat, tris }) => {
+  meshData(grid.files).then(({ n, lonlat, tris }) => {
     const [w, s, e, nn] = grid.bbox, x0 = 440, y0 = 160, h = H - 200, sc = h / (nn - s);
     const px = (i) => x0 + (lonlat[i * 2] - w) * sc * Math.cos(-15 * Math.PI / 180), py = (i) => y0 + (nn - lonlat[i * 2 + 1]) * sc;
     paper();

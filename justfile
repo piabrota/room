@@ -54,6 +54,10 @@ record: build
 record-grid: build
     node scripts/record.mjs --grid
 
+# what the room costs a phone and a laptop: bytes, time to show, pixels drawn, ms a frame (just mobile --device phone)
+mobile *args: build
+    node scripts/mobile.mjs {{args}}
+
 # is the light of a video or a still under control? (no frame burns to white)
 blow-light +files="docs/record/room.mp4":
     scripts/blow_light.sh {{files}}
