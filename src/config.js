@@ -86,11 +86,15 @@ export const playlist = {
   url: 'https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U',
   embed: 'https://open.spotify.com/embed/playlist/2hsuqvhCouatM8DtmKKl7U?theme=0',
   tape: { title: 'GREAT RESET', side: 'A · on Spotify' },
-  artists: ['Flora Matos', 'Sain', 'Luccas Carlos', 'Akira Presidente', 'Bril', 'CHS', 'JXNV$', 'BK', 'Pirâmide Perdida', 'El Lif Beatz', 'Nectar Gang', 'Tyler, The Creator', 'Kanye West', 'Marina Sena', 'Çantamarta', 'Supercombo', 'Vitor Kley', 'Elana Dara', 'Preta Gil'],
+  artists: ['Brone', 'Jamé', 'Leo Gandelman', 'Machine Series', 'BK', 'El Lif Beatz', 'Flora Matos', 'Sain', 'Luccas Carlos', 'Akira Presidente', 'Bril', 'CHS', 'JXNV$', 'Pirâmide Perdida', 'Nectar Gang', 'Tyler, The Creator', 'Kanye West', 'Dead Kennedys', 'Marina Sena', 'Preta Gil', 'Los Hermanos', 'Marcelo D2', 'Juçara Marçal', 'Baco Exu do Blues', 'Anelis Assumpção', 'NF', 'Filipe Ret', 'Mãolee', 'WesGhost', 'Wealstarcks', 'Paulo DK', 'Abud', 'Djavan', 'Link do Zap', 'pluglip', 'R.E.M.', 'Apashe', 'Wasiu', 'Imagine Dragons', 'JID', 'Arcane', 'League of Legends'],
   words: {
     open: 'open in Spotify', close: 'close', artists: 'with',
     note: 'Full tracks play when you are logged in to Spotify in this browser; otherwise Spotify plays 30-second previews. "open in Spotify" plays them all, in any browser.',
     credit: 'Music played by Spotify; each track names its artists. No audio is copied into this room.',
+    // the lyrics toggle: the room shows no lyrics (they are their writers', and Spotify is the one
+    // licensed to show them), so it says where they are
+    lyrics: 'lyrics', lyricsHide: 'hide lyrics',
+    lyricsNote: 'Spotify shows the lyrics of each song, line by line with the music, in its own app: "open in Spotify", play a track and open its lyrics under the player. The room shows none of them; they belong to the people who wrote them.',
   },
 };
 // piabrota RADIO: lofi under a free licence only (CC0 or CC BY,

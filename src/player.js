@@ -17,10 +17,20 @@ export function createPlayer(root, cfg, { onOpen = () => {}, onClose = () => {} 
   const frame = el('div', null, 'frame');
   const note = el('p', w.note, 'note');
   const artists = el('p', `${w.artists} ${cfg.artists.join(' · ')}`, 'artists');
+  // the lyrics toggle says where the lyrics are, and never shows the lyrics themselves
+  const lyricsNote = el('p', w.lyricsNote, 'lyrics-note'); lyricsNote.id = 'player-lyrics'; lyricsNote.hidden = true;
+  const lyrics = el('button', w.lyrics, 'lyrics');
+  lyrics.setAttribute('aria-controls', lyricsNote.id); lyrics.setAttribute('aria-expanded', 'false');
+  lyrics.onclick = () => {
+    lyricsNote.hidden = !lyricsNote.hidden;
+    lyrics.textContent = lyricsNote.hidden ? w.lyrics : w.lyricsHide;
+    lyrics.setAttribute('aria-expanded', String(!lyricsNote.hidden));
+  };
   const foot = el('div', null, 'foot');
   const open = el('a', w.open, 'open'); open.href = cfg.url; open.target = '_blank'; open.rel = 'noopener';
-  foot.append(el('span', w.credit, 'credit'), open);
-  root.append(head, frame, note, artists, foot);
+  const actions = el('div', null, 'actions'); actions.append(lyrics, open);
+  foot.append(el('span', w.credit, 'credit'), actions);
+  root.append(head, frame, note, artists, lyricsNote, foot);
 
   let on = false;
   function show() {

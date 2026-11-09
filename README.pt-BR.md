@@ -58,6 +58,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 25 | 9 nov 19:43 | [#30](https://github.com/piabrota/room/pull/30) a sala no celular: um visual `lite` para celulares, tablets e máquinas fracas (razão de pixels de no máximo 1,25, 30 quadros por segundo, sem oclusão de ambiente, mapas de sombra menores), o mar do grid e a foto do dia carregados só quando precisa (3,1 MB → 1,8 MB antes de a sala aparecer), `just mobile` para medir, e duas skills, `room-mobile` e `room-phone-test`; a fechadura de código da porta, com os quatro dígitos contados na sala; uma guarda de tela (preto no PrintScreen e enquanto a janela está fora de foco, as palavras da fechadura não selecionáveis); Nash, um gato preto que passeia do tapete à estante; o quadro grande do tyler-durden-bot na parede da frente, o retrato em pixels do dono num anel de lâmpadas vermelhas que piscam à noite (com a #27) | 55 min |
 | 26 | 9 nov 21:54 | [#31](https://github.com/piabrota/room/pull/31) o quadro do tyler-durden-bot quadrado, acima da estante das obras com DOI, o retrato do dono como ele é; o plano do loop mostra a porta; a porta pede um email antes da fechadura, guardado no próprio servidor da sala (`POST /live/door`) | 60 min |
 | 27 | 9 nov 22:48 | [#32](https://github.com/piabrota/room/pull/32) o Nash no computador: ele lê a sala uma vez (os triângulos dela cortados em células do chão e voxels), anda por caminhos A* arredondados em volta dos pés da mesa, da cadeira e da planta, acelerando e freando, vira antes de sair, senta onde o corpo cabe (não mais dentro do rádio ou do teclado) e pula em parábolas testadas contra a sala; no celular ele segue com a vida barata. O miado agora é de um gato de verdade, uma gravação em domínio público | 40 min |
+| 28 | 9 nov 23:13 | [#33](https://github.com/piabrota/room/pull/33) um botão "lyrics" no player da playlist que diz onde estão as letras (no app do Spotify) e não mostra nenhuma, porque a sala não tem licença para elas; as faixas e os artistas da playlist lidos de novo do player do Spotify, 37 faixas e 42 artistas, no `CREDITS.md` e ao lado do player | 25 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -323,6 +324,17 @@ the door'
 user> 'cat collision is horrible, the cat seems to float in objects very often, you need smoother
 animation (only in a real browser, not on mobile)'
 user> 'also the cat sound is not realistic'
+```
+
+**28.**
+
+```text
+user> 'check if is possible to add lyrics toggle in the website'
+user> 'with Flora Matos · Sain · Luccas Carlos · Akira Presidente · Bril · CHS · JXNV$ · BK · Pirâmide
+Perdida · El Lif Beatz · Nectar Gang · Tyler, The Creator · Kanye West · Marina Sena ·
+Çantamarta · Supercombo · Vitor Kley · Elana Dara · Preta Gil
+
+Inaccurate, fix it. in the same lyrics pr'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix

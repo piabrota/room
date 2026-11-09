@@ -151,7 +151,8 @@ body.gridding #top { opacity: 0; pointer-events: none; visibility: hidden; }
 /* the owner's playlist: Spotify's Embed player over the room (src/player.js) */
 #player { position: fixed; right: 16px; bottom: max(64px, calc(env(safe-area-inset-bottom) + 56px)); z-index: 2; width: 380px; max-width: calc(100vw - 32px);
   background: #0b0d12f2; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 10px 12px 12px;
-  backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 8px; }
+  backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 8px;
+  max-height: calc(100dvh - 140px); overflow-y: auto; overscroll-behavior: contain; }
 #player[hidden] { display: none; }
 #player .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 #player .title strong { display: block; font: 400 20px/1.1 var(--title); letter-spacing: .02em; }
@@ -161,10 +162,15 @@ body.gridding #top { opacity: 0; pointer-events: none; visibility: hidden; }
 #player iframe { display: block; width: 100%; height: 100%; border: 0; }
 #player .note, #player .artists { margin: 0; color: var(--dim); font-size: 11.5px; }
 #player .artists { color: var(--fg); }
-#player .foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-#player .credit { color: var(--dim); font-size: 11px; }
+#player > * { flex: none; }
+#player .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+#player .credit { flex: 1 1 180px; color: var(--dim); font-size: 11px; }
 #player .open { flex: none; color: var(--fg); text-decoration: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; white-space: nowrap; }
 #player .open:hover { border-color: var(--accent-text); }
+#player .actions { flex: none; display: flex; gap: 6px; }
+#player .lyrics { padding: 6px 10px; white-space: nowrap; }
+#player .lyrics-note { margin: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-size: 11.5px; line-height: 1.45; }
+#player .lyrics-note[hidden] { display: none; }
 @media (max-width: 600px) { #player { left: 16px; right: 16px; width: auto; bottom: 60px; } }
 
 /* the door's lock (src/lock.js): a keypad, big enough for a thumb */
