@@ -355,8 +355,27 @@ export const closedSource = {
   },
 };
 
-// ── the door: locked, for now ──
-export const door = { label: 'door', hint: 'locked, for now' };
+// ── the door: a lock of four digits, the room's one puzzle ──
+// Each digit counts something in the room (its last digit, past nine), so the code stays true when
+// a list changes: the tapes beside the VCR, the works on the shelf, the faces on the board, the
+// bots on the desk. The keypad (src/lock.js) gives the four clues; the right code swings the door
+// open on a warm light and the lines of `beyond`. A visitor's solved door stays open
+// in their browser (localStorage), and `?locked` locks it again.
+export const door = {
+  label: 'door', hint: 'locked: four digits open it',
+  openLabel: 'the open door', openHint: 'close it',
+  lock: {
+    title: 'the lock', prompt: 'four digits. count them in the room:',
+    clues: ['the tapes beside the VCR', 'the works with a DOI on the shelf', 'the faces pinned on the board', 'the bots on the desk'],
+    code: [tapes.length, works.length, people.length, bots.length].map((n) => n % 10).join(''),
+    clear: 'clear', enter: 'open', close: 'close', wrong: 'not that one', right: 'the lock turns',
+  },
+  beyond: ['you found', 'the way out.', '', 'it was a flat circle', 'all along.'],
+};
+
+// ── the screen guard (src/guard.js): the page goes black on PrintScreen and while the window is
+// away, and the room's words cannot be selected. `false` turns it off for a fork that wants none.
+export const guard = { screenshots: true };
 
 // ── you: a pair of feet under the camera, seen when you look down ──
 export const body = { shoes: '#e9e6df', soles: '#f7f5f0', jeans: '#2b3a55', laces: '#c9c3b6' };
@@ -450,7 +469,7 @@ export const hotspots = [
   { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'playlist', art: { kind: 'mixtape' } },
   { name: 'quote',  label: '"Time is a flat circle."', hint: 'Rust Cohle', action: 'link', value: 'https://en.wikipedia.org/wiki/Rust_Cohle', group: 'inspiration', art: { kind: 'quote', text: 'Time is a flat circle', by: 'Rust Cohle' } },
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
-  { name: 'door',   label: door.label, hint: door.hint, action: 'sfx', value: 'click' },
+  { name: 'door',   label: door.label, hint: door.hint, action: 'door' },
   { name: 'fax',    label: contact.label, hint: emailText, action: 'link', value: mailto, group: 'contact', art: { kind: 'fax' } },
   { name: 'fax_linkedin', label: contact.linkedin.label, hint: contact.name, action: 'link', value: contact.linkedin.url, group: 'contact' },
   { name: 'folder_closed-source', label: closedSource.label, hint: closedSource.hint, action: 'link', value: closedSource.url, group: 'closed source', art: { kind: 'folder' } },

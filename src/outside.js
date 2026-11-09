@@ -178,14 +178,16 @@ export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2)
     if (photos.day) photos.day.visible = isDay;
     drawn.visible = !isDay && !photos.night;
   }
-  if (nightPhoto) loadPhoto('night', nightPhoto);
-  if (dayPhoto) loadPhoto('day', dayPhoto);
+  // each photograph loads the first time its light is asked for: a night visit never downloads
+  // (or decodes, which costs a phone more) the day's
+  const asked = {};
+  const want = (kind) => { const def = kind === 'day' ? dayPhoto : nightPhoto; if (def && !asked[kind]) { asked[kind] = true; loadPhoto(kind, def); } };
 
   let last = -1;
   const update = (t) => {
     if (twinkle) { twinkle.material.uniforms.time.value = t; return; }
     if (!isDay && t - last > 1 / 10) { last = t; drawCity(t); setGlints(t); }
   };
-  update.setDay = (day) => { isDay = day; show(); };
+  update.setDay = (day) => { isDay = day; want(day ? 'day' : 'night'); show(); };
   return update;
 }

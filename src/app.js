@@ -11,11 +11,16 @@ import { createPost } from './post.js';
 import { renderSignature } from './signature.js';
 import { createGrid } from './grid.js';
 import { createPlayer } from './player.js';
+import { pick } from './quality.js';
+import { createLock } from './lock.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 const canvas = document.getElementById('scene');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// A phone or a weak machine gets the lite look: fewer pixels, frames and passes (src/quality.js).
+const quality = pick();
+document.body.dataset.quality = quality.name;
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: quality.fps ? 'default' : 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, quality.ratios[0]));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 // AgX rolls bright colours off gently where ACES clips them to white
 // (docs/SURVEY.md, section 7). Exposure is the same by day and night: the
@@ -23,7 +28,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.AgXToneMapping;
 renderer.toneMappingExposure = 1.1;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = quality.softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
 renderer.shadowMap.autoUpdate = false; // the room is still: shadows are drawn again only when something moves
 
 const scene = new THREE.Scene();
@@ -42,11 +47,11 @@ renderSignature(document.getElementById('signature'), sig);
 const loading = document.getElementById('loading');
 const setProgress = (p) => loading?.style.setProperty('--p', String(p));
 
-const room = await loadRoom(scene, config.roomModel, setProgress);
+const room = await loadRoom(scene, config.roomModel, setProgress, quality);
 const you = buildBody(config.body); scene.add(you); // your feet, when you look down
 const rig = createCameraRig(camera, config.shots, room.root.userData.cameras, { canvas });
 const recording = new URLSearchParams(location.search).has('record'); // `just record`: no ambient occlusion
-const post = createPost(renderer, scene, camera, { accent: config.theme.accent, ao: !recording });
+const post = createPost(renderer, scene, camera, { accent: config.theme.accent, ao: !recording, quality });
 const ui = createInteractions(camera, canvas, document.getElementById('tooltip'), { root: room.root, onHover: (o) => post.select(o), ignoreClick: () => rig.justDragged() });
 const audio = createAudio(camera);
 const tv = createTV(room.screen, { audio, signature: sig, config });
@@ -74,7 +79,7 @@ rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => {
 addEventListener('keydown', (e) => {
   if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
   const i = e.key === '0' ? 9 : Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]); // 1..9, and 0 for the tenth
-  if (e.key === 'Escape') { player?.close(); rig.go(config.startShot); }
+  if (e.key === 'Escape') { player?.close(); lock?.close(); rig.go(config.startShot); }
   if (e.key === 'ArrowRight') rig.next(1);
   if (e.key === 'ArrowLeft') rig.next(-1);
 });
@@ -115,11 +120,24 @@ function eject() {
 ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), hint: () => (tv.playing ? tv.playing.def.label : 'pick a tape beside it'), onClick: eject });
 ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClick: (hit) => hit.uv && tv.input(hit.uv) });
 
+// ── the door's lock: the keypad over the room; the right code swings the door open ──
+const doorState = { k: 0, to: 0 };
+const DOOR_KEY = 'room:door';
+const lock = createLock(document.getElementById('lock'), config.door?.lock, {
+  onPress: () => audio.play(config.sfx.click),
+  onSolve: () => { openDoor(true); try { localStorage.setItem(DOOR_KEY, 'open'); } catch { /* private mode: open for this visit */ } },
+});
+function openDoor(on) { doorState.to = on ? 1 : 0; audio.play(config.sfx.insert); }
+try { if (new URLSearchParams(location.search).has('locked')) localStorage.removeItem(DOOR_KEY); else if (localStorage.getItem(DOOR_KEY) === 'open') { doorState.k = doorState.to = 1; room.setDoor?.(1); } } catch { /* no storage: the door starts shut */ }
+const doorOpen = () => doorState.to === 1;
+
 // ── hotspots from config ──
 const lampOn = room.lamp.intensity;
 for (const h of config.hotspots) {
+  const isDoor = h.action === 'door';
   ui.add(room.find(h.name), {
-    label: h.label, hint: h.hint,
+    label: isDoor ? () => (doorOpen() ? config.door.openLabel : h.label) : h.label,
+    hint: isDoor ? () => (doorOpen() ? config.door.openHint : h.hint) : h.hint,
     onClick: () => {
       audio.play(config.sfx.click);
       if (h.action === 'shot') rig.go(h.value);
@@ -128,6 +146,7 @@ for (const h of config.hotspots) {
       if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : (room.lamp.userData.full ?? lampOn); redrawShadows(); }
       if (h.action === 'toggleRadio') radioBtn.click();
       if (h.action === 'playlist') player.open();
+      if (h.action === 'door') { if (doorOpen()) { openDoor(false); try { localStorage.removeItem(DOOR_KEY); } catch { /* fine */ } } else lock.open(); }
     },
   });
 }
@@ -234,9 +253,12 @@ loading?.classList.add('done');
 
 // ── loop ──
 const clock = new THREE.Clock();
-let elapsed = 0, frames = 0;
+let elapsed = 0, frames = 0, since = 0;
+const minDt = quality.fps ? 1 / quality.fps - 0.004 : 0; // a little early, so a 60 Hz screen gives every other frame
 function frame() {
-  tick(Math.min(clock.getDelta(), 1 / 30), true); // a long stall never turns into a jump
+  since += clock.getDelta();
+  if (since < minDt) return; // lite: at most `quality.fps` frames a second
+  tick(Math.min(since, 1 / 20), true); since = 0; // a long stall never turns into a jump
 }
 // One step of the room. `measure` lets the adaptive quality watch the
 // frame time; `just record` steps with a fixed dt and turns it off.
@@ -248,6 +270,10 @@ function tick(dt, measure) {
     tw.obj.position.lerpVectors(tw.from, tw.to, k); tw.obj.position.y += Math.sin(k * Math.PI) * 0.1;
     tw.obj.rotation.x = Math.sin(k * Math.PI) * -0.4;
     if (tw.t === 1) { tweens.splice(i, 1); tw.done?.(); }
+  }
+  if (doorState.k !== doorState.to) { // the door swings in a second, eased
+    doorState.k = doorState.to > doorState.k ? Math.min(1, doorState.k + dt) : Math.max(0, doorState.k - dt);
+    room.setDoor?.(S(doorState.k)); if (doorState.k === doorState.to) redrawShadows();
   }
   const moving = rig.moving;
   rig.update(dt); you.follow(camera); room.update(elapsed); tv.update(dt);
@@ -278,7 +304,7 @@ export function resume() {
   radio.resume();
 }
 // handy for debugging in the console; `step` drives the room by hand for `just record`
-window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, grid: gridView, step: (dt) => {
+window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, lock, quality, grid: gridView, step: (dt) => {
   if (!stepping) { stepping = true; renderer.setAnimationLoop(() => {}); } // frames keep coming, the room only moves on step
   tick(dt, false);
 } };

@@ -6,6 +6,7 @@ import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { FULL, ratios } from './quality.js';
 
 // The post-processing chain: the room is rendered into a multisampled
 // HDR buffer, corners and contacts get ambient occlusion (GTAO, the soft
@@ -14,10 +15,12 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 // last a film grade: vignette and lens fringe (no grain: the room has no noise).
 //
 // It watches the frame time and steps the quality down (ambient
-// occlusion first, then pixel ratio, then bloom) when the laptop can't keep up, so motion stays smooth.
-export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: withAO = true } = {}) {
+// occlusion first, then pixel ratio, then bloom) when the device can't keep up, so motion stays smooth.
+// `quality` (src/quality.js) sets where it starts: a phone starts without occlusion, at a lower
+// pixel ratio, with 2× multisampling, and has a frame budget of 1/24 s (it draws 30 a second).
+export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: withAO = true, quality = FULL } = {}) {
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-  const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
+  const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: quality.samples });
   const composer = new EffectComposer(renderer, target);
   composer.addPass(new RenderPass(scene, camera));
 
@@ -25,7 +28,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
   ao.updateGtaoMaterial({ radius: 0.3, distanceExponent: 1, thickness: 1, scale: 1, samples: 12 });
   ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 4, rings: 2, samples: 12 });
   ao.blendIntensity = 0.85;
-  ao.enabled = withAO; // `?record` turns it off: in software it is a third of the frame
+  ao.enabled = withAO && quality.ao; // `?record` turns it off: in software it is a third of the frame; a phone never has it
   composer.addPass(ao);
 
   const outline = new OutlinePass(new THREE.Vector2(size.x, size.y), scene, camera);
@@ -59,10 +62,10 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
   composer.addPass(grade);
 
   // ── adaptive quality ──
-  const levels = [Math.min(devicePixelRatio, 2), 1.5, 1.25, 1].filter((v, i, a) => v <= a[0] && a.indexOf(v) === i);
+  const levels = ratios(quality);
   let level = 0, acc = 0, frames = 0, warmup = 1.5;
   function setSize() {
-    renderer.setPixelRatio(levels[level] ?? 1);
+    renderer.setPixelRatio(levels[level] ?? levels.at(-1));
     renderer.setSize(innerWidth, innerHeight, false);
     composer.setPixelRatio(renderer.getPixelRatio());
     composer.setSize(innerWidth, innerHeight);
@@ -72,7 +75,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
     acc += dt; frames++;
     if (acc < 1.2) return;
     const avg = acc / frames; acc = 0; frames = 0;
-    if (avg <= 1 / 48) return;
+    if (avg <= quality.budget) return;
     if (ao.enabled) ao.enabled = false; // (already off under `?record`)
     else if (level < levels.length - 1) { level++; setSize(); }
     else if (bloom.enabled) bloom.enabled = false;
@@ -82,6 +85,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
 
   return {
     composer,
+    profile: quality.name,
     bloom,
     setSize,
     setDay(on) { Object.assign(bloom, on ? BLOOM.day : BLOOM.night); },

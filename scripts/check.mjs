@@ -25,7 +25,7 @@ for (const [name, s] of shots) {
 if (!config.shots?.[config.startShot]) fail(4, `startShot "${config.startShot}" is not a shot`);
 
 // 5. Every hotspot has a label and a known action.
-const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist']);
+const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door']);
 const names = new Set();
 for (const h of config.hotspots ?? []) {
   if (names.has(h.name)) fail(5, `hotspot name "${h.name}" is used twice`);
@@ -128,6 +128,12 @@ for (const f of walk(join(root, 'src'))) {
   if (/createElement\(\s*['"]iframe/.test(readFileSync(f, 'utf8')) && !f.endsWith('/player.js')) fail(1, `${f.slice(root.length)} makes an iframe: only src/player.js may, for the playlist`);
 }
 if (config.hotspots.some((h) => h.action === 'playlist') && !config.playlist?.embed) fail(5, 'a hotspot opens the playlist, but config.playlist has no embed');
+// the door's lock: a code of digits, one clue for each
+if (config.hotspots.some((h) => h.action === 'door')) {
+  const l = config.door?.lock;
+  if (!l || !/^\d{1,8}$/.test(l.code ?? '')) fail(5, 'the door hotspot needs config.door.lock.code, digits only');
+  else if (l.clues?.length !== l.code.length) fail(5, `config.door.lock has ${l.clues?.length ?? 0} clues for a code of ${l.code.length} digits`);
+}
 
 for (const src of [config.roomModel, config.outside?.night?.photo, config.outside?.day?.photo, ...(config.ambience ?? []).map((a) => a.src), ...Object.values(config.sfx ?? {}).map((s) => s.src), ...radioTracks.map((t) => t.src)].filter(Boolean)) {
   if (!String(src).startsWith('/')) fail(1, `${src}: assets load from public/, as /path`);

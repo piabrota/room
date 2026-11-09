@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist } from './config.js';
+import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist } from './config.js';
 import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
@@ -12,15 +12,17 @@ import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, no
 
 // Photographed wood (Poly Haven, CC0; CREDITS.md): colour, normal and roughness.
 const loader = new THREE.TextureLoader();
+let anisotropy = 8; // the quality's (src/quality.js), set by loadRoom before anything is built
 function pbr(name, repeat = [1, 1], rot = 0) {
-  const map = (k, srgb) => { const t = loader.load(`/textures/pbr/${name}_${k}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.rotation = rot; t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
+  const map = (k, srgb) => { const t = loader.load(`/textures/pbr/${name}_${k}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.rotation = rot; t.anisotropy = anisotropy; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
   return { map: map('diff', true), normalMap: map('nor'), roughnessMap: map('rough') };
 }
 
 // Loads your GLB if it exists, otherwise builds the placeholder room
 // from config. Either way it returns the same handles, so the rest of
 // the app doesn't care where the geometry came from.
-export async function loadRoom(scene, url, onProgress = () => {}) {
+export async function loadRoom(scene, url, onProgress = () => {}, quality = { shadowSize: 1024, anisotropy: 8, dust: 400 }) {
+  anisotropy = quality.anisotropy;
   let root, animated = [];
   try {
     const head = await fetch(url, { method: 'HEAD' });
@@ -41,7 +43,7 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   const v = new THREE.Vector3();
   const lamp = new THREE.PointLight(0xffc98a, 5, 5, 1.7);
   lamp.position.copy(find('lamp_bulb')?.getWorldPosition(v) ?? find('lamp')?.getWorldPosition(v) ?? v.set(-0.55, 1.25, -1.6));
-  lamp.castShadow = true; lamp.shadow.mapSize.set(1024, 1024); lamp.shadow.bias = -0.002; lamp.shadow.radius = 4;
+  lamp.castShadow = true; lamp.shadow.mapSize.setScalar(quality.shadowSize); lamp.shadow.bias = -0.002; lamp.shadow.radius = 4;
   scene.add(lamp);
   const lampFull = lamp.intensity;
   const tvLight = new THREE.PointLight(0x88aaff, 0, 3, 2); // tinted by the playing tape
@@ -59,12 +61,12 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   // the day: the sun comes in through the window, warm, and the sky fills the room
   const sun = new THREE.DirectionalLight(0xfff0d8, 0);
   sun.position.set(3.6, 4.2, -4.5); sun.target.position.set(0.2, 0, 0.8);
-  sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.001;
+  sun.castShadow = true; sun.shadow.mapSize.setScalar(quality.shadowSize); sun.shadow.bias = -0.001;
   Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 14 });
   scene.add(sun, sun.target);
   const NIGHT = { sky: [0x55628a, 0x1a1410, 0.8], moon: 0.55, sun: 0, neon: 1.2, lamp: 0.55, env: scene.environmentIntensity ?? 0.18, bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
   const DAY = { sky: [0xdbe8f7, 0x8a6e52, 3.4], moon: 0, sun: 5, neon: 0.5, lamp: 0.35, env: 0.55, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
-  const dust = buildDust(); scene.add(dust);
+  const dust = buildDust(quality.dust); scene.add(dust);
   let day = false;
   function setDay(on) {
     dust.material.uniforms.bright.value = on ? 1 : 0.18; // by day the sun lights it; at night only the moon
@@ -81,6 +83,11 @@ export async function loadRoom(scene, url, onProgress = () => {}) {
   return {
     root, find, lamp, tvLight, screen, vcr: find('vcr'),
     get day() { return day; }, setDay,
+    // the door: 0 shut, 1 open (about 100°); the light beyond shows only while it is ajar
+    setDoor(k) {
+      const leaf = find('door_leaf'), glow = find('door_beyond'); if (!leaf) return;
+      leaf.rotation.y = -1.75 * k; if (glow) glow.visible = k > 0.001;
+    },
     setRain(on) { const r = root.getObjectByName('rain_glass'); if (r) r.visible = on; },
     update(t) { for (const a of animated) a(t); if (!still) dust.material.uniforms.time.value = t; },
   };
@@ -358,20 +365,27 @@ function placeholderRoom() {
     mesh('', new THREE.PlaneGeometry(1.04, 0.78), (() => { const t = chartTexture(grid); return new THREE.MeshStandardMaterial({ map: t, emissiveMap: t, emissive: '#ffffff', emissiveIntensity: 0.28, roughness: 0.85 }); })(), [0, 0, 0.002], chart).castShadow = false;
   }
 
-  // ── the door, on the front wall: locked, for now ──
+  // ── the door, on the front wall: a lock of four digits (config.door, src/lock.js) ──
+  // The leaf hangs on a hinge (`door_leaf`, turned by room.setDoor); behind it a warm light and the
+  // lines of `door.beyond`, which show only when it swings open.
   for (const h of hotspots.filter((x) => x.name === 'door')) {
     const door = named(h.name); door.position.set(-1.55, 0, 3.78); door.rotation.y = Math.PI;
     const dw = 0.9, dh = 2.05;
+    const hinge = new THREE.Group(); hinge.name = 'door_leaf'; hinge.position.set(-dw / 2, 0, 0); door.add(hinge);
     const doorWood = new THREE.MeshStandardMaterial({ color: '#a88a70', ...pbr('american_walnut_veneer', [0.5, 1.2], Math.PI / 2), roughness: 1 });
-    mesh('', new THREE.BoxGeometry(dw, dh, 0.045), doorWood, [0, dh / 2, 0.02], door);
-    for (const [px, py, pw, ph] of [[0, 1.45, 0.62, 0.7], [0, 0.55, 0.62, 0.8]]) mesh('', new THREE.BoxGeometry(pw, ph, 0.012), doorWood, [px, py, 0.048], door); // two raised panels
+    mesh('', new THREE.BoxGeometry(dw, dh, 0.045), doorWood, [dw / 2, dh / 2, 0.02], hinge);
+    for (const [px, py, pw, ph] of [[0, 1.45, 0.62, 0.7], [0, 0.55, 0.62, 0.8]]) mesh('', new THREE.BoxGeometry(pw, ph, 0.012), doorWood, [dw / 2 + px, py, 0.048], hinge); // two raised panels
     for (const [s2, p2] of [[[0.08, dh + 0.08, 0.06], [-dw / 2 - 0.04, (dh + 0.08) / 2, 0.01]], [[0.08, dh + 0.08, 0.06], [dw / 2 + 0.04, (dh + 0.08) / 2, 0.01]], [[dw + 0.16, 0.08, 0.06], [0, dh + 0.04, 0.01]]]) mesh('', new THREE.BoxGeometry(...s2), std('#d8d2c4'), p2, door);
     const knob = std('#b08a4a', { metalness: 0.8, roughness: 0.3 });
-    mesh('', new THREE.SphereGeometry(0.03, 16, 12), knob, [dw / 2 - 0.09, 1.0, 0.08], door);
-    mesh('', new THREE.CylinderGeometry(0.035, 0.035, 0.01, 20).rotateX(Math.PI / 2), knob, [dw / 2 - 0.09, 1.0, 0.05], door);
-    mesh('', new THREE.BoxGeometry(0.03, 0.06, 0.01), knob, [dw / 2 - 0.09, 1.12, 0.05], door); // the keyhole plate, locked
-    const tag = paperArt({ lines: ['LOCKED', '', 'for now'], w: 128, h: 96, size: 14 });
-    mesh('', new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: tag, roughness: 0.9 }), [0, 1.62, 0.056], door).castShadow = false;
+    mesh('', new THREE.SphereGeometry(0.03, 16, 12), knob, [dw - 0.09, 1.0, 0.08], hinge);
+    mesh('', new THREE.CylinderGeometry(0.035, 0.035, 0.01, 20).rotateX(Math.PI / 2), knob, [dw - 0.09, 1.0, 0.05], hinge);
+    mesh('', new THREE.BoxGeometry(0.05, 0.075, 0.01), std('#2a2c31', { metalness: 0.6, roughness: 0.4 }), [dw - 0.09, 1.14, 0.05], hinge); // the keypad plate
+    const tag = paperArt({ lines: ['LOCKED', '', '_ _ _ _'], w: 128, h: 96, size: 14 });
+    mesh('', new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: tag, roughness: 0.9 }), [dw / 2, 1.62, 0.056], hinge).castShadow = false;
+    // beyond: a warm light, 1 cm in front of the wall, hidden by the closed leaf
+    const beyond = paperArt({ lines: doorText.beyond, w: 256, h: 512, size: 22 });
+    const glow = mesh('door_beyond', new THREE.PlaneGeometry(dw - 0.02, dh - 0.02), new THREE.MeshBasicMaterial({ map: beyond, color: new THREE.Color(1.0, 0.86, 0.62), fog: false }), [0, dh / 2, -0.01], door);
+    glow.castShadow = glow.receiveShadow = false; glow.visible = false;
   }
 
   // ── the bookcase: the works with a DOI on the middle shelf ──

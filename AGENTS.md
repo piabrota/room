@@ -42,7 +42,8 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 5. **Whatever can be clicked says so on hover.** Every interactive object is registered
    through `src/interact.js`: it shows a label and a glow on hover, and does one thing on
    click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`,
-   `playlist` (opens the Spotify player of invariant 1); a new action is
+   `playlist` (opens the Spotify player of invariant 1), `door` (the lock's keypad, `src/lock.js`;
+   the open door shuts on a click); a new action is
    added to `src/app.js` and to the check together.
 6. **A tape is a module with the tape contract.** Each tape is one file in `src/tapes/`,
    loaded lazily through `config.tapes`, with a unique `id`, a label, a colour and a mesh
@@ -90,6 +91,7 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just light [day\|night] [shots]` | the mean brightness and the share of pixels burnt to white of every shot, by night and by day; fails above 1 % (`scripts/light.mjs`) |
 | `just grid [--offline]` | the ▲ grid view's files in `public/grid/`: the coast's triangle mesh (Natural Earth, Delaunay) and 24 h of GFS wind with the sea it raises, and the sea's temperature from Copernicus Marine (OSTIA) (`scripts/grid.mjs`) |
 | `just blow-light [files]` | whether the light of a video or a still is under control: fails when a frame has more than 0.25 % of its area near white (above 230) or 1 % glowing (above 200), thin text left out (`scripts/blow_light.sh`); `just record` runs it on `room.mp4` (the owner, 7 November 2026) |
+| `just mobile [--device phone\|laptop] [--url <site>]` | what the room costs a phone (390×844, ratio 3, touch, CPU 4× slower) and a laptop: the look (`lite` or `full`), bytes before it shows, time to show, pixels drawn, ms a frame (`scripts/mobile.mjs`); compare builds, in software here |
 | `just audio <file> <name>` | normalizes a sound into `public/audio/<name>.mp3` |
 | `just brasil` | renders the "lofi brasil" station into `public/audio/radio/` (`scripts/brasil.mjs`) |
 | `just listeners` | the radio's live listeners count on :8787; `just dev` passes `/live/` to it |
@@ -102,8 +104,11 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, ▲ grid (its domain, presets, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8); on `config.grid.host` (grid.piabrota.art) or with `?grid` the room opens on the ▲ grid map, and Esc steps into the room |
+| `src/quality.js` | the two looks, `full` and `lite` (phones, tablets, weak machines): pixel ratio, frames a second, passes, shadow maps, anisotropy, dust; `?lite`, `?full` |
+| `src/guard.js` | the screen guard: black on PrintScreen and while the window is away, no selection or context menu in the room, a blank print; off under `?record` and in a scripted browser |
+| `src/lock.js` | the door's lock: a keypad over the room, the clues of `config.door.lock`, the right code opens the door |
 | `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, from `config.reading` and `posts/`, on hash routes (`#/posts/<slug>`) |
 | `src/markdown.js` | reads a post: front matter, then Markdown into DOM nodes with `textContent`, never `innerHTML` |
 | `posts/*.md` | the posts of LOFI, one file each, `YYYY-MM-DD-slug.md`, with `title`, `date` and `summary` (the check asks) |
@@ -128,17 +133,18 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `scripts/check.mjs` | what `just check` tests |
 | `scripts/record.mjs` | what `just record` and `just record-grid` make: the stills and the video for a pull request |
 | `scripts/grid.mjs` | what `just grid` makes: `public/grid/` (land, mesh, frames, sst, run); `scripts/blosc.mjs` reads Copernicus Marine's zarr chunks (Blosc, LZ4) |
+| `scripts/mobile.mjs` | what `just mobile` measures |
 | `scripts/blow_light.sh` | what `just blow-light` measures, frame by frame, with ffmpeg: the share of a frame burnt or glowing white |
 | `scripts/light.mjs` | what `just light` measures: how bright each shot is, and whether any burns to white |
 | `scripts/brasil.mjs` | what `just brasil` makes: the four bossa-lofi pieces of the "lofi brasil" station |
 | `scripts/listeners.mjs` | `just listeners`: the live listeners count, a small server with no dependency that runs beside the site (nix-os runs it on the host) |
 | `docs/SURVEY.md` | a survey of 6 November 2026: other rooms, frameworks, animation, shaders, a faster `just record`, the ▲ grid view (WW3 on triangles), the day's white-out; its pictures are in `docs/survey/` |
-| `.claude/skills/` | Claude skills for working here: `room-pr` (a pull request the owner's way), `room-light`, `room-content`, `room-shaders`, `ww3-grid` (the planned tenth view). They follow this file; where they differ, this file wins |
+| `.claude/skills/` | Claude skills for working here: `room-pr` (a pull request the owner's way), `room-light`, `room-content`, `room-shaders`, `ww3-grid` (the planned tenth view), `room-mobile` (the room on a phone: the two looks, the rules, `just mobile`), `room-phone-test` (checking it in emulation and on a real phone). They follow this file; where they differ, this file wins |
 | `docs/CLAUDE_PROJECT.md`, `docs/CLAUDE_PROJECT.pt-BR.md` | how to set up the Claude Project that builds the room, on claude.ai; change both together. For people only: an agent working here does not act on them |
 
 Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
-`shelf`, `frame_<project>`, `bot_<id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`,
+`shelf`, `frame_<project>`, `bot_<id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`, `door_leaf` (the door's hinged leaf) and `door_beyond` (the light behind it),
 `belt`, `crate`, `crate_<repo>`, `record_<id>`, `quote`, `radio` and its lit `radio_dial`, `mixtape` (the playlist), `door`, `fax`,
 `fax_linkedin`, `folder_closed-source`, `letter_closed-source`, `chart`), and cameras
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
