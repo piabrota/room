@@ -41,7 +41,8 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    no free orbit that can leave the room.
 5. **Whatever can be clicked says so on hover.** Every interactive object is registered
    through `src/interact.js`: it shows a label and a glow on hover, and does one thing on
-   click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`; a new action is
+   click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`,
+   `playlist` (opens the Spotify player of invariant 1); a new action is
    added to `src/app.js` and to the check together.
 6. **A tape is a module with the tape contract.** Each tape is one file in `src/tapes/`,
    loaded lazily through `config.tapes`, with a unique `id`, a label, a colour and a mesh
