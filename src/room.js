@@ -8,7 +8,7 @@ import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { woodGrain, planks, plaster } from './textures.js';
-import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt } from './art.js';
+import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt, wipArt } from './art.js';
 
 // Photographed wood (Poly Haven, CC0; CREDITS.md): colour, normal and roughness.
 const loader = new THREE.TextureLoader();
@@ -348,7 +348,7 @@ function placeholderRoom() {
   }
 
   // ── the board: people pinned as polaroids, under the eye ──
-  const bx = RX, by = 1.45;
+  const bx = RX - 0.25, by = 1.45;
   rbox([0.95, 0.62, 0.03], [bx, by, -1.985], '#8a6a46', { opts: { roughness: 1 } });
   art('photo').forEach((h, i) => {
     const p = people.find((x) => `photo_${x.id}` === h.name) ?? { name: h.label.replace('@', ''), line: h.hint };
@@ -357,6 +357,14 @@ function placeholderRoom() {
     ph.rotation.z = [0.06, -0.04, 0.08, -0.07][i % 4]; ph.castShadow = false;
     const pin = mesh('', new THREE.SphereGeometry(0.012, 8, 6), std(theme.accent), [0, 0.11, 0.008], ph); pin.castShadow = false;
   });
+
+  // ── beside it, a slate for what is still being built: its mark and the hazard tape (config.wip) ──
+  for (const h of art('wip')) {
+    const slate = named(h.name); slate.position.set(bx + 0.8, by, -1.975);
+    mesh('', new THREE.BoxGeometry(0.58, 0.66, 0.025), std('#5a3d28', { roughness: 0.7 }), [0, 0, 0], slate);
+    mesh('', new THREE.PlaneGeometry(0.53, 0.606), new THREE.MeshStandardMaterial({ map: wipArt({ ...h.art, theme }), roughness: 0.9 }), [0, 0, 0.0135], slate).castShadow = false;
+    const pin = mesh('', new THREE.SphereGeometry(0.012, 8, 6), std(theme.accent), [0, 0.3, 0.02], slate); pin.castShadow = false;
+  }
 
   // ── ▲ grid: a chart of the coast's triangle mesh on the right wall; its shot opens the map ──
   for (const h of hotspots.filter((x) => x.name === 'chart')) {

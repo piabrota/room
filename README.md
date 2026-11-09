@@ -54,6 +54,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 21 | 9 Nov 06:50 | [#25](https://github.com/piabrota/room/pull/25) invariants 1, 5 and 7 let in Spotify's Embed player; [#26](https://github.com/piabrota/room/pull/26) the mixtape and the ♫ button open the playlist in Spotify's player over the room, the 37 tracks and their artists credited in `CREDITS.md` and beside the player, and an "open in Spotify" that plays them all in any browser | 25 min |
 | 22 | 9 Nov 11:18 | [#28](https://github.com/piabrota/room/pull/28) ▲ grid on its own name, grid.piabrota.art: there (or with `?grid`) the room opens straight on the map, and Esc or "back to the room" steps into the room, where the gate for the sound waits; served by [piabrota/nix-os#186](https://github.com/piabrota/nix-os/pull/186) | 40 min |
 | 23 | 9 Nov 16:54 | [#29](https://github.com/piabrota/room/pull/29) ▲ grid views: a row of buttons in the map's panel (Brasil, Rio de Janeiro, Bahia, Salvador) that fits the map to each box of `config.grid.presets`, eased, or at once with reduced motion; a check for the boxes; `just record-grid` for their stills and clip | 15 min |
+| 24 | 9 Nov 10:56 | [#27](https://github.com/piabrota/room/pull/27) a slate beside the people's board for tyler-durden-bot, the GitHub App that sums up a large pull request: its mark drawn in code (a bot's head split in two), its name, and hazard tape that says "work in progress"; it links to its pull request in piabrota/agents | 35 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -279,6 +280,13 @@ user> 'https://room.piabrota.art/ the grid in the website must have presets for 
 Bahia and Salvador.'
 ```
 
+**24.**
+
+```text
+user> 'add tyler-durden-bot representation in the website, add one more board in the room, with
+tyler-durden bot logo in the piabrota room (work in progress)'
+```
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -320,7 +328,7 @@ is its own export, so you can replace one and keep the rest:
 | `ambience`, `sfx` | the rain button and the clicks | your recordings (`just audio take.wav <name>`) |
 | `outside` | the view from the window, by day and by night | your city, two photographs credited in `CREDITS.md` |
 | `tapes` | what the VCR plays | your tapes, one file each in `src/tapes/` |
-| `projects`, `bots`, `people`, `works` | the walls, the desk, the board, the shelf | your own lists |
+| `projects`, `bots`, `wip`, `people`, `works` | the walls, the desk, the slate of what is still being built, the board, the shelf | your own lists |
 | `sea`, `loop`, `slipbox` | the other three walls | your own collections, or remove them |
 | `reading`, `posts/` | the LOFI page: about, online, subscribe; the posts | your words, your profiles; your posts, one Markdown file each |
 | `hotspots` | what can be clicked, and what it does | your labels, your words, your links |

@@ -104,7 +104,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, the slate of what is still being built (`wip`), people, works with a DOI, the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8); on `config.grid.host` (grid.piabrota.art) or with `?grid` the room opens on the ▲ grid map, and Esc steps into the room |
 | `src/quality.js` | the two looks, `full` and `lite` (phones, tablets, weak machines): pixel ratio, frames a second, passes, shadow maps, anisotropy, dust; `?lite`, `?full` |
 | `src/guard.js` | the screen guard: black on PrintScreen and while the window is away, no selection or context menu in the room, a blank print; off under `?record` and in a scripted browser |
@@ -115,7 +115,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `scripts/feed.mjs` | the posts' RSS feed, `feed.xml` in the build (and in `just dev`) |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
 | `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material; the photographed wood of `public/textures/pbr/`; your feet under the camera (`buildBody`); the day and night light sets, the desk lamp at a third by day, the dust in the window's light, the rain on the glass, the leaves that sway |
-| `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note, record sleeves and the slipbox's two cards, crates, the tape labels in their retro faces, plastic, the keyboard, the VCR's front, typed paper, the folder |
+| `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the work-in-progress slate and its mark, the window, photos, spines, the note, record sleeves and the slipbox's two cards, crates, the tape labels in their retro faces, plastic, the keyboard, the VCR's front, typed paper, the folder |
 | `src/props.js` | the other walls: the marola-dev wave tank and its buoys, the ouroboric-dev crate belt, the slipbox (a crate of records, two side by side in front) |
 | `src/outside.js` | Rio behind the window, in layers at their own distances: the night and day photographs of `config.outside`, the night's lights twinkling, trees in front; a drawn view when the night file is missing |
 | `src/textures.js` | wood grain, floor planks and plaster, drawn on canvases |
@@ -144,7 +144,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
-`shelf`, `frame_<project>`, `bot_<id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`, `door_leaf` (the door's hinged leaf) and `door_beyond` (the light behind it),
+`shelf`, `frame_<project>`, `bot_<id>`, `board_<wip id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`, `door_leaf` (the door's hinged leaf) and `door_beyond` (the light behind it),
 `belt`, `crate`, `crate_<repo>`, `record_<id>`, `quote`, `radio` and its lit `radio_dial`, `mixtape` (the playlist), `door`, `fax`,
 `fax_linkedin`, `folder_closed-source`, `letter_closed-source`, `chart`), and cameras
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
