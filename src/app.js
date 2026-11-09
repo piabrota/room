@@ -142,7 +142,7 @@ const gate = document.getElementById('enter');
 // into the room; nothing plays before its click either way (invariant 7).
 if (gridHome) {
   gate.classList.add('gone');
-  rig.onChange((n) => { if (n !== 'grid' && audio.ctx.state !== 'running') gate.classList.remove('gone'); });
+  rig.onChange((n) => { if (n !== 'grid' && !audio.enabled) gate.classList.remove('gone'); });
 }
 document.querySelector('#enter button').onclick = async () => {
   gate.classList.add('gone');
