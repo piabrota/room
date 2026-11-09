@@ -49,6 +49,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 16 | 6 nov 05:15 | [#19](https://github.com/piabrota/room/pull/19) ▲ grid: a temperatura do mar do Copernicus Marine (OSTIA, lida do seu repositório zarr aberto) como segunda camada, e partículas que fluem para onde as ondas vão, no lugar dos traços do vento | 30 min |
 | 17 | 7 nov 18:24 | [#20](https://github.com/piabrota/room/pull/20) o vídeo do README, só de noite, as quatro paredes cinco segundos ou mais cada, também como `docs/record/room.webp`; o mesmo no perfil do h0ffmann ([h0ffmann/h0ffmann#144](https://github.com/h0ffmann/h0ffmann/pull/144)) | 30 min |
 | 18 | 7 nov 18:53 | [#21](https://github.com/piabrota/room/pull/21) a noite não estoura mais em branco na mesa (a luminária a 0,7 de noite, um bloom mais suave), e `scripts/blow_light.sh` (`just blow-light`), que reprova um vídeo quando um quadro estoura; o `just record` o roda. Os dois vídeos de novo no perfil ([h0ffmann/h0ffmann#145](https://github.com/h0ffmann/h0ffmann/pull/145)) | 45 min |
+| 19 | 9 nov 05:50 | [#22](https://github.com/piabrota/room/pull/22) ▲ grid ocupa a janela inteira: a assinatura e os botões saem do caminho enquanto o mapa está aberto, o painel se dobra no título, na hora e na legenda (`+` para o resto), um botão ⛶ para a tela cheia, as fontes num ⓘ no canto, e a costa enquadrada ao lado do painel | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -233,6 +234,14 @@ user> 'now fix the brights in both room videos, the bright is exploding again, y
 in the video, create a blow_light.sh script to detect when the video has controlled light. You
 must use this script to pass (script must lives in room repository). Dont forget to update
 h0ffmann/h0ffmann as well'
+```
+
+**19.**
+
+```text
+user> 'check if there any public papers for confusion swell, how to know the results of swell
+combination in particular X, Y do map already plotted, also the map grid should take 100% of the
+screen'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix

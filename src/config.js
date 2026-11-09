@@ -394,6 +394,7 @@ export const grid = {
     hsLong: 'the height of the sea (Hs)', sstLong: 'the temperature of the sea’s surface', sstDay: 'OSTIA, day', noSst: 'no temperature in this run: just grid',
     flow: 'The lines flow where the waves travel, at their group speed (about 0.57 × the wind, for a sea it fully raised).',
     loading: 'loading the grid…', missing: 'no run yet: just grid',
+    fold: 'fewer: fold the panel', unfold: 'more: the hours, the notes and the sources', full: 'the whole screen',
   },
 };
 

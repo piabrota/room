@@ -108,9 +108,19 @@ body.lofi #fallback li > a { margin-right: 0; }
 #grid[hidden] { display: none; }
 #hud, #tooltip { z-index: 1; }
 #grid .map { position: absolute; inset: 0; }
-#grid .panel { position: absolute; right: 16px; top: 132px; width: 300px; padding: 12px 14px; border-radius: 10px;
+/* while it is open the map has the whole window: the signature and the switches step aside */
+#top { transition: opacity .35s ease; }
+body.gridding #top { opacity: 0; pointer-events: none; visibility: hidden; }
+#grid .panel { position: absolute; right: 16px; top: max(64px, calc(env(safe-area-inset-top) + 48px)); width: 340px; padding: 12px 14px; border-radius: 10px;
   background: #0b0d12d9; border: 1px solid var(--border); backdrop-filter: blur(6px); }
-#grid h2 { margin: 0 0 4px; font: 400 20px/1.1 var(--title); letter-spacing: .02em; }
+#grid .head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+#grid .head h2 { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#grid .head button { padding: 2px 8px; min-width: 28px; font-size: 14px; line-height: 1.2; }
+#grid .head button[hidden] { display: none; }
+#grid .panel.folded .more { display: none; }
+#grid .panel { max-height: calc(100% - 150px); overflow: auto; } /* above the shots, on a short window */
+#grid .panel.folded .scale { margin-bottom: 0; }
+#grid h2 { margin: 0; font: 400 20px/1.1 var(--title); letter-spacing: .02em; }
 #grid .time { margin: 0 0 8px; color: var(--fg); }
 #grid .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
 #grid .row button { padding: 4px 10px; }
