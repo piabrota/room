@@ -51,6 +51,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 18 | 7 nov 18:53 | [#21](https://github.com/piabrota/room/pull/21) a noite não estoura mais em branco na mesa (a luminária a 0,7 de noite, um bloom mais suave), e `scripts/blow_light.sh` (`just blow-light`), que reprova um vídeo quando um quadro estoura; o `just record` o roda. Os dois vídeos de novo no perfil ([h0ffmann/h0ffmann#145](https://github.com/h0ffmann/h0ffmann/pull/145)) | 45 min |
 | 19 | 9 nov 05:50 | [#23](https://github.com/piabrota/room/pull/23) ▲ grid ocupa a janela inteira: a assinatura e os botões saem do caminho enquanto o mapa está aberto, o painel se dobra no título, na hora e na legenda (`+` para o resto), um botão ⛶ para a tela cheia, as fontes num ⓘ no canto, e a costa enquadrada ao lado do painel | 30 min |
 | 20 | 9 nov 06:23 | [#24](https://github.com/piabrota/room/pull/24) um botão ♫ playlist ao lado do do rádio, e uma fita cassete no parapeito ao lado do rádio, os dois abrindo a playlist do dono no Spotify; a playlist também na lista online do LOFI | 30 min |
+| 21 | 9 nov 06:50 | [#25](https://github.com/piabrota/room/pull/25) as invariantes 1, 5 e 7 deixam entrar o player do Spotify; [#PRN](https://github.com/piabrota/room/pull/PRN) a fita e o botão ♫ abrem a playlist no player do Spotify sobre a sala, as 37 faixas e seus artistas creditados no `CREDITS.md` e ao lado do player, e um "open in Spotify" que toca tudo em qualquer navegador | 25 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -250,6 +251,16 @@ screen'
 ```text
 user> 'https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U eu queria uma versão com um
 botão pro meu Spotify pra essa playlist'
+```
+
+**21.**
+
+```text
+user> 'qq it wont cause any issues with spotify directly, right?'
+user> 'There is any right way to do that, I would like to embed in my site'
+user> 'doing proper citation of artist etc'
+user> 'Visitors who aren't logged in to Spotify only hear 30-second previews. Logged-in visitors
+hear the full tracks. make this work consistently on all browsers'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix

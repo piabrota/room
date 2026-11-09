@@ -101,7 +101,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button and the mixtape), the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, ▲ grid (its domain, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, ▲ grid (its domain, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8) |
 | `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, from `config.reading` and `posts/`, on hash routes (`#/posts/<slug>`) |
 | `src/markdown.js` | reads a post: front matter, then Markdown into DOM nodes with `textContent`, never `innerHTML` |
@@ -120,6 +120,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/tv.js` | the TV canvas and the tape contract; the CRT glass (bulge, corners, phosphor stripes) over it; how bright the picture is, for the TV's light |
 | `src/tapes/*.js` | one tape each |
 | `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
+| `src/player.js` | the owner's playlist in Spotify's Embed player, over the room: the iframe made on the click and removed on close, the artists beside it (invariants 1 and 7) |
 | `src/radio.js` | piabrota RADIO: the stations of `config.radio`, one track after another through the room's sound, and the live listeners count |
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |

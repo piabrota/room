@@ -10,6 +10,7 @@ import { createRadio } from './radio.js';
 import { createPost } from './post.js';
 import { renderSignature } from './signature.js';
 import { createGrid } from './grid.js';
+import { createPlayer } from './player.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 const canvas = document.getElementById('scene');
@@ -73,7 +74,7 @@ rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => {
 addEventListener('keydown', (e) => {
   if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
   const i = e.key === '0' ? 9 : Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]); // 1..9, and 0 for the tenth
-  if (e.key === 'Escape') rig.go(config.startShot);
+  if (e.key === 'Escape') { player?.close(); rig.go(config.startShot); }
   if (e.key === 'ArrowRight') rig.next(1);
   if (e.key === 'ArrowLeft') rig.next(-1);
 });
@@ -124,6 +125,7 @@ for (const h of config.hotspots) {
       if (h.action === 'sfx') audio.play(config.sfx[h.value]);
       if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : (room.lamp.userData.full ?? lampOn); redrawShadows(); }
       if (h.action === 'toggleRadio') radioBtn.click();
+      if (h.action === 'playlist') player.open();
     },
   });
 }
@@ -137,7 +139,7 @@ document.querySelector('#enter button').onclick = async () => {
   document.getElementById('enter').classList.add('gone');
   await audio.unlock(); soundBtn.textContent = `${words.sound}: ${words.on}`;
 };
-soundBtn.onclick = () => { soundBtn.textContent = `${words.sound}: ${audio.toggle() ? words.on : words.off}`; };
+soundBtn.onclick = () => { const on = audio.toggle(); soundBtn.textContent = `${words.sound}: ${on ? words.on : words.off}`; if (!on) player.close(); };
 
 // ── the rain on the window: on and off ──
 const rainDef = config.ambience.find((a) => a.id === 'rain');
@@ -179,11 +181,17 @@ for (const st of radio.stations) {
   const b = document.createElement('button'); b.textContent = st.label; b.dataset.station = st.id;
   b.onclick = () => radio.tune(st.id); stationsEl.append(b);
 }
-// the owner's playlist, beside the radio: opens it on Spotify, in a new tab
+// the owner's playlist: Spotify's Embed player over the room, made on the
+// click and removed on close (AGENTS.md, invariants 1 and 7)
 const playlistBtn = document.getElementById('playlist');
-if (config.playlist?.url) {
+const player = createPlayer(document.getElementById('player'), config.playlist, {
+  onOpen: () => { if (radio.on) radio.toggle(); playlistBtn.classList.add('active'); playlistBtn.setAttribute('aria-pressed', 'true'); },
+  onClose: () => { playlistBtn.classList.remove('active'); playlistBtn.setAttribute('aria-pressed', 'false'); },
+});
+if (config.playlist?.embed) {
   playlistBtn.textContent = config.playlist.button; playlistBtn.title = config.playlist.hint; playlistBtn.hidden = false;
-  playlistBtn.onclick = () => window.open(config.playlist.url, '_blank', 'noopener');
+  playlistBtn.setAttribute('aria-pressed', 'false');
+  playlistBtn.onclick = () => player.toggle();
 }
 radio.onChange(({ on, station, track, listeners }) => {
   radioBtn.textContent = on ? `${config.radio.name} · ${track.title}` : `${config.radio.name}: ${words.off}`;

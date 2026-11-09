@@ -75,14 +75,24 @@ export const ui = {
 };
 
 // The owner's playlist on Spotify: a mixtape on the sill, beside the
-// radio, and a button beside the radio's at the top. Both open it in a
-// new tab; nothing of Spotify's is loaded or played in the room.
+// radio, and a button beside the radio's at the top. Either opens
+// Spotify's Embed player over the room (AGENTS.md, invariants 1 and 7):
+// an iframe made on the click and removed on close, the one thing in the
+// room that loads from another host. Its artists are credited beside it
+// and in CREDITS.md (the playlist as Spotify listed it on 9 November 2026).
 export const playlist = {
-  label: 'the mixtape', hint: 'the playlist, on Spotify', button: '♫ playlist',
+  label: 'the mixtape', hint: 'GREAT RESET, a playlist on Spotify', button: '♫ playlist',
+  title: 'GREAT RESET', by: 'a playlist by Matheus Hoffmann',
   url: 'https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U',
-  tape: { title: 'mixtape', side: 'A · on Spotify' },
+  embed: 'https://open.spotify.com/embed/playlist/2hsuqvhCouatM8DtmKKl7U?theme=0',
+  tape: { title: 'GREAT RESET', side: 'A · on Spotify' },
+  artists: ['Flora Matos', 'Sain', 'Luccas Carlos', 'Akira Presidente', 'Bril', 'CHS', 'JXNV$', 'BK', 'Pirâmide Perdida', 'El Lif Beatz', 'Nectar Gang', 'Tyler, The Creator', 'Kanye West', 'Marina Sena', 'Çantamarta', 'Supercombo', 'Vitor Kley', 'Elana Dara', 'Preta Gil'],
+  words: {
+    open: 'open in Spotify', close: 'close', artists: 'with',
+    note: 'Full tracks play when you are logged in to Spotify in this browser; otherwise Spotify plays 30-second previews. "open in Spotify" plays them all, in any browser.',
+    credit: 'Music played by Spotify; each track names its artists. No audio is copied into this room.',
+  },
 };
-
 // piabrota RADIO: lofi under a free licence only (CC0 or CC BY,
 // CREDITS.md), in two stations. A station plays its tracks one after
 // another from a random start. The radio plays through the room's sound,
@@ -414,7 +424,7 @@ export const hotspots = [
   { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },
   { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
-  { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'link', value: playlist.url, group: 'music', art: { kind: 'mixtape' } },
+  { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'playlist', art: { kind: 'mixtape' } },
   { name: 'quote',  label: '"Time is a flat circle."', hint: 'Rust Cohle', action: 'link', value: 'https://en.wikipedia.org/wiki/Rust_Cohle', group: 'inspiration', art: { kind: 'quote', text: 'Time is a flat circle', by: 'Rust Cohle' } },
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
   { name: 'door',   label: door.label, hint: door.hint, action: 'sfx', value: 'click' },

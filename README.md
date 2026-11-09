@@ -51,6 +51,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 18 | 7 Nov 18:53 | [#21](https://github.com/piabrota/room/pull/21) the night no longer burns white at the desk (the lamp at 0.7 by night, a softer bloom), and `scripts/blow_light.sh` (`just blow-light`), which fails a video when a frame burns; `just record` runs it. Both videos again in the profile ([h0ffmann/h0ffmann#145](https://github.com/h0ffmann/h0ffmann/pull/145)) | 45 min |
 | 19 | 9 Nov 05:50 | [#23](https://github.com/piabrota/room/pull/23) ▲ grid fills the whole window: the signature and the switches step aside while the map is open, the panel folds to the title, the time and the legend (`+` for the rest), a ⛶ button for the whole screen, the sources in an ⓘ in the corner, and the coast fitted beside the panel | 30 min |
 | 20 | 9 Nov 06:23 | [#24](https://github.com/piabrota/room/pull/24) a ♫ playlist button beside the radio's, and a mixtape on the sill beside the radio, both opening the owner's Spotify playlist; the playlist in LOFI's online list too | 30 min |
+| 21 | 9 Nov 06:50 | [#25](https://github.com/piabrota/room/pull/25) invariants 1, 5 and 7 let in Spotify's Embed player; [#PRN](https://github.com/piabrota/room/pull/PRN) the mixtape and the ♫ button open the playlist in Spotify's player over the room, the 37 tracks and their artists credited in `CREDITS.md` and beside the player, and an "open in Spotify" that plays them all in any browser | 25 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -250,6 +251,16 @@ screen'
 ```text
 user> 'https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U eu queria uma versão com um
 botão pro meu Spotify pra essa playlist'
+```
+
+**21.**
+
+```text
+user> 'qq it wont cause any issues with spotify directly, right?'
+user> 'There is any right way to do that, I would like to embed in my site'
+user> 'doing proper citation of artist etc'
+user> 'Visitors who aren't logged in to Spotify only hear 30-second previews. Logged-in visitors
+hear the full tracks. make this work consistently on all browsers'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix
