@@ -65,6 +65,27 @@ for (const p of readPosts()) {
   if (!p.title || !/^\d{4}-\d{2}-\d{2}$/.test(p.date ?? '') || !p.summary) fail(3, `posts/${p.file} needs front matter: title, date (YYYY-MM-DD) and summary`);
 }
 
+// 4. The ▲ grid map's views: the first is the whole domain (the visitor can always go back), the
+// others lie inside it, and each has a unique id, a label (invariant 3: config) and a hint (5: hover).
+if (config.grid) {
+  const presets = config.grid.presets, [W, S, E, N] = config.grid.bbox, tol = 0.01;
+  if (!Array.isArray(presets) || presets.length === 0) fail(3, 'config.grid.presets needs at least one view');
+  else {
+    if (presets[0].id !== 'brasil') fail(4, 'the first grid view must be "brasil", the whole domain');
+    if (!config.grid.words?.presets) fail(3, 'config.grid.words.presets (the label of the views row) is missing');
+    const seen = new Set();
+    for (const p of presets) {
+      if (!p.id || seen.has(p.id)) fail(3, `grid view "${p.id}" needs a unique id`);
+      seen.add(p.id);
+      if (!String(p.label ?? '').trim()) fail(3, `grid view "${p.id}" needs a label`);
+      if (!String(p.hint ?? '').trim()) fail(5, `grid view "${p.id}" needs a hint for its hover`);
+      const [[w, s], [e, n]] = p.bounds ?? [[], []];
+      if (![w, s, e, n].every(Number.isFinite) || !(w < e && s < n)) fail(3, `grid view "${p.id}" needs bounds [[west, south], [east, north]] with west < east and south < north`);
+      else if (w < W - tol || e > E + tol || s < S - tol || n > N + tol) fail(3, `grid view "${p.id}" lies outside config.grid.bbox`);
+    }
+  }
+}
+
 // 9. Budgets for what ships in public/.
 const walk = (d) => readdirSync(d).flatMap((f) => (statSync(join(d, f)).isDirectory() ? walk(join(d, f)) : [join(d, f)]));
 const budget = { '.glb': 10 * MB, '.gltf': 10 * MB, '.mp3': 4 * MB, '.ogg': 4 * MB, '.wav': 0, '.png': 2 * MB, '.jpg': 2 * MB, '.webp': 2 * MB, '.ktx2': 4 * MB };

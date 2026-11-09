@@ -394,6 +394,7 @@ export const reading = {
 // GFS winds over it with the sea they raise. The sea is an estimate from
 // the wind (Pierson-Moskowitz, a fully developed sea), not yet a WAVEWATCH
 // III run: that is the next step (the ww3-grid skill).
+const gridBbox = [-56, -35.5, -27, 6.5];
 export const grid = {
   // its own name: on this host (or with `?grid`) the room opens straight on the map, and Esc or
   // "back to the room" steps into the room behind it (src/main.js)
@@ -405,7 +406,26 @@ export const grid = {
   sources: 'Land: Natural Earth · Wind: NOAA GFS 0.25°, through Open-Meteo (CC BY 4.0) · Temperature: OSTIA, generated using E.U. Copernicus Marine Service information (doi:10.48670/moi-00165); these data were provided by GHRSST and Met Office',
   // the domain of `just grid`: west, south, east, north; how far out the mesh goes, in km;
   // the spacing of its nodes near the coast and far out, in km
-  bbox: [-56, -35.5, -27, 6.5], reach: 550, spacing: [9, 70],
+  bbox: gridBbox, reach: 550, spacing: [9, 70],
+  // the views of the map's buttons: [west, south], [east, north] in degrees; the first is the whole
+  // domain. public/grid/land.json has the coast and no state borders. So each end of a coast below
+  // is the vertex of that polygon (Natural Earth, South America) nearest the place, and the box adds
+  // sea to the south and east. The nodes of mesh.bin inside each box were counted.
+  //  rio: Paraty (-44.68, -23.21), Cabo Frio (-41.99, -22.85) and the north of the state
+  //    (-40.96, -21.24) lie inside; the box adds 0.3° of land and about 2° of sea south and east
+  //    (1023 nodes).
+  //  bahia: the south of the state (-39.65, -18.25) and the Real river, the border with Sergipe
+  //    (-37.41, -11.50), lie inside; the east-most vertex of the coast is -38.88. The box adds sea to
+  //    -35.4 and a little coast north of the state (1555 nodes).
+  //  salvador: the Baía de Todos os Santos spans lon -38.85 to -38.40 and lat -13.03 to -12.62 in the
+  //    coast. The box frames it with the open sea in front of the city (-38.5, -12.97). It holds 105
+  //    nodes: the mesh is 9 km at the coast, so few triangles show.
+  presets: [
+    { id: 'brasil', label: 'Brasil', hint: 'the whole coast of the mesh', bounds: [[gridBbox[0], gridBbox[1]], [gridBbox[2], gridBbox[3]]] },
+    { id: 'rio', label: 'Rio de Janeiro', hint: 'the coast of the state of Rio de Janeiro, from Paraty to the north of the state', bounds: [[-45.4, -25.4], [-39.8, -20.8]] },
+    { id: 'bahia', label: 'Bahia', hint: 'the whole coast of the state of Bahia, from the south to the border with Sergipe', bounds: [[-40.6, -19.2], [-35.4, -10.6]] },
+    { id: 'salvador', label: 'Salvador', hint: 'the city and the Baía de Todos os Santos, close up', bounds: [[-39.0, -13.4], [-37.8, -12.4]] },
+  ],
   files: { run: '/grid/run.json', mesh: '/grid/mesh.bin', frames: '/grid/frames.bin', sst: '/grid/sst.bin', land: '/grid/land.json' },
   // the flow over the sea: how many particles, the points of each trail, how long one lives (s),
   // and how fast it goes, in degrees a second for each m/s of the waves' group speed
@@ -413,7 +433,7 @@ export const grid = {
   // places to name on the map: [label, longitude, latitude]
   places: [['Rio de Janeiro', -43.2, -22.9], ['Salvador', -38.5, -12.97], ['Recife', -34.88, -8.05], ['Fortaleza', -38.53, -3.73], ['Florianópolis', -48.55, -27.6], ['Belém', -48.5, -1.45]],
   words: {
-    play: 'play', pause: 'pause', back: 'back to the room', hs: 'sea (Hs)', sst: 'temperature', wind: 'wind', node: 'node', m: 'm', ms: 'm/s', c: '°C', from: 'from', toward: 'waves toward',
+    play: 'play', pause: 'pause', back: 'back to the room', hs: 'sea (Hs)', sst: 'temperature', wind: 'wind', node: 'node', m: 'm', ms: 'm/s', c: '°C', from: 'from', toward: 'waves toward', presets: 'views',
     hsLong: 'the height of the sea (Hs)', sstLong: 'the temperature of the sea’s surface', sstDay: 'OSTIA, day', noSst: 'no temperature in this run: just grid',
     flow: 'The lines flow where the waves travel, at their group speed (about 0.57 × the wind, for a sea it fully raised).',
     loading: 'loading the grid…', missing: 'no run yet: just grid',

@@ -126,9 +126,11 @@ body.gridding #top { opacity: 0; pointer-events: none; visibility: hidden; }
 #grid .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
 #grid .row button { padding: 4px 10px; }
 #grid input[type=range] { flex: 1; accent-color: var(--accent); }
-#grid .layers button { flex: 1; padding: 4px 8px; font-size: 11px; opacity: .6; }
-#grid .layers button[aria-pressed=true] { opacity: 1; border-color: var(--accent); }
-#grid .layers button:disabled { opacity: .3; cursor: not-allowed; }
+#grid .layers button, #grid .views button { flex: 1; padding: 4px 8px; font-size: 11px; opacity: .6; }
+#grid .layers button[aria-pressed=true], #grid .views button[aria-pressed=true] { opacity: 1; border-color: var(--accent); }
+#grid .layers button:disabled, #grid .views button:disabled { opacity: .3; cursor: not-allowed; }
+#grid .views { flex-wrap: wrap; gap: 4px; } /* four buttons fit the panel in one row; on a narrower one they wrap */
+#grid .views button { flex: 1 1 auto; padding: 4px 6px; white-space: nowrap; }
 #grid .legend { height: 8px; border-radius: 4px; }
 #grid .scale { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); margin: 2px 0 8px; }
 #grid .dim { margin: 0 0 6px; color: var(--dim); font-size: 11px; line-height: 1.35; }

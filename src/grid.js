@@ -293,6 +293,13 @@ export function createGrid(grid, { still = false } = {}) {
     const b = document.createElement('button'); b.textContent = name === 'hs' ? w.hs : w.sst; b.onclick = () => setLayer(name);
     pick[name] = b; layers.append(b);
   }
+  // the views: a button for each of `grid.presets`, which moves the map to its bounds
+  const views = document.createElement('div'); views.className = 'row views'; views.setAttribute('role', 'group'); views.setAttribute('aria-label', w.presets);
+  const view = {};
+  for (const p of grid.presets) {
+    const b = document.createElement('button'); b.textContent = p.label; b.title = p.hint; b.dataset.view = p.id; b.disabled = true; b.onclick = () => setView(p.id);
+    view[p.id] = b; views.append(b);
+  }
   const layerLabel = document.createElement('p'); layerLabel.className = 'dim';
   const legend = document.createElement('div'); legend.className = 'legend';
   const scale = document.createElement('div'); scale.className = 'scale';
@@ -302,7 +309,7 @@ export function createGrid(grid, { still = false } = {}) {
   const sources = document.createElement('p'); sources.className = 'dim more'; sources.textContent = grid.sources;
   const back = document.createElement('button'); back.className = 'back'; back.textContent = `Esc · ${w.back}`;
   row.classList.add('more'); layerLabel.classList.add('more'); flowLabel.classList.add('more');
-  panel.append(head, time, row, layers, layerLabel, legend, scale, flowLabel, credit, note, sources, back);
+  panel.append(head, time, row, layers, views, layerLabel, legend, scale, flowLabel, credit, note, sources, back);
   const tip = document.createElement('div'); tip.className = 'tip';
   el.append(mapEl, panel, tip);
   document.body.append(el);
@@ -338,6 +345,17 @@ export function createGrid(grid, { still = false } = {}) {
   }
   setLayer('hs');
 
+  // a view moves the map to its bounds, eased; under reduced motion it jumps. The mark is on the
+  // view that was picked, and a drag or a zoom by the visitor (a move with an `originalEvent`) clears it.
+  function markView(id) { for (const [k, b] of Object.entries(view)) b.setAttribute('aria-pressed', String(k === id)); }
+  function setView(id) {
+    const p = grid.presets.find((x) => x.id === id);
+    if (!p || !state.map) return;
+    markView(id);
+    state.map.fitBounds(p.bounds, { padding: fitPadding(), duration: still ? 0 : 1400 });
+  }
+  markView(grid.presets[0].id); // it opens on the whole domain
+
   const fmt = (iso) => `${iso.replace('T', ' ')} UTC`;
   function showTime() {
     if (!state.d) return;
@@ -359,6 +377,7 @@ export function createGrid(grid, { still = false } = {}) {
     const [{ default: maplibregl }, d] = await Promise.all([import('maplibre-gl'), data(grid.files), import('maplibre-gl/dist/maplibre-gl.css')]);
     state.d = d; slider.max = String(d.run.hours.length - 1);
     pick.sst.disabled = !d.sst; if (!d.sst) pick.sst.title = w.noSst;
+    for (const b of Object.values(view)) b.disabled = false;
     state.flow = flowField(d, grid.flow);
     const [W, S, E, N] = grid.bbox;
     const map = new maplibregl.Map({
@@ -381,6 +400,7 @@ export function createGrid(grid, { still = false } = {}) {
     map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: grid.sources }), 'top-left');
     map.once('load', () => el.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show'));
     state.zoom0 = map.getZoom();
+    for (const type of ['move', 'zoom']) map.on(type, (e) => { if (e.originalEvent) markView(null); }); // a move of the visitor (a drag, a wheel, a pinch) carries its event; fitBounds does not
     if (still) state.flow.prime(state.t, grid.flow.speed); // under reduced motion the trails stand still
     map.on('load', () => { map.addLayer(meshLayer(maplibregl, d, state, state.flow)); map.once('idle', () => { state.ready = true; }); });
     for (const [name, lon, lat] of grid.places) {
