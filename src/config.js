@@ -395,6 +395,9 @@ export const reading = {
 // the wind (Pierson-Moskowitz, a fully developed sea), not yet a WAVEWATCH
 // III run: that is the next step (the ww3-grid skill).
 export const grid = {
+  // its own name: on this host (or with `?grid`) the room opens straight on the map, and Esc or
+  // "back to the room" steps into the room behind it (src/main.js)
+  host: 'grid.piabrota.art',
   label: '▲ grid', hint: 'the Brazilian coast on triangles: 24 h of sea, and its temperature',
   title: '▲ grid · the Brazilian coast',
   credit: 'Triangle grids for WAVEWATCH III: Dr. Aron Roland (with Fabrice Ardhuin); at NOAA, Dr. Ali Abdolali.',
