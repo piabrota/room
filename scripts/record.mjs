@@ -7,6 +7,8 @@
 //   docs/record/room.webp        the same, for the READMEs
 //
 // `--stills` makes only the stills and keeps the video that is there.
+// `--grid` makes only the ▲ grid's: shot-grid, shot-grid-sst, shot-grid-<view> for each of
+// `config.grid.presets`, and grid-views.mp4, a clip that clicks each view (`just record-grid`).
 //
 // The room is driven by hand, one fixed step of 1/30 s per frame
 // (window.__room.step), so the video shows the motion as a visitor sees
@@ -56,19 +58,25 @@ page.setDefaultTimeout(120000);
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 
+// MapLibre binds `performance.now` when it loads. So that the eased move of a grid view films the
+// same frames on every run, the clip may set `window.__fakeNow`: the clock then advances 1/30 s a step.
+await page.addInitScript(() => { const real = performance.now.bind(performance); performance.now = () => window.__fakeNow ?? real(); });
 await page.goto(`${url}?hifi&night&record`); // the same light on every run; no ambient occlusion
 await page.waitForSelector('#loading.done', { timeout: 120000 });
 await page.click('#enter button');
 await page.addStyleTag({ content: '#enter{display:none!important}' }); // skip its fade
 rmSync(frames, { recursive: true, force: true }); mkdirSync(frames, { recursive: true });
 const stillsOnly = process.argv.includes('--stills');
-for (const f of existsSync(out) ? readdirSync(out) : []) if (f.startsWith('shot-')) rmSync(join(out, f));
+const gridOnly = process.argv.includes('--grid');   // only the ▲ grid's stills (the map, its sea, each view) and the clip of its views
+const { grid: gridConfig } = await import(join(root, 'src/config.js'));
+const views = gridConfig.presets.map((p) => p.id);
+if (!gridOnly) for (const f of existsSync(out) ? readdirSync(out) : []) if (f.startsWith('shot-')) rmSync(join(out, f));
 mkdirSync(out, { recursive: true });
 
 let n = 0, mx = W / 2, my = H / 2;
 async function step(count = 1) {
   for (let i = 0; i < count; i++) {
-    await page.evaluate(() => window.__room.step(1 / 30));
+    await page.evaluate(() => { window.__room.step(1 / 30); if (window.__fakeNow != null) window.__fakeNow += 1000 / 30; });
     await page.screenshot({ path: join(frames, `f${String(n++).padStart(4, '0')}.jpg`), type: 'jpeg', quality: 90 });
   }
 }
@@ -116,13 +124,22 @@ const still = async (name) => (await page.waitForTimeout(400), page.screenshot({
 
 // ── the stills: one per shot, before the video ──
 const shots = await page.evaluate(() => window.__room.rig.names);
-for (const s of shots) {
+// a grid view: click its button, let the eased move end (in real time, as the still has no frames), then the flow draws
+async function view(id) {
+  await page.click(`#grid .views button[data-view="${id}"]`); await page.waitForTimeout(2500);
+  for (let i = 0; i < 30; i++) await page.evaluate(() => window.__room.step(1 / 30));
+}
+for (const s of gridOnly ? ['grid'] : shots) {
   await page.evaluate((x) => { window.__room.rig.go(x, true); window.__room.step(1 / 30); }, s);
   if (s === 'grid') { await gridReady(); for (let i = 0; i < 45; i++) await page.evaluate(() => window.__room.step(1 / 30)); } // the map opens; the flow draws its trails
   await still(s);
   if (s === 'grid' && await page.locator('#grid .layers button:nth-child(2):not([disabled])').count()) { // and its temperature
     await page.click('#grid .layers button:nth-child(2)'); await page.evaluate(() => window.__room.step(1 / 30)); await still('grid-sst');
     await page.click('#grid .layers button:nth-child(1)');
+  }
+  if (s === 'grid') { // and each of its views, then back to the whole coast
+    for (const id of views.slice(1)) { await view(id); await still(`grid-${id}`); }
+    await view(views[0]);
   }
 }
 await page.evaluate((x) => { window.__room.rig.go(x, true); window.__room.step(1 / 30); }, shots[0]);
@@ -140,6 +157,25 @@ await page.evaluate(() => {
   c.append(p); document.body.append(c);
   window.__rec = (x, y, down) => { c.style.left = x + 'px'; c.style.top = y + 'px'; c.classList.toggle('down', !!down); };
 });
+
+// ── the clip of the ▲ grid views: each view, then the whole coast again (`--grid`) ──
+if (gridOnly) {
+  await page.evaluate(() => { window.__room.rig.go('grid', true); window.__room.step(1 / 30); });
+  await gridReady();
+  await page.evaluate(() => { window.__fakeNow = performance.now(); });
+  await wait(1);
+  for (const id of [...views.slice(1), views[0]]) {
+    const r = await page.locator(`#grid .views button[data-view="${id}"]`).boundingBox();
+    await moveTo(r.x + r.width / 2, r.y + r.height / 2, 0.6);
+    await click(); await wait(2.6);
+  }
+  execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', join(frames, 'f%04d.jpg'),
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '26', '-preset', 'slow', '-movflags', '+faststart', join(out, 'grid-views.mp4')]);
+  rmSync(frames, { recursive: true, force: true });
+  await browser.close(); await server.close();
+  console.log(`✓ ${(n / FPS).toFixed(1)} s of the grid views (${W}×${H}) in docs/record/grid-views.mp4`);
+  process.exit(errors.length ? 1 : 0);
+}
 
 // ── the video: the four walls, by night ──
 // The room stays at night (`?night`, the day button is not pressed), and

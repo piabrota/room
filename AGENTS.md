@@ -86,6 +86,7 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just check` | `scripts/check.mjs` (the invariants), then a build |
 | `just record` | stills of every shot and a video of the four walls by night, each 5 s or more, navigating and clicking (`room.mp4`, and `room.webp` for the READMEs), into `docs/record/`; on the GPU on macOS, in software at 960×540 elsewhere |
 | `just stills` | only the stills, into `docs/record/` (fast; use it while working) |
+| `just record-grid` | only the ▲ grid's stills (the map, its temperature, each of its views) and `grid-views.mp4`, a clip that clicks each view, into `docs/record/` |
 | `just light [day\|night] [shots]` | the mean brightness and the share of pixels burnt to white of every shot, by night and by day; fails above 1 % (`scripts/light.mjs`) |
 | `just grid [--offline]` | the ▲ grid view's files in `public/grid/`: the coast's triangle mesh (Natural Earth, Delaunay) and 24 h of GFS wind with the sea it raises, and the sea's temperature from Copernicus Marine (OSTIA) (`scripts/grid.mjs`) |
 | `just blow-light [files]` | whether the light of a video or a still is under control: fails when a frame has more than 0.25 % of its area near white (above 230) or 1 % glowing (above 200), thin text left out (`scripts/blow_light.sh`); `just record` runs it on `room.mp4` (the owner, 7 November 2026) |
@@ -101,7 +102,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, ▲ grid (its domain, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, people, works with a DOI, the CV, the contact, the closed-source file, the door, your feet, ▲ grid (its domain, presets, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8); on `config.grid.host` (grid.piabrota.art) or with `?grid` the room opens on the ▲ grid map, and Esc steps into the room |
 | `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, from `config.reading` and `posts/`, on hash routes (`#/posts/<slug>`) |
 | `src/markdown.js` | reads a post: front matter, then Markdown into DOM nodes with `textContent`, never `innerHTML` |
@@ -116,7 +117,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/post.js` | post-processing: MSAA HDR buffer, ambient occlusion (GTAO, off under `?record`), hover outline, bloom with a threshold for the night and one for the day (`setDay`), tone mapping (AgX, set in `src/app.js`), film grade; steps quality down when frames run long |
 | `src/cameras.js` | named shots and the moves between them: quintic curves that keep the velocity when a new shot is picked mid-move, arcs, slerped turns, per-shot `fov`, damped parallax; `shot_*` cameras from the GLB |
 | `src/interact.js` | raycast hover and click against the whole room (walls hide what is behind them), label cards with a hint, glow |
-| `src/grid.js` | ▲ grid, the tenth view: the chart on the right wall, and the MapLibre map that opens over the room when its shot lands, the mesh drawn by a custom WebGL layer, coloured by the sea's height or its temperature, particles flowing where the waves travel, the hours played by the room's clock |
+| `src/grid.js` | ▲ grid, the tenth view: the chart on the right wall, and the MapLibre map that opens over the room when its shot lands, the mesh drawn by a custom WebGL layer, coloured by the sea's height or its temperature, particles flowing where the waves travel, the hours played by the room's clock, and the presets: a row of buttons (`config.grid.presets`) that fit the map to Brasil, Rio de Janeiro, Bahia or Salvador |
 | `src/tv.js` | the TV canvas and the tape contract; the CRT glass (bulge, corners, phosphor stripes) over it; how bright the picture is, for the TV's light |
 | `src/tapes/*.js` | one tape each |
 | `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
@@ -125,7 +126,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |
 | `scripts/check.mjs` | what `just check` tests |
-| `scripts/record.mjs` | what `just record` makes: the stills and the video for a pull request |
+| `scripts/record.mjs` | what `just record` and `just record-grid` make: the stills and the video for a pull request |
 | `scripts/grid.mjs` | what `just grid` makes: `public/grid/` (land, mesh, frames, sst, run); `scripts/blosc.mjs` reads Copernicus Marine's zarr chunks (Blosc, LZ4) |
 | `scripts/blow_light.sh` | what `just blow-light` measures, frame by frame, with ffmpeg: the share of a frame burnt or glowing white |
 | `scripts/light.mjs` | what `just light` measures: how bright each shot is, and whether any burns to white |

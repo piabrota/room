@@ -50,6 +50,10 @@ stills: build
 record: build
     node scripts/record.mjs
 
+# only the ▲ grid's stills and a clip that clicks each of its views into docs/record/ (headless Chrome, ffmpeg)
+record-grid: build
+    node scripts/record.mjs --grid
+
 # is the light of a video or a still under control? (no frame burns to white)
 blow-light +files="docs/record/room.mp4":
     scripts/blow_light.sh {{files}}
