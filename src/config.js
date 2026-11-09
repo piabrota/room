@@ -55,12 +55,12 @@ export const shots = {
   overview: { position: [3.1, 2.15, 3.3], target: [-0.4, 1.05, -0.6], fov: 50 },
   desk:     { position: [0.05, 1.42, 0.75], target: [0.05, 1.08, -1.0], fov: 45 },
   fabric:   { position: [-0.7, 1.6, 0.55], target: [-3.0, 1.6, -0.2], fov: 52 },
-  shelf:    { position: [-1.75, 1.35, 0.15], target: [-2.05, 1.25, -1.9], fov: 46 },
+  shelf:    { position: [-1.75, 1.55, 0.4], target: [-2.1, 1.8, -1.9], fov: 52 }, // the works with a DOI, and tyler-durden-bot's board above them
   board:    { position: [2.55, 1.8, 0.25], target: [2.55, 1.82, -2.0], fov: 50 },
   window:   { position: [0.2, 1.62, 0.7], target: [0.2, 2.12, -2.0], fov: 56 },
   sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
   slipbox:  { position: [-1.62, 0.88, -0.22], target: [-2.2, 0.18, -0.98], fov: 46 },
-  loop:     { position: [0.4, 1.6, 1.0], target: [0.9, 1.65, 3.8], fov: 54 },
+  loop:     { position: [0.0, 1.6, 0.6], target: [-0.4, 1.5, 3.8], fov: 58 }, // the loop, and the door with its lock
   // the tenth, on key 0: the chart on the right wall, which opens the map (`grid` below)
   grid:     { position: [1.75, 1.62, 1.55], target: [3.4, 1.62, 1.55], fov: 44, label: '▲ grid' },
 };
@@ -233,8 +233,8 @@ export const bots = [
 // ── tyler-durden-bot: a third GitHub App, still being built, on its own board ──
 // It sums up a large pull request on h0ffmann/proof in one comment. Its code is
 // in piabrota/agents#6 (the agent) and piabrota/nix-os#173 (the host). Its board is
-// the big one on the front wall, beside the loop: the owner's pixel portrait (`logo`,
-// CREDITS.md), its name and line, the tape that says it is not done, and a ring of
+// the square one above the bookshelf of the works with a DOI: the owner's pixel portrait
+// as it is (`logo`, CREDITS.md), and a ring of
 // red bulbs that blink at random, by night only (`lights`: how many, and their colour).
 export const wip = {
   id: 'tyler-durden-bot', name: 'tyler-durden-bot', initials: 'TD', color: '#D29922',
@@ -372,7 +372,7 @@ export const closedSource = {
   },
 };
 
-// ── the door: a lock of four digits, the room's one puzzle ──
+// ── the door: locked; an email opens the way to its lock of four digits, the room's one puzzle ──
 // Each digit counts something in the room (its last digit, past nine), so the code stays true when
 // a list changes: the tapes beside the VCR, the works on the shelf, the faces on the board, the
 // bots on the desk. The keypad (src/lock.js) gives the four clues; the right code swings the door
@@ -386,6 +386,16 @@ export const door = {
     clues: ['the tapes beside the VCR', 'the works with a DOI on the shelf', 'the faces pinned on the board', 'the bots on the desk'],
     code: [tapes.length, works.length, people.length, bots.length].map((n) => n % 10).join(''),
     clear: 'clear', enter: 'open', close: 'close', wrong: 'not that one', right: 'the lock turns',
+  },
+  // the gate: the keypad opens only for a visitor who leaves an email. It is posted to `endpoint`
+  // on the room's own host (scripts/listeners.mjs, run by piabrota/nix-os), kept there, and never
+  // shown on the page or sent anywhere else.
+  gate: {
+    endpoint: '/live/door',
+    line: 'the door is locked. leave your email to try the lock:',
+    placeholder: 'you@example.com', button: 'let me try',
+    privacy: 'kept on piabrota’s own server, only to write to you about the room. nothing else.',
+    sending: 'sending…', invalid: 'that does not look like an email', failed: 'the door did not answer. try again later',
   },
   beyond: ['you found', 'the way out.', '', 'it was a flat circle', 'all along.'],
 };

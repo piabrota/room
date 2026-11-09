@@ -80,6 +80,7 @@ rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => {
 }));
 addEventListener('keydown', (e) => {
   if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
+  if (e.target instanceof HTMLInputElement) return; // typing in a form (the door's email) never moves the camera
   const i = e.key === '0' ? 9 : Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]); // 1..9, and 0 for the tenth
   if (e.key === 'Escape') { player?.close(); lock?.close(); rig.go(config.startShot); }
   if (e.key === 'ArrowRight') rig.next(1);
@@ -133,6 +134,7 @@ if (nash) room.root.add(nash.group);
 const doorState = { k: 0, to: 0 };
 const DOOR_KEY = 'room:door';
 const lock = createLock(document.getElementById('lock'), config.door?.lock, {
+  gate: config.door?.gate,
   onPress: () => audio.play(config.sfx.click),
   onSolve: () => { openDoor(true); try { localStorage.setItem(DOOR_KEY, 'open'); } catch { /* private mode: open for this visit */ } },
 });

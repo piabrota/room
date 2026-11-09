@@ -61,6 +61,8 @@ page.on('pageerror', (e) => errors.push(e.message));
 // MapLibre binds `performance.now` when it loads. So that the eased move of a grid view films the
 // same frames on every run, the clip may set `window.__fakeNow`: the clock then advances 1/30 s a step.
 await page.addInitScript(() => { const real = performance.now.bind(performance); performance.now = () => window.__fakeNow ?? real(); });
+// the door's email gate posts to the room's own server, which `vite preview` does not run: answer it here
+await page.route('**/live/door', (r) => r.fulfill({ status: 204 }));
 await page.goto(`${url}?hifi&night&record`); // the same light on every run; no ambient occlusion
 await page.waitForSelector('#loading.done', { timeout: 120000 });
 await page.click('#enter button');
@@ -210,7 +212,9 @@ await wall(async () => {                                                        
   await moveTo(...(await at('frame_pirsig')), 0.6); await wait(0.8);
   await moveTo(...(await at('frame_nix-os')), 0.6); await wait(0.8);
   await moveTo(...(await at('frame_rax')), 0.6); await wait(0.8);
-});
+  await page.keyboard.press('4'); await land();                                 // key 4: the shelf of the works with a DOI
+  await moveTo(...(await at('board_tyler-durden-bot')), 0.6); await wait(1.4); // tyler-durden-bot's board above it, its red bulbs blinking
+}, 8);
 await wall(async () => {                                                        // the right wall: the sea
   await page.keyboard.press('7'); await land();
   await moveTo(...(await at('tank')), 0.6); await wait(0.8);
@@ -221,9 +225,9 @@ await wall(async () => {                                                        
   await page.keyboard.press('9'); await land();
   await moveTo(...(await at('belt')), 0.6); await wait(0.8);
   await moveTo(...(await at('crate_odin')), 0.6); await wait(0.8);
-  await moveTo(...(await at('board_tyler-durden-bot')), 0.6); await wait(1.4); // tyler-durden-bot's big board, its red bulbs blinking
-  await drag(-300, 1.0); await wait(0.3);                                      // look right, to the door
-  await moveTo(...(await at('door', 1.2)), 0.6); await click(); await wait(0.6); // the door: its lock opens
+  await moveTo(...(await at('door', 1.2)), 0.6); await click(); await wait(0.6); // the door: locked, it asks for an email
+  await moveTo(...(await box('#lock .gate input')), 0.4); await click(); await page.keyboard.type('visitor@example.com', { delay: 0 }); await wait(0.6);
+  await moveTo(...(await box('#lock .gate button')), 0.3); await click(); await wait(0.6); // sent: the keypad shows
   const { door } = await import(join(root, 'src/config.js'));
   for (const k of door.lock.code) { await moveTo(...(await box(`#lock [data-key="${k}"]`)), 0.25); await click(); } // the code, counted in the room
   await wait(1.6);                                                              // and the door swings open

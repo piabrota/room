@@ -56,7 +56,8 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 23 | 9 nov 16:54 | [#29](https://github.com/piabrota/room/pull/29) vistas do ▲ grid: uma fileira de botões no painel do mapa (Brasil, Rio de Janeiro, Bahia, Salvador) que ajusta o mapa a cada caixa de `config.grid.presets`, suave, ou de uma vez com movimento reduzido; uma checagem das caixas; `just record-grid` para os stills e o clipe delas | 15 min |
 | 24 | 9 nov 10:56 | [#27](https://github.com/piabrota/room/pull/27) uma lousa ao lado do mural das pessoas para o tyler-durden-bot, o GitHub App que resume um pull request grande: sua marca desenhada em código (a cabeça de um robô partida em duas), seu nome e uma fita zebrada que diz "work in progress"; ela leva ao pull request dele no piabrota/agents | 35 min |
 | 25 | 9 nov 19:43 | [#30](https://github.com/piabrota/room/pull/30) a sala no celular: um visual `lite` para celulares, tablets e máquinas fracas (razão de pixels de no máximo 1,25, 30 quadros por segundo, sem oclusão de ambiente, mapas de sombra menores), o mar do grid e a foto do dia carregados só quando precisa (3,1 MB → 1,8 MB antes de a sala aparecer), `just mobile` para medir, e duas skills, `room-mobile` e `room-phone-test`; a fechadura de código da porta, com os quatro dígitos contados na sala; uma guarda de tela (preto no PrintScreen e enquanto a janela está fora de foco, as palavras da fechadura não selecionáveis); Nash, um gato preto que passeia do tapete à estante; o quadro grande do tyler-durden-bot na parede da frente, o retrato em pixels do dono num anel de lâmpadas vermelhas que piscam à noite (com a #27) | 55 min |
-| 26 | 9 nov 22:48 | [#32](https://github.com/piabrota/room/pull/32) o Nash no computador: ele lê a sala uma vez (os triângulos dela cortados em células do chão e voxels), anda por caminhos A* arredondados em volta dos pés da mesa, da cadeira e da planta, acelerando e freando, vira antes de sair, senta onde o corpo cabe (não mais dentro do rádio ou do teclado) e pula em parábolas testadas contra a sala; no celular ele segue com a vida barata. O miado agora é de um gato de verdade, uma gravação em domínio público | 40 min |
+| 26 | 9 nov 21:54 | [#31](https://github.com/piabrota/room/pull/31) o quadro do tyler-durden-bot quadrado, acima da estante das obras com DOI, o retrato do dono como ele é; o plano do loop mostra a porta; a porta pede um email antes da fechadura, guardado no próprio servidor da sala (`POST /live/door`) | 60 min |
+| 27 | 9 nov 22:48 | [#32](https://github.com/piabrota/room/pull/32) o Nash no computador: ele lê a sala uma vez (os triângulos dela cortados em células do chão e voxels), anda por caminhos A* arredondados em volta dos pés da mesa, da cadeira e da planta, acelerando e freando, vira antes de sair, senta onde o corpo cabe (não mais dentro do rádio ou do teclado) e pula em parábolas testadas contra a sala; no celular ele segue com a vida barata. O miado agora é de um gato de verdade, uma gravação em domínio público | 40 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -307,6 +308,16 @@ user> 'durden blink should only happen at night'
 ```
 
 **26.**
+
+```text
+user> 'you did not use the right image, also this square should be above the book shelf, with
+the DOIs'
+user> 'was mobile optimized? where is the puzzle in the room? the puzzle must be enabled on the
+door, locked before. Only users submitting an email form will be able to play the game, after
+the door'
+```
+
+**27.**
 
 ```text
 user> 'cat collision is horrible, the cat seems to float in objects very often, you need smoother
