@@ -58,6 +58,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 25 | 9 Nov 19:43 | [#30](https://github.com/piabrota/room/pull/30) the room on a phone: a `lite` look for phones, tablets and weak machines (pixel ratio 1.25 at most, 30 frames a second, no ambient occlusion, smaller shadow maps), the grid's sea and the day photo loaded only when needed (3.1 MB → 1.8 MB before the room shows), `just mobile` to measure, and two skills, `room-mobile` and `room-phone-test`; the door's code lock, its four digits counted in the room; a screen guard (black on PrintScreen and while the window is away, the lock's words not selectable); Nash, a black cat who wanders from the rug to the shelf; tyler-durden-bot's big board on the front wall, the owner's pixel portrait in a ring of red bulbs that blink at night (with #27) | 55 min |
 | 26 | 9 Nov 21:54 | [#31](https://github.com/piabrota/room/pull/31) tyler-durden-bot's board square, above the shelf of the works with a DOI, the owner's portrait as it is; the loop shot shows the door; the door asks for an email before its lock, kept on the room's own server (`POST /live/door`) | 60 min |
 | 27 | 9 Nov 22:48 | [#32](https://github.com/piabrota/room/pull/32) Nash on a desktop: he reads the room once (its triangles cut into floor cells and voxels), walks rounded A* paths around the desk's legs, the chair and the plant, eased in and out, turns before he sets off, sits where his body fits (no longer inside the radio or the keyboard) and leaps on parabolas tried against the room; phones keep the cheap life. His meow is a real cat now, a public-domain recording | 40 min |
+| 28 | 9 Nov 23:13 | [#33](https://github.com/piabrota/room/pull/33) a "lyrics" toggle in the playlist's player that says where the lyrics are (Spotify's own app) and shows none, since the room has no licence for them; the playlist's tracks and artists read again from Spotify's player, 37 tracks and 42 artists, in `CREDITS.md` and beside the player | 25 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -323,6 +324,17 @@ the door'
 user> 'cat collision is horrible, the cat seems to float in objects very often, you need smoother
 animation (only in a real browser, not on mobile)'
 user> 'also the cat sound is not realistic'
+```
+
+**28.**
+
+```text
+user> 'check if is possible to add lyrics toggle in the website'
+user> 'with Flora Matos · Sain · Luccas Carlos · Akira Presidente · Bril · CHS · JXNV$ · BK · Pirâmide
+Perdida · El Lif Beatz · Nectar Gang · Tyler, The Creator · Kanye West · Marina Sena ·
+Çantamarta · Supercombo · Vitor Kley · Elana Dara · Preta Gil
+
+Inaccurate, fix it. in the same lyrics pr'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix

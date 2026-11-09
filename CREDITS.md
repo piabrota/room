@@ -17,47 +17,47 @@ to its artists and their labels. It is streamed by Spotify, under Spotify's term
 audio, cover or logo of it is copied into this repository. Without a Spotify login in the
 browser, Spotify plays 30-second previews.
 
-The tracks, as Spotify listed them on 9 November 2026:
+The tracks, as Spotify's Embed player listed them on 9 November 2026 at 23:22 UTC:
 
 | # | Track | Artists |
 |---|---|---|
-| 1 | O Jeito | Flora Matos |
-| 2 | Bora Dançar | Flora Matos |
-| 3 | Sonhos Gangsta | Flora Matos |
-| 4 | Reunião | Sain, Luccas Carlos, Akira Presidente, Bril, CHS, JXNV$, BK, Pirâmide Perdida |
-| 5 | P. D. M. V | Akira Presidente, El Lif Beatz, Nectar Gang |
-| 6 | Avanço | Nectar Gang |
-| 7 | I THINK | Tyler, The Creator |
-| 8 | NEW MAGIC WAND | Tyler, The Creator |
-| 9 | EARFQUAKE | Tyler, The Creator |
-| 10 | Stronger | Kanye West |
-| 11 | Me Toca | Marina Sena |
-| 12 | Pelejei | Marina Sena |
-| 13 | Voltei Pra Mim | Marina Sena |
-| 14 | Amiúde | Marina Sena |
-| 15 | Seu Olhar | Marina Sena |
-| 16 | Coisas Naturais | Marina Sena |
-| 17 | Sem Lei | Marina Sena |
-| 18 | SENSEI | Marina Sena |
-| 19 | Lua Cheia | Marina Sena |
-| 20 | Combo da Sorte | Marina Sena |
-| 21 | Mágico | Marina Sena |
-| 22 | Doçura | Marina Sena, Çantamarta |
-| 23 | CARNAVAL | Marina Sena |
-| 24 | Ouro de Tolo | Marina Sena |
-| 25 | Aos Poucos | Supercombo |
-| 26 | Remédios | Supercombo |
-| 27 | Tarde Demais | Supercombo, Vitor Kley |
-| 28 | Ímã | Supercombo |
-| 29 | Intervenção | Supercombo |
-| 30 | O Pneu e a Lombada | Supercombo |
-| 31 | Fim Do Mundo | Supercombo |
-| 32 | A Baleia e o Lambari | Supercombo |
-| 33 | À Primeira Vista | Supercombo |
-| 34 | Estrela Do Mar | Supercombo, Elana Dara |
-| 35 | Cassino | Supercombo |
-| 36 | Esqueletos na Areia | Supercombo |
-| 37 | Sinais de fogo | Preta Gil |
+| 1 | NASCI PELADO, TÔ VESTIDO | Brone, Jamé |
+| 2 | Deus Do Furdunço | Leo Gandelman, Machine Series, BK |
+| 3 | Julius | BK, El Lif Beatz |
+| 4 | O Jeito | Flora Matos |
+| 5 | Bora Dançar | Flora Matos |
+| 6 | Sonhos Gangsta | Flora Matos |
+| 7 | Reunião | Sain, Luccas Carlos, Akira Presidente, Bril, CHS, JXNV$, BK, Pirâmide Perdida |
+| 8 | Avanço | Nectar Gang |
+| 9 | I THINK | Tyler, The Creator |
+| 10 | NEW MAGIC WAND | Tyler, The Creator |
+| 11 | EARFQUAKE | Tyler, The Creator |
+| 12 | Stronger | Kanye West |
+| 13 | California Uber Alles | Dead Kennedys |
+| 14 | Me Toca | Marina Sena |
+| 15 | Pelejei | Marina Sena |
+| 16 | Voltei Pra Mim | Marina Sena |
+| 17 | Amiúde | Marina Sena |
+| 18 | Seu Olhar | Marina Sena |
+| 19 | Coisas Naturais | Marina Sena |
+| 20 | Sem Lei | Marina Sena |
+| 21 | SENSEI | Marina Sena |
+| 22 | CARNAVAL | Marina Sena |
+| 23 | Sinais de fogo | Preta Gil |
+| 24 | O Vento | Los Hermanos |
+| 25 | ROMPEU O COURO. | Marcelo D2, Juçara Marçal, BK, Baco Exu do Blues, Anelis Assumpção |
+| 26 | The Search | NF |
+| 27 | Desenho | Filipe Ret, Mãolee |
+| 28 | SPINE | WesGhost |
+| 29 | Ta Faltando Um | Wealstarcks |
+| 30 | LOVE IN RIO | Wealstarcks |
+| 31 | Quente ! | Akira Presidente, BK, Paulo DK, Abud |
+| 32 | Asa | Djavan |
+| 33 | Melhoria Gang | Akira Presidente, El Lif Beatz |
+| 34 | a última dança | Link do Zap, pluglip |
+| 35 | It's The End Of The World As We Know It (And I Feel Fine) | R.E.M. |
+| 36 | Human | Apashe, Wasiu |
+| 37 | Enemy (with JID) - from the series Arcane League of Legends | Imagine Dragons, JID, Arcane, League of Legends |
 
 ## Assets
 
