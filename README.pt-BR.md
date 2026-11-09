@@ -52,6 +52,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 19 | 9 nov 05:50 | [#23](https://github.com/piabrota/room/pull/23) ▲ grid ocupa a janela inteira: a assinatura e os botões saem do caminho enquanto o mapa está aberto, o painel se dobra no título, na hora e na legenda (`+` para o resto), um botão ⛶ para a tela cheia, as fontes num ⓘ no canto, e a costa enquadrada ao lado do painel | 30 min |
 | 20 | 9 nov 06:23 | [#24](https://github.com/piabrota/room/pull/24) um botão ♫ playlist ao lado do do rádio, e uma fita cassete no parapeito ao lado do rádio, os dois abrindo a playlist do dono no Spotify; a playlist também na lista online do LOFI | 30 min |
 | 21 | 9 nov 06:50 | [#25](https://github.com/piabrota/room/pull/25) as invariantes 1, 5 e 7 deixam entrar o player do Spotify; [#26](https://github.com/piabrota/room/pull/26) a fita e o botão ♫ abrem a playlist no player do Spotify sobre a sala, as 37 faixas e seus artistas creditados no `CREDITS.md` e ao lado do player, e um "open in Spotify" que toca tudo em qualquer navegador | 25 min |
+| 22 | 9 nov 10:56 | [#27](https://github.com/piabrota/room/pull/27) uma lousa ao lado do mural das pessoas para o tyler-durden-bot, o GitHub App que resume um pull request grande: sua marca desenhada em código (a cabeça de um robô partida em duas), seu nome e uma fita zebrada que diz "work in progress"; ela leva ao pull request dele no piabrota/agents | 35 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -263,6 +264,13 @@ user> 'Visitors who aren't logged in to Spotify only hear 30-second previews. Lo
 hear the full tracks. make this work consistently on all browsers'
 ```
 
+**22.**
+
+```text
+user> 'add tyler-durden-bot representation in the website, add one more board in the room, with
+tyler-durden bot logo in the piabrota room (work in progress)'
+```
+
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
 
@@ -304,7 +312,7 @@ Cada parte é um export próprio, então dá para trocar uma e manter o resto:
 | `ambience`, `sfx` | o botão da chuva e os cliques | suas gravações (`just audio take.wav <nome>`) |
 | `outside` | a vista da janela, de dia e de noite | sua cidade, duas fotos creditadas no `CREDITS.md` |
 | `tapes` | o que o videocassete toca | suas fitas, um arquivo cada em `src/tapes/` |
-| `projects`, `bots`, `people`, `works` | as paredes, a mesa, o quadro, a estante | suas listas |
+| `projects`, `bots`, `wip`, `people`, `works` | as paredes, a mesa, a lousa do que ainda está sendo feito, o quadro, a estante | suas listas |
 | `sea`, `loop`, `slipbox` | as outras três paredes | suas coleções, ou tire-as |
 | `reading`, `posts/` | a página LOFI: sobre, online, assinar; os posts | suas palavras, seus perfis; seus posts, um arquivo Markdown cada |
 | `hotspots` | o que pode ser clicado, e o que faz | seus rótulos, suas palavras, seus links |

@@ -52,6 +52,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 19 | 9 Nov 05:50 | [#23](https://github.com/piabrota/room/pull/23) ▲ grid fills the whole window: the signature and the switches step aside while the map is open, the panel folds to the title, the time and the legend (`+` for the rest), a ⛶ button for the whole screen, the sources in an ⓘ in the corner, and the coast fitted beside the panel | 30 min |
 | 20 | 9 Nov 06:23 | [#24](https://github.com/piabrota/room/pull/24) a ♫ playlist button beside the radio's, and a mixtape on the sill beside the radio, both opening the owner's Spotify playlist; the playlist in LOFI's online list too | 30 min |
 | 21 | 9 Nov 06:50 | [#25](https://github.com/piabrota/room/pull/25) invariants 1, 5 and 7 let in Spotify's Embed player; [#26](https://github.com/piabrota/room/pull/26) the mixtape and the ♫ button open the playlist in Spotify's player over the room, the 37 tracks and their artists credited in `CREDITS.md` and beside the player, and an "open in Spotify" that plays them all in any browser | 25 min |
+| 22 | 9 Nov 10:56 | [#27](https://github.com/piabrota/room/pull/27) a slate beside the people's board for tyler-durden-bot, the GitHub App that sums up a large pull request: its mark drawn in code (a bot's head split in two), its name, and hazard tape that says "work in progress"; it links to its pull request in piabrota/agents | 35 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -263,6 +264,13 @@ user> 'Visitors who aren't logged in to Spotify only hear 30-second previews. Lo
 hear the full tracks. make this work consistently on all browsers'
 ```
 
+**22.**
+
+```text
+user> 'add tyler-durden-bot representation in the website, add one more board in the room, with
+tyler-durden bot logo in the piabrota room (work in progress)'
+```
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -304,7 +312,7 @@ is its own export, so you can replace one and keep the rest:
 | `ambience`, `sfx` | the rain button and the clicks | your recordings (`just audio take.wav <name>`) |
 | `outside` | the view from the window, by day and by night | your city, two photographs credited in `CREDITS.md` |
 | `tapes` | what the VCR plays | your tapes, one file each in `src/tapes/` |
-| `projects`, `bots`, `people`, `works` | the walls, the desk, the board, the shelf | your own lists |
+| `projects`, `bots`, `wip`, `people`, `works` | the walls, the desk, the slate of what is still being built, the board, the shelf | your own lists |
 | `sea`, `loop`, `slipbox` | the other three walls | your own collections, or remove them |
 | `reading`, `posts/` | the LOFI page: about, online, subscribe; the posts | your words, your profiles; your posts, one Markdown file each |
 | `hotspots` | what can be clicked, and what it does | your labels, your words, your links |

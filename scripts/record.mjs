@@ -166,6 +166,9 @@ await wall(async () => {                                                        
   await moveTo(...(await at('window')), 0.6); await wait(1.0);
   await moveTo(...(await at('mixtape')), 0.6); await wait(0.9);               // the mixtape on the sill: the playlist
   await moveTo(...(await box('#playlist')), 0.5); await wait(0.6);              // and its button at the top
+  await page.keyboard.press('5'); await land();                                 // key 5: the board
+  await moveTo(...(await at('photo_h0ffmann')), 0.5); await wait(0.5);          // the people
+  await moveTo(...(await at('board_tyler-durden-bot')), 0.6); await wait(1.4); // and the slate beside it: tyler-durden-bot, work in progress
 });
 await wall(async () => {                                                        // the left wall: the projects
   await page.keyboard.press('3'); await land();

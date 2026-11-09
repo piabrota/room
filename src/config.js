@@ -56,7 +56,7 @@ export const shots = {
   desk:     { position: [0.05, 1.42, 0.75], target: [0.05, 1.08, -1.0], fov: 45 },
   fabric:   { position: [-0.7, 1.6, 0.55], target: [-3.0, 1.6, -0.2], fov: 52 },
   shelf:    { position: [-1.75, 1.35, 0.15], target: [-2.05, 1.25, -1.9], fov: 46 },
-  board:    { position: [2.45, 1.8, 0.25], target: [2.45, 1.82, -2.0], fov: 50 },
+  board:    { position: [2.55, 1.8, 0.25], target: [2.55, 1.82, -2.0], fov: 50 },
   window:   { position: [0.2, 1.62, 0.7], target: [0.2, 2.12, -2.0], fov: 56 },
   sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
   slipbox:  { position: [-1.62, 0.88, -0.22], target: [-2.2, 0.18, -0.98], fov: 46 },
@@ -227,6 +227,19 @@ export const bots = [
     agents: [],
   },
 ];
+
+// ── tyler-durden-bot: a third GitHub App, still being built, on its own board ──
+// It sums up a large pull request on h0ffmann/proof in one comment. Its code is
+// in piabrota/agents#6 (the agent) and piabrota/nix-os#173 (the host). It has no
+// logo file: src/art.js draws its mark from these words (a bot's head split in
+// two halves, one eye open on each), with the tape that says it is not done.
+export const wip = {
+  id: 'tyler-durden-bot', name: 'tyler-durden-bot', initials: 'TD', color: '#D29922',
+  line: 'one comment for a large pull request',
+  hint: 'work in progress: a GitHub App that sums up a large pull request',
+  tag: 'WORK IN PROGRESS',
+  url: 'https://github.com/piabrota/agents/pull/6',
+};
 
 // ── the people, pinned to the board ──
 export const people = [
@@ -441,6 +454,10 @@ export const hotspots = [
     name: `bot_${b.id}`, label: b.name, hint: b.role, action: 'link', value: b.url, group: 'bots',
     art: { kind: 'bot', color: b.color },
   })),
+  {
+    name: `board_${wip.id}`, label: `${wip.name} (wip)`, hint: wip.hint, action: 'link', value: wip.url, group: 'bots',
+    art: { kind: 'wip', initials: wip.initials, title: wip.name, line: wip.line, tag: wip.tag, color: wip.color },
+  },
   ...people.map((p) => ({
     name: `photo_${p.id}`, label: `@${p.name}`, hint: p.line, action: 'link', value: p.url, group: 'people',
     art: { kind: 'photo' },
