@@ -7,6 +7,58 @@ tapes that play on a TV, comes from **Felix Rieseberg**, who built one for his o
 wrote about how he made it. This repository is a separate work: no code, model, texture,
 sound or text of his is used here.
 
+
+## The playlist
+
+The mixtape on the sill and the ♫ playlist button open **GREAT RESET**, a playlist by
+Matheus Hoffmann on [Spotify](https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U), in
+Spotify's Embed player (`src/player.js`; `AGENTS.md`, invariants 1 and 7). The music belongs
+to its artists and their labels. It is streamed by Spotify, under Spotify's terms, and no
+audio, cover or logo of it is copied into this repository. Without a Spotify login in the
+browser, Spotify plays 30-second previews.
+
+The tracks, as Spotify listed them on 9 November 2026:
+
+| # | Track | Artists |
+|---|---|---|
+| 1 | O Jeito | Flora Matos |
+| 2 | Bora Dançar | Flora Matos |
+| 3 | Sonhos Gangsta | Flora Matos |
+| 4 | Reunião | Sain, Luccas Carlos, Akira Presidente, Bril, CHS, JXNV$, BK, Pirâmide Perdida |
+| 5 | P. D. M. V | Akira Presidente, El Lif Beatz, Nectar Gang |
+| 6 | Avanço | Nectar Gang |
+| 7 | I THINK | Tyler, The Creator |
+| 8 | NEW MAGIC WAND | Tyler, The Creator |
+| 9 | EARFQUAKE | Tyler, The Creator |
+| 10 | Stronger | Kanye West |
+| 11 | Me Toca | Marina Sena |
+| 12 | Pelejei | Marina Sena |
+| 13 | Voltei Pra Mim | Marina Sena |
+| 14 | Amiúde | Marina Sena |
+| 15 | Seu Olhar | Marina Sena |
+| 16 | Coisas Naturais | Marina Sena |
+| 17 | Sem Lei | Marina Sena |
+| 18 | SENSEI | Marina Sena |
+| 19 | Lua Cheia | Marina Sena |
+| 20 | Combo da Sorte | Marina Sena |
+| 21 | Mágico | Marina Sena |
+| 22 | Doçura | Marina Sena, Çantamarta |
+| 23 | CARNAVAL | Marina Sena |
+| 24 | Ouro de Tolo | Marina Sena |
+| 25 | Aos Poucos | Supercombo |
+| 26 | Remédios | Supercombo |
+| 27 | Tarde Demais | Supercombo, Vitor Kley |
+| 28 | Ímã | Supercombo |
+| 29 | Intervenção | Supercombo |
+| 30 | O Pneu e a Lombada | Supercombo |
+| 31 | Fim Do Mundo | Supercombo |
+| 32 | A Baleia e o Lambari | Supercombo |
+| 33 | À Primeira Vista | Supercombo |
+| 34 | Estrela Do Mar | Supercombo, Elana Dara |
+| 35 | Cassino | Supercombo |
+| 36 | Esqueletos na Areia | Supercombo |
+| 37 | Sinais de fogo | Preta Gil |
+
 ## Assets
 
 Everything in `public/` is the owner's own, unless a row below says otherwise. A third-party

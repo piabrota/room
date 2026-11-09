@@ -25,7 +25,7 @@ for (const [name, s] of shots) {
 if (!config.shots?.[config.startShot]) fail(4, `startShot "${config.startShot}" is not a shot`);
 
 // 5. Every hotspot has a label and a known action.
-const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio']);
+const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist']);
 const names = new Set();
 for (const h of config.hotspots ?? []) {
   if (names.has(h.name)) fail(5, `hotspot name "${h.name}" is used twice`);
@@ -92,6 +92,21 @@ for (const f of walk(join(root, 'src'))) {
     fail(1, `${f.slice(root.length)} loads something from another host: ${m[0]}`);
   }
 }
+
+// 1. The one thing that loads from another host: Spotify's Embed player for config.playlist,
+// made in src/player.js only, its artists credited (the owner, 9 November 2026).
+if (config.playlist) {
+  const p = config.playlist;
+  if (!/^https:\/\/open\.spotify\.com\/embed\//.test(p.embed ?? '')) fail(1, `config.playlist.embed must be an open.spotify.com/embed/ address, not "${p.embed}"`);
+  if (!p.artists?.length) fail(1, 'config.playlist names no artists: credit them beside the player');
+  const credits = readFileSync(join(root, 'CREDITS.md'), 'utf8');
+  if (!credits.includes(p.title)) fail(1, `CREDITS.md does not credit the playlist "${p.title}"`);
+  for (const a of p.artists ?? []) if (!credits.includes(a)) fail(1, `CREDITS.md does not name ${a}, an artist of the playlist`);
+}
+for (const f of walk(join(root, 'src'))) {
+  if (/createElement\(\s*['"]iframe/.test(readFileSync(f, 'utf8')) && !f.endsWith('/player.js')) fail(1, `${f.slice(root.length)} makes an iframe: only src/player.js may, for the playlist`);
+}
+if (config.hotspots.some((h) => h.action === 'playlist') && !config.playlist?.embed) fail(5, 'a hotspot opens the playlist, but config.playlist has no embed');
 
 for (const src of [config.roomModel, config.outside?.night?.photo, config.outside?.day?.photo, ...(config.ambience ?? []).map((a) => a.src), ...Object.values(config.sfx ?? {}).map((s) => s.src), ...radioTracks.map((t) => t.src)].filter(Boolean)) {
   if (!String(src).startsWith('/')) fail(1, `${src}: assets load from public/, as /path`);
