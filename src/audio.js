@@ -48,7 +48,7 @@ function synth(ctx, kind) {
   const drops = kind === 'rain' ? Array.from({ length: 160 }, () => [Math.random() * len, 1800 + Math.random() * 2600, 0.04 + Math.random() * 0.1]) : [];
   // lofi: two soft seventh chords, four seconds each, a kick on the beat and vinyl crackle
   const chords = [[174.6, 220, 261.6, 329.6], [164.8, 196, 246.9, 293.7]];
-  const b = ctx.createBuffer(2, Math.floor(sr * len), sr);
+  const b = ctx.createBuffer(2, Math.floor(sr * len), sr), res = [];
   for (let ch = 0; ch < 2; ch++) {
     const d = b.getChannelData(ch); let lp = 0, ph = 0;
     for (let i = 0; i < d.length; i++) {
@@ -62,10 +62,23 @@ function synth(ctx, kind) {
         v += Math.sin(2 * Math.PI * (60 - beat * 40) * beat) * Math.exp(-beat * 18) * 0.3;
         d[i] = v + (Math.random() < 0.0004 ? n * 0.25 : n * 0.004);
       }
-      else if (kind === 'meow') { // a cat: the pitch rises and falls, the mouth opens and closes (harmonics)
-        const u = t / len, f = 480 + 360 * Math.sin(Math.PI * Math.min(1, u * 1.3)) + 12 * Math.sin(2 * Math.PI * 6 * t);
-        ph += 2 * Math.PI * f / sr; const open = Math.sin(Math.PI * u);
-        d[i] = Math.pow(open, 0.7) * (0.5 * Math.sin(ph) + 0.3 * open * Math.sin(2 * ph) + 0.18 * open * Math.sin(3 * ph) + 0.02 * n) * 0.6;
+      else if (kind === 'meow') { // a cat: a voice of pulses through a mouth that opens "mi-a" and closes "-ow"
+        const u = t / len;
+        // the pitch: up from 560 Hz to about 820, then down to 520, with a little waver
+        const f0 = 560 + 300 * Math.sin(Math.PI * Math.min(1, u * 1.25)) - 60 * u + 9 * Math.sin(2 * Math.PI * 5.5 * t) + 4 * n;
+        ph += f0 / sr; if (ph >= 1) ph -= 1;
+        const pulse = (ph < 0.4 ? Math.sin(Math.PI * ph / 0.4) : 0) - 0.25; // the glottis: a short open, a long shut
+        // the mouth: two resonances that glide from "i" (F1 450, F2 2300) to "a" (900, 1600) to "u" (550, 1000)
+        const m = u < 0.45 ? u / 0.45 : 1, w = u < 0.45 ? 0 : (u - 0.45) / 0.55;
+        const F1 = 450 + 450 * m - 350 * w, F2 = 2300 - 700 * m - 600 * w;
+        if (!res[ch]) res[ch] = [[0, 0], [0, 0]];
+        let v = 0;
+        for (const [k, F, bw, g] of [[0, F1, 120, 1], [1, F2, 180, 0.55]]) {
+          const r = Math.exp(-Math.PI * bw / sr), c = 2 * r * Math.cos(2 * Math.PI * F / sr), st = res[ch][k];
+          const y = (1 - r) * (pulse + 0.06 * n) + c * st[0] - r * r * st[1]; st[1] = st[0]; st[0] = y; v += g * y;
+        }
+        const env = Math.min(1, u / 0.08) * Math.pow(Math.max(0, 1 - u), 0.6) * (0.75 + 0.25 * Math.sin(Math.PI * Math.min(1, u * 1.6)));
+        d[i] = v * env * 0.54;
       }
       else if (kind === 'thunk') d[i] = Math.sin(2 * Math.PI * (90 - t * 120) * t) * Math.exp(-t * 14) + n * 0.2 * Math.exp(-t * 60);
     }

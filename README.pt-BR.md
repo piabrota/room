@@ -56,6 +56,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 23 | 9 nov 16:54 | [#29](https://github.com/piabrota/room/pull/29) vistas do ▲ grid: uma fileira de botões no painel do mapa (Brasil, Rio de Janeiro, Bahia, Salvador) que ajusta o mapa a cada caixa de `config.grid.presets`, suave, ou de uma vez com movimento reduzido; uma checagem das caixas; `just record-grid` para os stills e o clipe delas | 15 min |
 | 24 | 9 nov 10:56 | [#27](https://github.com/piabrota/room/pull/27) uma lousa ao lado do mural das pessoas para o tyler-durden-bot, o GitHub App que resume um pull request grande: sua marca desenhada em código (a cabeça de um robô partida em duas), seu nome e uma fita zebrada que diz "work in progress"; ela leva ao pull request dele no piabrota/agents | 35 min |
 | 25 | 9 nov 19:43 | [#30](https://github.com/piabrota/room/pull/30) a sala no celular: um visual `lite` para celulares, tablets e máquinas fracas (razão de pixels de no máximo 1,25, 30 quadros por segundo, sem oclusão de ambiente, mapas de sombra menores), o mar do grid e a foto do dia carregados só quando precisa (3,1 MB → 1,8 MB antes de a sala aparecer), `just mobile` para medir, e duas skills, `room-mobile` e `room-phone-test`; a fechadura de código da porta, com os quatro dígitos contados na sala; uma guarda de tela (preto no PrintScreen e enquanto a janela está fora de foco, as palavras da fechadura não selecionáveis); Nash, um gato preto que passeia do tapete à estante; o quadro grande do tyler-durden-bot na parede da frente, o retrato em pixels do dono num anel de lâmpadas vermelhas que piscam à noite (com a #27) | 55 min |
+| 26 | 9 nov 22:48 | [#PRNUM](https://github.com/piabrota/room/pull/PRNUM) o Nash no computador: ele lê a sala uma vez (os triângulos dela cortados em células do chão e voxels), anda por caminhos A* arredondados em volta dos pés da mesa, da cadeira e da planta, acelerando e freando, vira antes de sair, senta onde o corpo cabe (não mais dentro do rádio ou do teclado) e pula em parábolas testadas contra a sala; no celular ele segue com a vida barata. O miado agora é de um gato de verdade, uma gravação em domínio público | TOOK |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -303,6 +304,14 @@ randomly (but naturally), over the things, especially the shelf, etc'
 user> 'also the scene is missing a big board on the wall with the tyler-durden-bot icon, with hover'
 user> 'in the scene, it should blink randomly with red lights'
 user> 'durden blink should only happen at night'
+```
+
+**26.**
+
+```text
+user> 'cat collision is horrible, the cat seems to float in objects very often, you need smoother
+animation (only in a real browser, not on mobile)'
+user> 'also the cat sound is not realistic'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
