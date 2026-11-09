@@ -274,7 +274,13 @@ export function createGrid(grid, { still = false } = {}) {
   const el = document.createElement('section'); el.id = 'grid'; el.hidden = true; el.setAttribute('aria-label', grid.label);
   const mapEl = document.createElement('div'); mapEl.className = 'map';
   const panel = document.createElement('div'); panel.className = 'panel';
+  // the head: the title, then two small buttons: fold the panel, and the whole screen
+  const head = document.createElement('div'); head.className = 'head';
   const title = document.createElement('h2'); title.textContent = grid.title;
+  const fold = document.createElement('button'); fold.className = 'fold';
+  const full = document.createElement('button'); full.className = 'full'; full.textContent = '⛶'; full.title = w.full; full.setAttribute('aria-label', w.full);
+  if (!document.fullscreenEnabled) full.hidden = true; // an iPhone has no fullscreen for a page
+  head.append(title, fold, full);
   const time = document.createElement('p'); time.className = 'time'; time.textContent = w.loading;
   const row = document.createElement('div'); row.className = 'row';
   const play = document.createElement('button'); play.textContent = w.pause;
@@ -291,11 +297,12 @@ export function createGrid(grid, { still = false } = {}) {
   const legend = document.createElement('div'); legend.className = 'legend';
   const scale = document.createElement('div'); scale.className = 'scale';
   const flowLabel = document.createElement('p'); flowLabel.className = 'dim flow'; flowLabel.textContent = w.flow;
-  const credit = document.createElement('p'); credit.className = 'dim'; credit.textContent = grid.credit;
-  const note = document.createElement('p'); note.className = 'dim'; note.textContent = grid.note;
-  const sources = document.createElement('p'); sources.className = 'dim'; sources.textContent = grid.sources;
+  const credit = document.createElement('p'); credit.className = 'dim more'; credit.textContent = grid.credit;
+  const note = document.createElement('p'); note.className = 'dim more'; note.textContent = grid.note;
+  const sources = document.createElement('p'); sources.className = 'dim more'; sources.textContent = grid.sources;
   const back = document.createElement('button'); back.className = 'back'; back.textContent = `Esc · ${w.back}`;
-  panel.append(title, time, row, layers, layerLabel, legend, scale, flowLabel, credit, note, sources, back);
+  row.classList.add('more'); layerLabel.classList.add('more'); flowLabel.classList.add('more');
+  panel.append(head, time, row, layers, layerLabel, legend, scale, flowLabel, credit, note, sources, back);
   const tip = document.createElement('div'); tip.className = 'tip';
   el.append(mapEl, panel, tip);
   document.body.append(el);
@@ -306,6 +313,18 @@ export function createGrid(grid, { still = false } = {}) {
   play.onclick = () => { state.playing = !state.playing; play.textContent = state.playing ? w.pause : w.play; };
   slider.oninput = () => { state.t = Number(slider.value); state.playing = false; play.textContent = w.play; showTime(); state.map?.triggerRepaint(); };
   play.textContent = state.playing ? w.pause : w.play;
+
+  // the map takes the whole window: the panel starts folded to the title, the time, the layer
+  // and its legend; the room's signature and switches step aside while it is open (style.css)
+  function setFolded(on) {
+    panel.classList.toggle('folded', on);
+    fold.textContent = on ? '+' : '−'; fold.title = on ? w.unfold : w.fold; fold.setAttribute('aria-label', fold.title);
+    fold.setAttribute('aria-expanded', String(!on));
+  }
+  setFolded(true);
+  fold.onclick = () => setFolded(!panel.classList.contains('folded'));
+  full.onclick = () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {});
+  document.addEventListener('fullscreenchange', () => { full.setAttribute('aria-pressed', String(!!document.fullscreenElement)); state.map?.resize(); });
 
   function setLayer(name) {
     if (name === 'sst' && !state.d?.sst) name = 'hs';
@@ -327,6 +346,15 @@ export function createGrid(grid, { still = false } = {}) {
     slider.value = String(state.t);
   }
 
+  // what the map keeps clear when it fits the domain: the panel beside it (or under it, on a
+  // phone) and the shot buttons at the bottom
+  function fitPadding() {
+    const p = panel.getBoundingClientRect(), shots = document.getElementById('shots')?.getBoundingClientRect();
+    const bottom = shots ? Math.max(12, innerHeight - shots.top + 8) : 12;
+    if (innerWidth > 600) return { top: 12, bottom, left: 12, right: Math.min(innerWidth / 2, innerWidth - p.left + 12) };
+    return { top: 12, bottom: Math.max(bottom, innerHeight - p.top + 8), left: 12, right: 12 };
+  }
+
   async function build() {
     const [{ default: maplibregl }, d] = await Promise.all([import('maplibre-gl'), data(grid.files), import('maplibre-gl/dist/maplibre-gl.css')]);
     state.d = d; slider.max = String(d.run.hours.length - 1);
@@ -334,8 +362,9 @@ export function createGrid(grid, { still = false } = {}) {
     state.flow = flowField(d, grid.flow);
     const [W, S, E, N] = grid.bbox;
     const map = new maplibregl.Map({
-      container: mapEl, attributionControl: false, // the sources are in the panel
-      bounds: [[W, S], [E, N]], fitBoundsOptions: { padding: { top: 24, bottom: 24, left: 24, right: 340 } }, maxBounds: [[W - 45, S - 30], [E + 45, N + 30]],
+      container: mapEl, attributionControl: false, // the sources are in the panel, and folded in the corner
+      // the coast from the top of the window to the bottom, beside the folded panel and above the shots
+      bounds: [[W, S], [E, N]], fitBoundsOptions: { padding: fitPadding() }, maxBounds: [[W - 45, S - 30], [E + 45, N + 30]],
       renderWorldCopies: false, dragRotate: false, pitchWithRotate: false, fadeDuration: 0,
       style: {
         version: 8,
@@ -348,6 +377,9 @@ export function createGrid(grid, { still = false } = {}) {
       },
     });
     map.touchZoomRotate.disableRotation();
+    // the sources, folded into an ⓘ in the corner (the whole text is in the open panel too)
+    map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: grid.sources }), 'top-left');
+    map.once('load', () => el.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show'));
     state.zoom0 = map.getZoom();
     if (still) state.flow.prime(state.t, grid.flow.speed); // under reduced motion the trails stand still
     map.on('load', () => { map.addLayer(meshLayer(maplibregl, d, state, state.flow)); map.once('idle', () => { state.ready = true; }); });
@@ -382,13 +414,14 @@ export function createGrid(grid, { still = false } = {}) {
     onBack(fn) { onBack = fn; },
     async show() {
       if (state.open) return;
-      state.open = true; el.hidden = false;
+      state.open = true; el.hidden = false; document.body.classList.add('gridding');
       requestAnimationFrame(() => el.classList.add('on'));
       try { if (!state.map) await build(); else state.map.resize(); } catch { time.textContent = w.missing; }
     },
     hide() {
       if (!state.open) return;
-      state.open = false; el.classList.remove('on'); tip.classList.remove('on');
+      state.open = false; el.classList.remove('on'); tip.classList.remove('on'); document.body.classList.remove('gridding');
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
       setTimeout(() => { if (!state.open) el.hidden = true; }, 400);
     },
     update(dt) {
