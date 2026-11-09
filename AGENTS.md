@@ -22,7 +22,11 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    in `public/` and `src/` are made by the owner, or come from a source whose licence allows
    it, with a row in [`CREDITS.md`](CREDITS.md) in the same commit. Nothing is copied from the
    reference room: not its code, its models, its sounds or its words. Assets ship with the
-   site and load from `public/`; nothing is hotlinked from another host.
+   site and load from `public/`; nothing is hotlinked from another host. The one exception
+   is Spotify's Embed player for the owner's playlist (`config.playlist`): an iframe from
+   `open.spotify.com/embed/`, made only after the visitor clicks for it, with the playlist's
+   artists credited in `CREDITS.md` and on screen beside it. Nothing else of Spotify's loads,
+   not its iFrame API script (the owner, 9 November 2026).
 2. **The idea is credited to Felix Rieseberg, by name, in text only.** `README.md` and
    `CREDITS.md` name him as the origin of the idea. No file links to his site, his
    repositories or his issues, and no issue or pull request here links them either.
@@ -37,7 +41,8 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    no free orbit that can leave the room.
 5. **Whatever can be clicked says so on hover.** Every interactive object is registered
    through `src/interact.js`: it shows a label and a glow on hover, and does one thing on
-   click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`; a new action is
+   click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`,
+   `playlist` (opens the Spotify player of invariant 1); a new action is
    added to `src/app.js` and to the check together.
 6. **A tape is a module with the tape contract.** Each tape is one file in `src/tapes/`,
    loaded lazily through `config.tapes`, with a unique `id`, a label, a colour and a mesh
@@ -46,7 +51,9 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    listeners), so ejecting it leaves the room as it was.
 7. **Sound starts only after the visitor asks, and never breaks the room.** Nothing plays
    before the click on "enter the room". The sound button mutes and unmutes everything,
-   tapes included (they play through `audio.bus()`). Every sound in config has a synthesized
+   tapes included (they play through `audio.bus()`). The Spotify player plays its own sound,
+   out of the room's reach, so it opens only on a click, the room's radio pauses while it is
+   open, and the sound button off or `Esc` closes it and removes its iframe. Every sound in config has a synthesized
    `fallback`, so a missing or broken file is never an error. Loop beds are normalized to
    about -18 LUFS (`just audio`).
 8. **The room always opens, on any device.** Without `room.glb` the placeholder room is
