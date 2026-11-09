@@ -56,6 +56,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 23 | 9 Nov 16:54 | [#29](https://github.com/piabrota/room/pull/29) ▲ grid views: a row of buttons in the map's panel (Brasil, Rio de Janeiro, Bahia, Salvador) that fits the map to each box of `config.grid.presets`, eased, or at once with reduced motion; a check for the boxes; `just record-grid` for their stills and clip | 15 min |
 | 24 | 9 Nov 10:56 | [#27](https://github.com/piabrota/room/pull/27) a slate beside the people's board for tyler-durden-bot, the GitHub App that sums up a large pull request: its mark drawn in code (a bot's head split in two), its name, and hazard tape that says "work in progress"; it links to its pull request in piabrota/agents | 35 min |
 | 25 | 9 Nov 19:43 | [#30](https://github.com/piabrota/room/pull/30) the room on a phone: a `lite` look for phones, tablets and weak machines (pixel ratio 1.25 at most, 30 frames a second, no ambient occlusion, smaller shadow maps), the grid's sea and the day photo loaded only when needed (3.1 MB → 1.8 MB before the room shows), `just mobile` to measure, and two skills, `room-mobile` and `room-phone-test`; the door's code lock, its four digits counted in the room; a screen guard (black on PrintScreen and while the window is away, the lock's words not selectable); Nash, a black cat who wanders from the rug to the shelf; tyler-durden-bot's big board on the front wall, the owner's pixel portrait in a ring of red bulbs that blink at night (with #27) | 55 min |
+| 26 | 9 Nov 21:54 | [#31](https://github.com/piabrota/room/pull/31) tyler-durden-bot's board square, above the shelf of the works with a DOI, the owner's portrait as it is; the loop shot shows the door; the door asks for an email before its lock, kept on the room's own server (`POST /live/door`) | 60 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -303,6 +304,16 @@ randomly (but naturally), over the things, especially the shelf, etc'
 user> 'also the scene is missing a big board on the wall with the tyler-durden-bot icon, with hover'
 user> 'in the scene, it should blink randomly with red lights'
 user> 'durden blink should only happen at night'
+```
+
+**26.**
+
+```text
+user> 'you did not use the right image, also this square should be above the book shelf, with
+the DOIs'
+user> 'was mobile optimized? where is the puzzle in the room? the puzzle must be enabled on the
+door, locked before. Only users submitting an email form will be able to play the game, after
+the door'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix

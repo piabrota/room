@@ -8,7 +8,7 @@ import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { woodGrain, planks, plaster } from './textures.js';
-import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt, wipBoardArt } from './art.js';
+import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt } from './art.js';
 
 // Photographed wood (Poly Haven, CC0; CREDITS.md): colour, normal and roughness.
 const loader = new THREE.TextureLoader();
@@ -358,13 +358,15 @@ function placeholderRoom() {
     const pin = mesh('', new THREE.SphereGeometry(0.012, 8, 6), std(theme.accent), [0, 0.11, 0.008], ph); pin.castShadow = false;
   });
 
-  // ── tyler-durden-bot's big board, on the front wall beside the loop, under its sign (config.wip):
-  // the owner's pixel portrait, and a ring of red bulbs that blink at random by night, one draw call ──
+  // ── tyler-durden-bot's board, square, on the back wall above the bookshelf of the works with a
+  // DOI (config.wip): the owner's pixel portrait as it is, drawn sharp, and a ring of red bulbs that
+  // blink at random by night, one draw call ──
   for (const h of art('wip')) {
-    const BW = 1.15, BH = 1.3;
-    const board = named(h.name); board.position.set(2.3, 1.22, 3.765); board.rotation.y = Math.PI;
+    const BW = 0.72, BH = 0.72;
+    const board = named(h.name); board.position.set(-2.15, 2.47, -1.975);
     mesh('', new THREE.BoxGeometry(BW + 0.08, BH + 0.08, 0.035), std('#2a1d16', { roughness: 0.7 }), [0, 0, 0], board);
-    const face = mesh('', new THREE.PlaneGeometry(BW, BH), new THREE.MeshStandardMaterial({ map: wipBoardArt({ ...h.art, theme }), roughness: 0.85, emissive: h.art.lights?.color ?? '#ff2a1a', emissiveIntensity: 0 }), [0, 0, 0.018], board);
+    const logo = loader.load(h.art.logo); logo.colorSpace = THREE.SRGBColorSpace; logo.magFilter = THREE.NearestFilter; logo.anisotropy = anisotropy;
+    const face = mesh('', new THREE.PlaneGeometry(BW, BH), new THREE.MeshStandardMaterial({ map: logo, roughness: 0.85, emissive: h.art.lights?.color ?? '#ff2a1a', emissiveIntensity: 0 }), [0, 0, 0.018], board);
     face.castShadow = false;
     const n = h.art.lights?.count ?? 26, red = new THREE.Color(h.art.lights?.color ?? '#ff2a1a');
     const bulbs = new THREE.InstancedMesh(new THREE.SphereGeometry(0.018, 8, 6), new THREE.MeshBasicMaterial({ toneMapped: false }), n);
