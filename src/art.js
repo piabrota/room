@@ -279,6 +279,31 @@ export function tapeTopArt({ text, face = 'marker', paper = '#f4efe4', ink = '#2
 }
 
 // Beige plastic, for the computer and the fax: a colour with a little grime.
+// An audio cassette, the mixtape on the sill: a cream shell, a label written
+// in marker with a coloured band, the window on the two reels, five screws.
+export function cassetteArt({ title, side, theme }) {
+  const [c, ctx] = canvas(512, 320);
+  ctx.fillStyle = '#e6dfd0'; roundRect(ctx, 0, 0, 512, 320, 22); ctx.fill();
+  grime(ctx, 512, 320, 700, 0.08, title.length + 7);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.beginPath(); // the trapezoid at the bottom, where the heads go
+  ctx.moveTo(110, 320); ctx.lineTo(140, 258); ctx.lineTo(372, 258); ctx.lineTo(402, 320); ctx.fill();
+  ctx.fillStyle = '#c9c0ae'; for (const [x, y] of [[22, 22], [490, 22], [22, 298], [490, 298], [256, 290]]) { ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#f7f3ea'; ctx.fillRect(40, 30, 432, 210); // the label
+  ctx.fillStyle = theme.lanes.write; ctx.fillRect(40, 30, 432, 30); // its band
+  ctx.fillStyle = theme.accent; ctx.fillRect(40, 196, 432, 8);
+  ctx.fillStyle = '#1d1d22'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  fit(ctx, title, 380, 50, FACES.marker); ctx.fillText(title, 256, 92);
+  ctx.fillStyle = '#0d0d10'; roundRect(ctx, 130, 126, 252, 62, 30); ctx.fill(); // the window
+  for (const [x, r] of [[180, 26], [332, 18]]) { // the reels: side A nearly played
+    ctx.fillStyle = '#3a2c24'; ctx.beginPath(); ctx.arc(x, 157, r, 0, 7); ctx.fill();
+    ctx.fillStyle = '#f2efe6'; ctx.beginPath(); ctx.arc(x, 157, 11, 0, 7); ctx.fill();
+    ctx.fillStyle = '#0d0d10'; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; ctx.fillRect(x + Math.cos(a) * 6 - 2, 157 + Math.sin(a) * 6 - 2, 4, 4); }
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(140, 128, 232, 18);
+  ctx.fillStyle = '#1d1d22'; fit(ctx, side, 380, 22, FONT_MONO); ctx.fillText(side, 256, 224);
+  return texture(c);
+}
+
 export function plasticArt(color = '#d6ccb8', seed = 3) {
   const [c, ctx] = canvas(256, 256);
   ctx.fillStyle = color; ctx.fillRect(0, 0, 256, 256);
