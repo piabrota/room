@@ -78,7 +78,9 @@ addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') rig.next(1);
   if (e.key === 'ArrowLeft') rig.next(-1);
 });
-rig.go(config.startShot, true);
+// on the grid's own name the first shot is the map; the room waits behind it (src/main.js)
+const gridHome = !!gridView && document.body.classList.contains('grid-home');
+rig.go(gridHome ? 'grid' : config.startShot, true);
 
 // ── tapes: hover shows label, click flies it into the VCR ──
 const S = (t) => t * t * t * (t * (t * 6 - 15) + 10);
@@ -135,8 +137,15 @@ for (const h of config.hotspots) {
 const words = config.ui;
 const soundBtn = document.getElementById('sound');
 soundBtn.textContent = `${words.sound}: ${words.off}`;
+const gate = document.getElementById('enter');
+// The map needs no sound, so on the grid's own name the gate waits until the visitor first steps
+// into the room; nothing plays before its click either way (invariant 7).
+if (gridHome) {
+  gate.classList.add('gone');
+  rig.onChange((n) => { if (n !== 'grid' && audio.ctx.state !== 'running') gate.classList.remove('gone'); });
+}
 document.querySelector('#enter button').onclick = async () => {
-  document.getElementById('enter').classList.add('gone');
+  gate.classList.add('gone');
   await audio.unlock(); soundBtn.textContent = `${words.sound}: ${words.on}`;
 };
 soundBtn.onclick = () => { const on = audio.toggle(); soundBtn.textContent = `${words.sound}: ${on ? words.on : words.off}`; if (!on) player.close(); };

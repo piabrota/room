@@ -3,6 +3,8 @@
 //   LOFI  the room as plain text (src/lofi.js).
 // The LOFI/HIFI switch shows the two as buttons; the one in view is lit. `?lofi` (or the older
 // `?static`) opens in LOFI, and without WebGL LOFI is the only view.
+// On `config.grid.host` (grid.piabrota.art), or with `?grid`, HIFI opens straight on the ▲ grid map
+// (src/app.js), whatever view the visitor last picked; `?lofi` still wins.
 import '@fontsource/fjalla-one/latin-400.css';
 import '@fontsource/jetbrains-mono/latin-400.css';
 import '@fontsource/permanent-marker/latin-400.css';
@@ -30,11 +32,13 @@ const store = {
 
 const canHifi = hasWebGL();
 const params = new URLSearchParams(location.search);
-const asked = params.has('lofi') || params.has('static') ? 'lofi' : params.has('hifi') ? 'hifi' : store.get();
+const gridHome = !!config.grid && (location.hostname === config.grid.host || params.has('grid'));
+const asked = params.has('lofi') || params.has('static') ? 'lofi' : params.has('hifi') || gridHome ? 'hifi' : store.get();
 let mode = canHifi && asked !== 'lofi' ? 'hifi' : 'lofi';
 let room = null; // the HIFI app, once loaded
 
-document.title = `${config.signature.name} · room`;
+document.title = gridHome ? `${config.grid.title} · ${config.signature.name}` : `${config.signature.name} · room`;
+document.body.classList.toggle('grid-home', gridHome);
 renderLofi(document.getElementById('fallback'), config);
 
 const toggle = document.getElementById('view');
