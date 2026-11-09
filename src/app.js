@@ -179,6 +179,12 @@ for (const st of radio.stations) {
   const b = document.createElement('button'); b.textContent = st.label; b.dataset.station = st.id;
   b.onclick = () => radio.tune(st.id); stationsEl.append(b);
 }
+// the owner's playlist, beside the radio: opens it on Spotify, in a new tab
+const playlistBtn = document.getElementById('playlist');
+if (config.playlist?.url) {
+  playlistBtn.textContent = config.playlist.button; playlistBtn.title = config.playlist.hint; playlistBtn.hidden = false;
+  playlistBtn.onclick = () => window.open(config.playlist.url, '_blank', 'noopener');
+}
 radio.onChange(({ on, station, track, listeners }) => {
   radioBtn.textContent = on ? `${config.radio.name} · ${track.title}` : `${config.radio.name}: ${words.off}`;
   radioBtn.classList.toggle('active', on); radioBtn.setAttribute('aria-pressed', String(on));

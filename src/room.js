@@ -3,12 +3,12 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid } from './config.js';
+import { tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist } from './config.js';
 import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { woodGrain, planks, plaster } from './textures.js';
-import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt } from './art.js';
+import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt } from './art.js';
 
 // Photographed wood (Poly Haven, CC0; CREDITS.md): colour, normal and roughness.
 const loader = new THREE.TextureLoader();
@@ -331,6 +331,14 @@ function placeholderRoom() {
   mesh('radio_dial', new THREE.PlaneGeometry(0.07, 0.035), new THREE.MeshStandardMaterial({ color: '#f1e3c0', emissive: '#ffb066', emissiveIntensity: 0 }), [0.06, 0.02, 0.041], radio).castShadow = false;
   mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.012, 16).rotateX(Math.PI / 2), std('#d8d2c4', { metalness: 0.5, roughness: 0.3 }), [0.06, -0.035, 0.045], radio);
   const aerial = mesh('', new THREE.CylinderGeometry(0.002, 0.002, 0.22, 6), std('#c9c9c9', { metalness: 0.8, roughness: 0.25 }), [0.08, 0.17, -0.01], radio); aerial.rotation.z = -0.35;
+
+  // the mixtape beside it: a cassette leaning on the glass, the owner's playlist (config.playlist)
+  for (const h of art('mixtape')) {
+    const tape = named(h.name); tape.position.set(radio.position.x - 0.27, wy - wh / 2 - 0.06 + 0.054, -1.875); tape.rotation.set(-0.1, -0.22, 0); tape.scale.setScalar(1.6); // a big one, to be seen from the room
+    const face = new THREE.MeshStandardMaterial({ map: cassetteArt({ ...playlist.tape, theme }), roughness: 0.55 });
+    mesh('', new RoundedBoxGeometry(0.104, 0.066, 0.012, 2, 0.003), std('#ddd5c4', { roughness: 0.5 }), [0, 0, 0], tape);
+    mesh('', new THREE.PlaneGeometry(0.1, 0.0625), face, [0, 0, 0.0062], tape).castShadow = false;
+  }
 
   // ── the board: people pinned as polaroids, under the eye ──
   const bx = RX, by = 1.45;

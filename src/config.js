@@ -74,6 +74,15 @@ export const ui = {
   listening: (n) => `${n} listening`, by: (title, artist) => `${title}, by ${artist}`, radioHint: 'lofi, free-licensed',
 };
 
+// The owner's playlist on Spotify: a mixtape on the sill, beside the
+// radio, and a button beside the radio's at the top. Both open it in a
+// new tab; nothing of Spotify's is loaded or played in the room.
+export const playlist = {
+  label: 'the mixtape', hint: 'the playlist, on Spotify', button: '♫ playlist',
+  url: 'https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U',
+  tape: { title: 'mixtape', side: 'A · on Spotify' },
+};
+
 // piabrota RADIO: lofi under a free licence only (CC0 or CC BY,
 // CREDITS.md), in two stations. A station plays its tracks one after
 // another from a random start. The radio plays through the room's sound,
@@ -359,6 +368,7 @@ export const reading = {
     { label: 'GitHub', handle: 'h0ffmann', url: 'https://github.com/h0ffmann' },
     { label: 'LinkedIn', handle: 'mhoffmannbr', url: 'https://www.linkedin.com/in/mhoffmannbr/' },
     { label: 'piabrota.art', handle: 'piabrota.art', url: 'https://piabrota.art' },
+    { label: 'Spotify', handle: 'the playlist', url: playlist.url },
   ],
   subscribe: { line: 'New posts come out in an RSS feed. Add it to your reader:', feedLabel: 'feed.xml', mailLine: 'or write to' },
   back: 'all posts', empty: 'no posts yet',
@@ -404,6 +414,7 @@ export const hotspots = [
   { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },
   { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
+  { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'link', value: playlist.url, group: 'music', art: { kind: 'mixtape' } },
   { name: 'quote',  label: '"Time is a flat circle."', hint: 'Rust Cohle', action: 'link', value: 'https://en.wikipedia.org/wiki/Rust_Cohle', group: 'inspiration', art: { kind: 'quote', text: 'Time is a flat circle', by: 'Rust Cohle' } },
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
   { name: 'door',   label: door.label, hint: door.hint, action: 'sfx', value: 'click' },
