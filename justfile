@@ -46,6 +46,10 @@ light *args: build
 stills: build
     node scripts/record.mjs --stills
 
+# one still from a shot or from any camera, with the draw calls and triangles of the frame (just peek --shot desk --out /tmp/desk.jpg)
+peek *args: _deps
+    node scripts/peek.mjs {{args}}
+
 # stills of every shot and a video of the four walls by night into docs/record/ (headless Chrome, ffmpeg); every pull request carries them
 record: build
     node scripts/record.mjs
