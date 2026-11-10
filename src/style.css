@@ -33,7 +33,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
 #signature p { margin: 6px 0 8px; color: var(--dim); }
 #signature a { color: var(--fg); margin-right: 14px; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 #signature a:hover { color: var(--accent-text); }
-#shots { display: flex; gap: 6px; flex-wrap: wrap; align-self: flex-start; }
+#shots { display: flex; gap: 6px; flex-wrap: wrap; width: fit-content; max-width: 100%; }
 button { font: inherit; color: var(--fg); background: #14171fcc; border: 1px solid var(--border);
   padding: 7px 11px; border-radius: 8px; cursor: pointer; backdrop-filter: blur(6px);
   transition: background .2s, border-color .2s; }
@@ -102,6 +102,13 @@ body.lofi #fallback footer { margin: 4em 0 2em; padding-top: 1em; border-top: 1p
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 body.lofi #fallback li > a { margin-right: 0; }
+body.lofi #fallback .credits .name { margin: .1em 0 .3em; font: 400 26px/1.15 var(--title); color: var(--fg); opacity: 1; }
+body.lofi #fallback .credits .sources { font-size: 13px; line-height: 1.5; }
+body.lofi #fallback .credits .sources strong { font-weight: normal; }
+body.lofi #fallback .credits .sources .what::after { content: ":"; }
+body.lofi #fallback .credits .sources .what, body.lofi #fallback .credits .sources .licence { color: var(--dim); }
+body.lofi #fallback .credits .sources .licence::before { content: "· "; }
+body.lofi #fallback .credits .full a { margin-right: 0; }
 
 /* ▲ grid: the map over the room (src/grid.js), under the HUD so the shots stay in reach */
 #grid { position: fixed; inset: 0; z-index: 0; opacity: 0; transition: opacity .35s ease; background: #08131f; }
@@ -205,3 +212,45 @@ body.guarded #hud, body.guarded #lock, body.guarded #tooltip, body.guarded #ente
 #lock .gate button { min-height: 44px; background: var(--accent); border-color: var(--accent); }
 #lock .gate .note { margin: 0; color: var(--dim); font-size: 11px; }
 body.guarded #lock .gate input { -webkit-user-select: text; user-select: text; }
+
+/* the credits (src/creditscard.js): a button at the end of the shots' row, and its card above the row */
+#hud > #bottom { position: relative; pointer-events: none; }
+#bottom > * { pointer-events: auto; }
+/* the button stands in the corner; an unseen twin of it ends the shots, so no shot is ever under it */
+#shots[data-reserve]::after { content: attr(data-reserve); visibility: hidden; padding: 7px 11px; border: 1px solid transparent; white-space: nowrap; }
+#credits { position: absolute; right: 0; bottom: 0; white-space: nowrap; }
+#credits[hidden] { display: none; }
+#hud:has(#credits-card.on) { z-index: 4; } /* over the player and the lock, while it shows */
+#credits-card { position: absolute; right: 0; bottom: calc(100% + 8px); width: 400px; max-width: 100%; overflow-y: auto; overscroll-behavior: contain;
+  background: #0b0d12f5; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 10px 14px 0;
+  backdrop-filter: blur(8px); -webkit-user-select: text; user-select: text;
+  visibility: hidden; opacity: 0; transition: opacity .15s, visibility 0s .15s; }
+#credits-card.on { visibility: visible; opacity: 1; transition: opacity .15s; }
+#credits-card:not(.on) { pointer-events: none; } /* while it fades out it is already out of the pointer's way: the room behind it is hovered, not the card */
+#credits.active::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 10px; } /* the pointer's way up to the card: the gap between them is the button's too */
+#credits-card .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#credits-card .head strong { font: 400 13px/1.2 var(--mono); color: var(--dim); letter-spacing: .08em; text-transform: lowercase; }
+#credits-card .close { padding: 2px 9px; font-size: 16px; line-height: 1.2; }
+#credits-card h3 { margin: 10px 0 2px; font: 400 12px/1.3 var(--mono); color: var(--accent-text); letter-spacing: .04em; text-transform: lowercase; }
+#credits-card .idea h3 { margin-top: 4px; }
+#credits-card p { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; }
+#credits-card .name { margin: 0 0 6px; font: 400 30px/1.1 var(--title); letter-spacing: .02em; }
+#credits-card .own { color: var(--dim); }
+#credits-card .sources { margin: 4px 0 6px; padding: 0; list-style: none; font-size: 11.5px; line-height: 1.45; }
+#credits-card .sources li { padding: 3px 0; border-top: 1px solid #2a303c99; }
+#credits-card .sources strong { font-weight: normal; color: var(--fg); }
+#credits-card .sources .what, #credits-card .sources .licence { color: var(--dim); }
+#credits-card .sources .what::after { content: ":"; }
+#credits-card .sources .licence::before { content: "· "; }
+/* where the full list is: the card's last line stays in sight while the list above it scrolls */
+#credits-card .full { position: sticky; bottom: 0; margin: 0 -14px; padding: 8px 14px 10px; background: #0b0d12; border-top: 1px solid var(--border); color: var(--dim); }
+#credits-card a { color: var(--fg); text-decoration-color: var(--accent); text-underline-offset: 3px; }
+#credits-card a:hover { color: var(--accent-text); }
+#credits-card a:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; border-radius: 2px; }
+@media (max-width: 600px) {
+  #credits { padding: 6px 8px; }
+  #shots[data-reserve]::after { padding: 6px 8px; }
+  #credits-card { width: auto; left: 0; }
+  #credits-card .name { font-size: 26px; }
+  #credits-card .close { min-width: 36px; min-height: 32px; }
+}

@@ -9,6 +9,7 @@ import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { ROOM, WIN, SILL, buildShell, woodBox, contactShadows } from './shell.js';
 import { createFurniture } from './furniture.js';
+import { creditsPlate } from './credits.js';
 import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt } from './art.js';
 
 // Photographed surfaces (Poly Haven, CC0; CREDITS.md): colour, normal and roughness, or only
@@ -293,6 +294,7 @@ function placeholderRoom() {
     const note = mesh(h.name, new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: noteArt({ glyph: h.art.glyph, lines: [h.label.replace(/^.*?: /, ''), h.hint], theme }), roughness: 0.9 }), [-0.42, top + 0.002, -1.17]);
     note.rotation.set(-Math.PI / 2, 0, 0.18); note.castShadow = false;
   }
+  for (const h of art('credits')) g.add(creditsPlate(h.name, h.art, [3.08, 1.47, ROOM.z0 + 0.007])); // the credits plate, on the back wall beside the people's board (src/credits.js)
 
   // ── under the desk: a file marked closed source, a letter half out of it ──
   for (const h of art('folder')) {

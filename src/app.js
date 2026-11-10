@@ -15,6 +15,7 @@ import { pick } from './quality.js';
 import { createLock } from './lock.js';
 import { createCat } from './cat.js';
 import { buildNav } from './catnav.js';
+import { createCredits } from './creditscard.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 const canvas = document.getElementById('scene');
@@ -62,6 +63,9 @@ const redrawShadows = () => { renderer.shadowMap.needsUpdate = true; };
 
 // ── camera shot buttons, number keys, arrows and swipes ──
 const nav = document.getElementById('shots');
+// the credits: the button at the end of the shots' row and its card; the plate on the wall opens it too
+const credits = createCredits(document.getElementById('credits'), document.getElementById('credits-card'), config.credits);
+if (config.credits) nav.dataset.reserve = config.credits.button; // the row keeps the button's place free (src/style.css)
 rig.names.forEach((name, i) => {
   const b = document.createElement('button');
   const k = document.createElement('kbd'); k.textContent = String((i + 1) % 10); // the tenth is 0
@@ -82,7 +86,7 @@ addEventListener('keydown', (e) => {
   if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
   if (e.target instanceof HTMLInputElement) return; // typing in a form (the door's email) never moves the camera
   const i = e.key === '0' ? 9 : Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]); // 1..9, and 0 for the tenth
-  if (e.key === 'Escape') { player?.close(); lock?.close(); rig.go(config.startShot); }
+  if (e.key === 'Escape') { player?.close(); lock?.close(); credits.close(); rig.go(config.startShot); }
   if (e.key === 'ArrowRight') rig.next(1);
   if (e.key === 'ArrowLeft') rig.next(-1);
 });
@@ -164,6 +168,7 @@ for (const h of config.hotspots) {
       if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : (room.lamp.userData.full ?? lampOn); redrawShadows(); }
       if (h.action === 'toggleRadio') radioBtn.click();
       if (h.action === 'playlist') player.open();
+      if (h.action === 'credits') credits.open();
       if (h.action === 'cat') { audio.play(config.sfx.meow); nash?.call(camera.position); }
       if (h.action === 'door') { if (doorOpen()) { openDoor(false); try { localStorage.removeItem(DOOR_KEY); } catch { /* fine */ } } else lock.open(); }
     },

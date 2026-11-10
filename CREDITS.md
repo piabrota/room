@@ -4,8 +4,12 @@
 
 The idea of a personal site that is a 3D room, with camera shots, things to hover and VHS
 tapes that play on a TV, comes from **Felix Rieseberg**, who built one for his own site and
-wrote about how he made it. This repository is a separate work: no code, model, texture,
-sound or text of his is used here.
+wrote about how he made it. He works on Claude at Anthropic: his own site's description read
+"I work on Claude at Anthropic." on 10 November 2026. This repository is a separate work: no
+code, model, texture, sound or text of his is used here.
+
+The room says this on screen too, from `config.credits`: the credits button and its card, the
+brass plate on the wall, and the credits of the LOFI page (`AGENTS.md`, invariant 2).
 
 
 ## The playlist
