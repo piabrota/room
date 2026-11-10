@@ -73,7 +73,10 @@ asset gets a row here in the same commit that adds it.
 | `public/audio/insert.mp3` | magedu, with the owner's edit | the same recording, reversed | CC BY 4.0 |
 | `public/audio/tape-piabrota.mp3` | the owner; klankbeeld, YleArkisto and magedu | the score of `src/score.js`, mixed with freesound 350358, 219877 and 267832 by `just compose` | CC BY 4.0 |
 | `public/textures/pbr/herringbone_parquet_*.jpg`, the floor | Sergej Majboroda (photography), Jenelle van Heerden (processing) | "Herringbone Parquet" on [Poly Haven](https://polyhaven.com/a/herringbone_parquet), 1k, re-encoded | CC0 1.0 |
-| `public/textures/pbr/american_walnut_veneer_*.jpg`, the desk and the door | Jenelle van Heerden | "American Walnut Veneer" on [Poly Haven](https://polyhaven.com/a/american_walnut_veneer), 1k, re-encoded | CC0 1.0 |
+| `public/textures/pbr/american_walnut_veneer_*.jpg`, the desk | Jenelle van Heerden | "American Walnut Veneer" on [Poly Haven](https://polyhaven.com/a/american_walnut_veneer), 1k, re-encoded | CC0 1.0 |
+| `public/textures/pbr/rosewood_veneer1_*.jpg`, the door, the window, the skirting | Jenelle van Heerden | "Rosewood Veneer1" on [Poly Haven](https://polyhaven.com/a/rosewood_veneer1), 1k, re-encoded by `just models` | CC0 1.0 |
+| `public/textures/pbr/beige_wall_001_*.jpg`, the grain of the plaster on the walls and the ceiling (normal and roughness only) | Dimitrios Savva (photography), Rico Cilliers (processing) | "Beige Wall 001" on [Poly Haven](https://polyhaven.com/a/beige_wall_001), 1k, re-encoded by `just models` | CC0 1.0 |
+| `public/textures/pbr/cotton_jersey_*.jpg`, the weave of the curtains (normal and roughness only) | colormass (photography), Rico Cilliers (processing) | "Cotton Jersey" on [Poly Haven](https://polyhaven.com/a/cotton_jersey), 1k, re-encoded by `just models` | CC0 1.0 |
 | `public/textures/rio-day.jpg`, the view from the window by day | Arian Zwegers | "Rio de Janeiro, Pão de Açúcar from Cristo Redentor" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro,_P%C3%A3o_de_A%C3%A7%C3%BAcar_from_Cristo_Redentor_(15744316848).jpg), resized to 1920 px | CC BY 2.0 |
 | `public/textures/rio-night.jpg`, the view from the window at night | Wilfredor | "Rio de Janeiro at night from above, Rio de Janeiro.jpg" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro_at_night_from_above,_Rio_de_Janeiro.jpg), resized to 1920 px | CC0 1.0 |
 | `public/textures/tyler-durden-bot.png`, the board above the bookshelf | the owner | tyler-durden-bot's logo, a pixel portrait, given in the project on 9 November 2026, as it is | the owner's own |
@@ -131,6 +134,42 @@ asset gets a row here in the same commit that adds it.
 | `public/favicon.svg`, the tab's icon: the piabrota eye | piabrota | `docs/drawings/eye.svg` of [piabrota/mu](https://github.com/piabrota/mu), the org's logo | the org's mark, not licensed for other uses (mu's `TRADEMARKS.md`) |
 | The piabrota eye on the sign, drawn in code (`src/art.js`) after `docs/drawings/eye.svg` | piabrota | [piabrota/mu](https://github.com/piabrota/mu) | the org's mark, not licensed for other uses (mu's `TRADEMARKS.md`) |
 
+### The furniture and the props
+
+Photographed models from [Poly Haven](https://polyhaven.com), all under CC0 1.0. `just models`
+(`scripts/models.mjs`, from the list in `scripts/models.json`) fetches each one, keeps the parts
+the room uses, thins its mesh, re-encodes its textures as WebP and packs it with meshopt; the
+`.lite.glb` beside each file is the smaller one the phone's look loads. The table is written by
+`just models`.
+
+<!-- models:start (written by `just models`) -->
+| File (and its `.lite.glb`) | Author | Source | Licence |
+|---|---|---|---|
+| `public/models/television_02.glb` | Benny Weimer | "Television 02" on [Poly Haven](https://polyhaven.com/a/television_02) | CC0 1.0 |
+| `public/models/desk_lamp_arm_01.glb` | Yann Kervran, Kuutti Siitonen | "Desk Lamp Arm 01" on [Poly Haven](https://polyhaven.com/a/desk_lamp_arm_01) | CC0 1.0 |
+| `public/models/boombox.glb` | Thomas Paul Mouilleron | "Boombox" on [Poly Haven](https://polyhaven.com/a/boombox) | CC0 1.0 |
+| `public/models/GreenChair_01.glb` | Kirill Sannikov | "Green Chair 01" on [Poly Haven](https://polyhaven.com/a/GreenChair_01) | CC0 1.0 |
+| `public/models/wooden_bookshelf_worn.glb` | Ulan Cabanilla | "Wooden Bookshelf Worn" on [Poly Haven](https://polyhaven.com/a/wooden_bookshelf_worn) | CC0 1.0 |
+| `public/models/modern_wooden_cabinet.glb` | Patrik Pangerl | "Modern Wooden Cabinet" on [Poly Haven](https://polyhaven.com/a/modern_wooden_cabinet) | CC0 1.0 |
+| `public/models/Sofa_01.glb` | Kirill Sannikov | "Sofa 01" on [Poly Haven](https://polyhaven.com/a/Sofa_01) | CC0 1.0 |
+| `public/models/throw_pillows_01.glb` | Serhii Khromov | "Throw Pillows 01" on [Poly Haven](https://polyhaven.com/a/throw_pillows_01) | CC0 1.0 |
+| `public/models/vintage_grandfather_clock_01.glb` | Yann Kervran, James Ray Cock | "Vintage Grandfather Clock 01" on [Poly Haven](https://polyhaven.com/a/vintage_grandfather_clock_01) | CC0 1.0 |
+| `public/models/Chandelier_02.glb` | Kirill Sannikov | "Chandelier 02" on [Poly Haven](https://polyhaven.com/a/Chandelier_02) | CC0 1.0 |
+| `public/models/fern_02.glb` | Rob Tuytel, Rico Cilliers | "Fern 02" on [Poly Haven](https://polyhaven.com/a/fern_02) | CC0 1.0 |
+| `public/models/potted_plant_02.glb` | Rico Cilliers | "Potted Plant 02" on [Poly Haven](https://polyhaven.com/a/potted_plant_02) | CC0 1.0 |
+| `public/models/potted_plant_04.glb` | James Ray Cock | "Potted Plant 04" on [Poly Haven](https://polyhaven.com/a/potted_plant_04) | CC0 1.0 |
+| `public/models/planter_pot_clay.glb` | Amal Kumar | "Planter Pot Clay" on [Poly Haven](https://polyhaven.com/a/planter_pot_clay) | CC0 1.0 |
+| `public/models/book_encyclopedia_set_01.glb` | John Malcolm | "Book Encyclopedia Set 01" on [Poly Haven](https://polyhaven.com/a/book_encyclopedia_set_01) | CC0 1.0 |
+| `public/models/pencil_cup.glb`, `public/models/pens.glb` | Mateusz Sadek | "Stationery Supplies" on [Poly Haven](https://polyhaven.com/a/stationery_supplies) | CC0 1.0 |
+| `public/models/fancy_picture_frame_01.glb` | Rob Tuytel, Rico Cilliers | "Fancy Picture Frame 01" on [Poly Haven](https://polyhaven.com/a/fancy_picture_frame_01) | CC0 1.0 |
+| `public/models/vintage_suitcase.glb` | Maximilian Schuster | "Vintage Suitcase" on [Poly Haven](https://polyhaven.com/a/vintage_suitcase) | CC0 1.0 |
+| `public/models/Ukulele_01.glb` | Joseph Burgan | "Ukulele 01" on [Poly Haven](https://polyhaven.com/a/Ukulele_01) | CC0 1.0 |
+| `public/models/cardboard_box_01.glb` | Rahul Chaudhary | "Cardboard Box 01" on [Poly Haven](https://polyhaven.com/a/cardboard_box_01) | CC0 1.0 |
+| `public/models/side_table_tall_01.glb` | James Ray Cock | "Side Table Tall 01" on [Poly Haven](https://polyhaven.com/a/side_table_tall_01) | CC0 1.0 |
+| `public/models/alarm_clock_01.glb` | Yann Kervran, James Ray Cock | "Alarm Clock 01" on [Poly Haven](https://polyhaven.com/a/alarm_clock_01) | CC0 1.0 |
+| `public/models/ceramic_vase_01.glb` | James Ray Cock | "Ceramic Vase 01" on [Poly Haven](https://polyhaven.com/a/ceramic_vase_01) | CC0 1.0 |
+<!-- models:end -->
+
 The four recordings are on freesound.org, under Creative Commons Attribution 4.0
 (creativecommons.org/licenses/by/4.0): 219877 and 174242 by klankbeeld, 350358 by YleArkisto
 (Yle, the Finnish broadcasting company's archive), 267832 by magedu. They are not in this
@@ -147,3 +186,4 @@ people and the works on the shelf are described in our own words from the org's 
 - [Vite](https://vite.dev), MIT.
 - [MapLibre GL JS](https://maplibre.org), BSD-3-Clause: the ▲ grid map, loaded only when it opens.
 - [delaunator](https://github.com/mapbox/delaunator), ISC: the triangulation of `just grid` (a build tool; not shipped).
+- [glTF Transform](https://gltf-transform.dev), MIT, [meshoptimizer](https://github.com/zeux/meshoptimizer), MIT, and [sharp](https://sharp.pixelplumbing.com), Apache-2.0: the packing of `just models` (build tools; not shipped). three.js's own meshopt decoder reads the models in the browser.

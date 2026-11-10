@@ -34,6 +34,50 @@ export const theme = {
 // a placeholder room is built from config so you can still develop.
 export const roomModel = '/models/room.glb';
 
+// The apartment: an old flat in Rio. The paint, the wood, the cloth and the rug of its shell
+// (src/shell.js): repaint it here. `ink` and `inkSoft` are the words painted on the walls.
+export const shell = {
+  wall: '#e7dcc6', ceiling: '#f3eee3', trim: '#f1ebdf', reveal: '#ded3bf',
+  floor: '#b9a48e', wood: '#b9a394', brass: '#b08a4a', curtain: '#e9dfcb',
+  ink: '#33261d', inkSoft: '#77634f',
+  rug: { at: [0.1, -0.2], size: [2.6, 1.8], colors: ['#7c1d17', '#1d2b45', '#e6d7b8', '#c59a45', '#2a120f'] },
+};
+
+// The furniture and the props that are files (src/furniture.js): photographed models from
+// Poly Haven, CC0, packed by `just models` into `public/models/` (CREDITS.md). Each is
+// `<file>.glb` for the laptop's look and `<file>.lite.glb` for the phone's; `phone: false`
+// leaves a prop out of the phone's look. Swap a file for your own here; the room keeps the
+// thing's place and size, and a missing file leaves a plain stand-in.
+export const models = {
+  base: '/models/',
+  files: {
+    tv: 'television_02',
+    lamp: 'desk_lamp_arm_01',
+    radio: 'boombox',
+    chair: 'GreenChair_01',
+    bookcase: 'wooden_bookshelf_worn',
+    cabinet: 'modern_wooden_cabinet',
+    sofa: 'Sofa_01',
+    clock: 'vintage_grandfather_clock_01',
+    chandelier: 'Chandelier_02',
+    sideTable: 'side_table_tall_01',
+    plant: 'potted_plant_02',
+    pillows: { file: 'throw_pillows_01', phone: false },
+    fern: { file: 'fern_02', phone: false },
+    pot: { file: 'planter_pot_clay', phone: false },
+    aloe: { file: 'potted_plant_04', phone: false },
+    books: { file: 'book_encyclopedia_set_01', phone: false },
+    pencilCup: { file: 'pencil_cup', phone: false },
+    pens: { file: 'pens', phone: false },
+    painting: { file: 'fancy_picture_frame_01', phone: false },
+    suitcase: { file: 'vintage_suitcase', phone: false },
+    ukulele: { file: 'Ukulele_01', phone: false },
+    box: { file: 'cardboard_box_01', phone: false },
+    alarm: { file: 'alarm_clock_01', phone: false },
+    vase: { file: 'ceramic_vase_01', phone: false },
+  },
+};
+
 // The view from the window: Botafogo bay and the Sugarloaf, a photograph
 // for the night and one for the day (CREDITS.md), set far behind the
 // glass with drawn layers around it. `anchor` is where the Sugarloaf is

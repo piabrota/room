@@ -148,6 +148,22 @@ for (const t of radioTracks) {
 for (const ph of [config.outside?.night?.photo, config.outside?.day?.photo].filter(Boolean)) {
   if (!credits.includes(`\`public${ph}\``)) fail(1, `${ph} has no row in CREDITS.md`);
 }
+// the furniture and the props (config.models): each file is there for both looks, and every
+// model and photographed surface in public/ has its row
+const modelsDir = join(root, 'public', config.models?.base ?? '/models/');
+for (const [key, def] of Object.entries(config.models?.files ?? {})) {
+  const file = typeof def === 'string' ? def : def.file;
+  for (const f of [`${file}.glb`, `${file}.lite.glb`]) if (!existsSync(join(modelsDir, f))) fail(1, `config.models.files.${key}: public/models/${f} is missing (just models)`);
+}
+for (const f of existsSync(modelsDir) ? readdirSync(modelsDir) : []) {
+  if (!f.endsWith('.glb') || f === 'room.glb') continue;
+  const row = `\`public/models/${f.replace(/\.lite\.glb$/, '.glb')}\``;
+  if (!credits.includes(row)) fail(1, `public/models/${f} has no row in CREDITS.md (just models writes them)`);
+}
+const pbrDir = join(root, 'public', 'textures', 'pbr');
+for (const id of new Set((existsSync(pbrDir) ? readdirSync(pbrDir) : []).map((f) => f.replace(/_(diff|nor|rough)(\.lite)?\.jpg$/, '')))) {
+  if (!credits.includes(`\`public/textures/pbr/${id}_*.jpg\``)) fail(1, `public/textures/pbr/${id}_*.jpg has no row in CREDITS.md`);
+}
 
 // 2. The idea is credited by name, with no link to the original's site, code or issues.
 const readme = readFileSync(join(root, 'README.md'), 'utf8');

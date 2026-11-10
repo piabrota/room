@@ -42,6 +42,10 @@ grid *args: _deps
 light *args: build
     node scripts/light.mjs {{args}}
 
+# the furniture and props in public/models/ and the surfaces in public/textures/pbr/, from Poly Haven (CC0): fetched, made small, credited (just models boombox; just models --list)
+models *args: _deps
+    node scripts/models.mjs {{args}}
+
 # only the stills of every shot into docs/record/ (fast; the video stays as it is)
 stills: build
     node scripts/record.mjs --stills

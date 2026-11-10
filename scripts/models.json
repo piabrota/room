@@ -1,0 +1,35 @@
+{
+  "models": [
+    {"id": "television_02"},
+    {"id": "desk_lamp_arm_01", "ratio": 0.4, "liteRatio": 0.15},
+    {"id": "boombox", "ratio": 0.7, "liteRatio": 0.3},
+    {"id": "GreenChair_01", "liteRatio": 0.5},
+    {"id": "wooden_bookshelf_worn", "ratio": 0.8, "liteRatio": 0.3},
+    {"id": "modern_wooden_cabinet", "ratio": 0.4, "liteRatio": 0.12},
+    {"id": "Sofa_01", "liteRatio": 0.5},
+    {"id": "throw_pillows_01", "ratio": 0.6, "liteRatio": 0.25, "px": 512, "litePx": 256},
+    {"id": "vintage_grandfather_clock_01", "ratio": 0.8, "liteRatio": 0.3},
+    {"id": "Chandelier_02", "ratio": 0.5, "liteRatio": 0.15},
+    {"id": "fern_02", "pick": "fern_02_b", "liteRatio": 0.6},
+    {"id": "potted_plant_02", "thin": {"dirt": 0.03}, "liteRatio": 0.5},
+    {"id": "potted_plant_04", "ratio": 0.6, "liteRatio": 0.3, "px": 512, "litePx": 256},
+    {"id": "planter_pot_clay", "ratio": 0.5, "liteRatio": 0.25, "px": 512, "litePx": 256},
+    {"id": "book_encyclopedia_set_01", "ratio": 0.12, "liteRatio": 0.05, "error": 0.05, "pick": "book(0[1-9]|1[0-2])$"},
+    {"id": "stationery_supplies", "name": "pencil_cup", "pick": "pencilcup", "liteRatio": 0.5, "px": 512, "litePx": 256},
+    {"id": "stationery_supplies", "name": "pens", "pick": "(pen_|pencil_|eraser)", "liteRatio": 0.4, "px": 512, "litePx": 256},
+    {"id": "fancy_picture_frame_01", "litePx": 512},
+    {"id": "vintage_suitcase", "pick": "vintage_suitcase_01", "ratio": 0.5, "liteRatio": 0.2},
+    {"id": "Ukulele_01", "ratio": 0.5, "liteRatio": 0.2, "px": 512, "litePx": 256},
+    {"id": "cardboard_box_01", "ratio": 0.2, "liteRatio": 0.08, "px": 512, "litePx": 256},
+    {"id": "side_table_tall_01", "ratio": 0.6, "liteRatio": 0.25, "px": 512, "litePx": 256},
+    {"id": "alarm_clock_01", "ratio": 0.4, "liteRatio": 0.15, "px": 512, "litePx": 256},
+    {"id": "ceramic_vase_01", "liteRatio": 0.4, "px": 512, "litePx": 256}
+  ],
+  "textures": [
+    {"id": "herringbone_parquet", "use": "the floor"},
+    {"id": "american_walnut_veneer", "use": "the desk"},
+    {"id": "beige_wall_001", "use": "the grain of the plaster on the walls and the ceiling", "maps": ["nor", "rough"]},
+    {"id": "rosewood_veneer1", "use": "the door, the window and the skirting"},
+    {"id": "cotton_jersey", "use": "the weave of the curtains", "maps": ["nor", "rough"]}
+  ]
+}
