@@ -92,13 +92,31 @@ body.lofi #fallback pre { background: var(--surface); padding: 12px; border-radi
 body.lofi #fallback blockquote { margin: 1em 0; padding-left: 14px; border-left: 2px solid var(--accent); color: var(--dim); }
 body.lofi #fallback footer { margin: 4em 0 2em; padding-top: 1em; border-top: 1px solid var(--border); font-size: 12px; }
 @media (max-width: 600px) {
-  #top { flex-direction: column-reverse; align-items: stretch; }
-  #controls { margin-right: 0; align-items: flex-start; }
-  #switches { margin-right: 128px; justify-content: flex-start; } /* beside the view switch */
-  #radio-bar, #radio-more { margin-right: 0; justify-content: flex-start; }
-  #radio { max-width: calc(100vw - 80px); }
-  #signature h1 { font-size: 24px; }
-  #shots button { padding: 6px 8px; }
+  /* A phone: the room gets the screen. The switches and the radio share one row that scrolls
+     sideways beside the view switch, the signature is smaller, and the shots are one row that
+     scrolls under the thumb, the shot in view kept in the middle (src/app.js). */
+  #top { flex-direction: column-reverse; align-items: stretch; gap: 8px; }
+  #controls { margin-right: 0; align-items: stretch; flex-direction: row; gap: 6px; max-width: calc(100vw - 32px - 124px);
+    overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  #controls::-webkit-scrollbar, #shots::-webkit-scrollbar { display: none; }
+  #switches, #radio-bar, #radio-more { margin-right: 0; flex-wrap: nowrap; justify-content: flex-start; }
+  #controls button { white-space: nowrap; }
+  #radio { max-width: 60vw; }
+  #signature h1 { font-size: 22px; }
+  #signature p { font-size: 11px; margin: 4px 0 6px; }
+  #shots { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; overscroll-behavior-x: contain;
+    max-width: calc(100vw - 32px); padding-right: 4px; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); }
+  #shots button { padding: 6px 10px; white-space: nowrap; scroll-snap-align: center; flex: none; }
+  #shots[data-reserve]::after { display: none; }
+  #bottom { display: flex; align-items: flex-end; gap: 6px; }
+  #shots { flex: 1; min-width: 0; }
+  #credits { position: static; flex: none; }
+}
+/* a finger, not a mouse: no keyboard hints, room for a thumb, no double-tap zoom on a button */
+@media (pointer: coarse) {
+  kbd { display: none; }
+  button { min-height: 40px; touch-action: manipulation; }
+  #stations button { min-height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 body.lofi #fallback li > a { margin-right: 0; }

@@ -81,8 +81,9 @@ asset gets a row here in the same commit that adds it.
 | `public/textures/pbr/rosewood_veneer1_*.jpg`, the door, the window, the skirting | Jenelle van Heerden | "Rosewood Veneer1" on [Poly Haven](https://polyhaven.com/a/rosewood_veneer1), 1k, re-encoded by `just models` | CC0 1.0 |
 | `public/textures/pbr/beige_wall_001_*.jpg`, the grain of the plaster on the walls and the ceiling (normal and roughness only) | Dimitrios Savva (photography), Rico Cilliers (processing) | "Beige Wall 001" on [Poly Haven](https://polyhaven.com/a/beige_wall_001), 1k, re-encoded by `just models` | CC0 1.0 |
 | `public/textures/pbr/cotton_jersey_*.jpg`, the weave of the curtains (normal and roughness only) | colormass (photography), Rico Cilliers (processing) | "Cotton Jersey" on [Poly Haven](https://polyhaven.com/a/cotton_jersey), 1k, re-encoded by `just models` | CC0 1.0 |
-| `public/textures/rio-day.jpg`, the view from the window by day | Arian Zwegers | "Rio de Janeiro, Pão de Açúcar from Cristo Redentor" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro,_P%C3%A3o_de_A%C3%A7%C3%BAcar_from_Cristo_Redentor_(15744316848).jpg), resized to 1920 px | CC BY 2.0 |
-| `public/textures/rio-night.jpg`, the view from the window at night | Wilfredor | "Rio de Janeiro at night from above, Rio de Janeiro.jpg" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro_at_night_from_above,_Rio_de_Janeiro.jpg), resized to 1920 px | CC0 1.0 |
+| `public/textures/rio-day.jpg` (and `rio-day.lite.jpg`, 1280 px, for small screens), the view from the window by day | Arian Zwegers | "Rio de Janeiro, Pão de Açúcar from Cristo Redentor" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro,_P%C3%A3o_de_A%C3%A7%C3%BAcar_from_Cristo_Redentor_(15744316848).jpg), resized to 1920 px | CC BY 2.0 |
+| `public/textures/rio-night.jpg` (and `rio-night.lite.jpg`, 1280 px, for small screens), the view from the window at night | Wilfredor | "Rio de Janeiro at night from above, Rio de Janeiro.jpg" on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro_at_night_from_above,_Rio_de_Janeiro.jpg), resized to 1920 px | CC0 1.0 |
+| `public/models/fish.glb` (and `fish.lite.glb`), the big fish in the aquarium | Microsoft (2017) | "Barramundi Fish" in the Khronos Group's [glTF sample assets](https://github.com/KhronosGroup/glTF-Sample-Assets/tree/8f492390ddc7a2ae221a1369ef560589cf8c70fb/Models/BarramundiFish), at that commit; its textures cut to 512 px WebP (256 px, the colour alone, in the lite file), its metal and occlusion maps left out, packed with meshopt by `just fish` | CC0 1.0 |
 | `public/textures/tyler-durden-bot.png`, the board above the bookshelf | the owner | tyler-durden-bot's logo, a pixel portrait, given in the project on 9 November 2026, as it is | the owner's own |
 | `public/grid/land.json`, the land on the ▲ grid map | Natural Earth | "Land", 1:50m, from [natural-earth-vector](https://github.com/nvkelso/natural-earth-vector), clipped to the domain by `just grid` | public domain |
 | `public/grid/mesh.bin`, the triangle mesh of the coast | the owner | made by `just grid` (`scripts/grid.mjs`) from Natural Earth's coastline, with [delaunator](https://github.com/mapbox/delaunator) (ISC). Triangle grids for WAVEWATCH III are the work of Dr. Aron Roland, with Fabrice Ardhuin; at NOAA, Dr. Ali Abdolali carried them further | public domain (Natural Earth); the mesh is the owner's |
@@ -191,3 +192,15 @@ people and the works on the shelf are described in our own words from the org's 
 - [MapLibre GL JS](https://maplibre.org), BSD-3-Clause: the ▲ grid map, loaded only when it opens.
 - [delaunator](https://github.com/mapbox/delaunator), ISC: the triangulation of `just grid` (a build tool; not shipped).
 - [glTF Transform](https://gltf-transform.dev), MIT, [meshoptimizer](https://github.com/zeux/meshoptimizer), MIT, and [sharp](https://sharp.pixelplumbing.com), Apache-2.0: the packing of `just models` (build tools; not shipped). three.js's own meshopt decoder reads the models in the browser.
+
+## Agent skills
+
+Three skills in `.claude/skills/` (`room-threejs-perf`, `room-assets`, `room-load`) are written for
+this room, in its own words, from what these public skill collections teach. No text of theirs is
+copied; they are named here as the sources of the ideas.
+
+- [CloudAI-X/threejs-skills](https://github.com/CloudAI-X/threejs-skills) at `0e18186`, MIT:
+  `threejs-performance` and `threejs-asset-pipeline` (draw calls, double-sided blending, transmission,
+  shader stalls, the order of glTF-Transform's steps).
+- [addyosmani/web-quality-skills](https://github.com/addyosmani/web-quality-skills) at `afa8da9`, MIT:
+  `performance` and `core-web-vitals` (what may load before the first paint, caching, budgets).

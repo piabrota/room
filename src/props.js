@@ -1,10 +1,13 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { hotspots, theme, shell } from './config.js';
+import { hotspots, theme, shell, sea } from './config.js';
+import { ROOM } from './shell.js';
+import { buildAquarium } from './aquarium.js';
 import { recordArt, cardArt, crateArt, texture, FONT_TITLE, FONT_MONO } from './art.js';
 
 // The props of the two other walls and the floor, built from config:
-//   the sea    (right wall)  a wave tank, one buoy per marola-dev repo;
+//   the sea    (right wall)  an aquarium (src/aquarium.js), one buoy per marola-dev repo on its
+//                            surface, the wall painted with blue stripes from corner to corner;
 //   the loop   (front wall)  a wheel that turns forever, one crate per
 //                            ouroboric-dev repo, each kept upright;
 //   the slipbox (floor)      a crate of records: Pirsig in front, h0ffmann's repositories behind.
@@ -25,6 +28,7 @@ const waveGLSL = WAVES.map(([a, k, w, [dx, dz]]) => {
   const l = Math.hypot(dx, dz);
   return `h += ${a.toFixed(4)} * sin(${k.toFixed(2)} * (${(dx / l).toFixed(3)} * p.x + ${(dz / l).toFixed(3)} * p.y) - ${w.toFixed(2)} * uTime);`;
 }).join('\n');
+const TANK = 0.3; // the waves of a tank are a third of the sea's
 export function waveHeight(x, z, t) {
   let h = 0;
   for (const [a, k, w, [dx, dz]] of WAVES) { const l = Math.hypot(dx, dz); h += a * Math.sin(k * ((dx / l) * x + (dz / l) * z) - w * t); }
@@ -40,27 +44,25 @@ function label(text, sub, w = 1024, h = 256) {
   return texture(c);
 }
 
-export function buildSea(g, mesh, std, part, furniture) {
+export function buildSea(g, mesh, std, part, furniture, { lite = false } = {}) {
   const tank = spot('tank'); if (!tank) return () => {};
-  const X = 3.08, Z = -0.45, L = 1.6, D = 0.5, top = 0.72, waterY = top + 0.36;
-  // the cabinet, and the tank on it
+  const X = 3.08, Z = -0.45, L = 1.6, D = 0.5, top = 0.72;
+  // the cabinet, and the aquarium on it (src/aquarium.js)
   const stand = (s) => { // what stands there until the sideboard's file arrives, or if it never does
     mesh('', new THREE.BoxGeometry(D + 0.06, top, L + 0.08), std('#4a3426'), [0, top / 2, 0], s).rotation.y = Math.PI / 2;
     mesh('', new THREE.BoxGeometry(D + 0.08, 0.03, L + 0.1), std('#3a281d'), [0, top + 0.015, 0], s).rotation.y = Math.PI / 2;
   };
   if (furniture) furniture.place('cabinet', g, { at: [X, 0, Z], rot: -Math.PI / 2, fit: { w: L + 0.16, h: top + 0.03, d: D + 0.08 }, stretch: true, standin: stand });
   else { const s = new THREE.Group(); s.position.set(X, 0, Z); g.add(s); stand(s); }
-  const tankGroup = new THREE.Group(); tankGroup.name = tank.name; g.add(tankGroup);
-  const glass = new THREE.MeshPhysicalMaterial({ color: '#a8d8ff', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.14, depthWrite: false });
-  const box = mesh('', new THREE.BoxGeometry(D, 0.48, L), glass, [X, top + 0.03 + 0.24, Z], tankGroup);
-  box.castShadow = false; box.renderOrder = 2;
-  // the water: a live wave surface
-  const uniforms = { uTime: { value: 0 }, uDeep: { value: new THREE.Color('#06243f') }, uShallow: { value: new THREE.Color('#1682D4') }, uFoam: { value: new THREE.Color('#dff4ff') } };
+  const aq = buildAquarium(g, { at: new THREE.Vector3(X, top + 0.03, Z), L, D, cfg: sea.aquarium, lite, name: tank.name, loadFish: () => furniture?.load('fish') ?? Promise.resolve(null) });
+  const waterY = top + 0.03 + aq.waterY;
+  // the surface: the live waves, small in a tank, which the buoys ride
+  const uniforms = { uTime: { value: 0 }, uDeep: { value: new THREE.Color('#0d4a6b') }, uShallow: { value: new THREE.Color('#3d9cc9') }, uFoam: { value: new THREE.Color('#dff4ff') } };
   const water = new THREE.ShaderMaterial({
-    uniforms, transparent: true,
+    uniforms, transparent: true, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true,
     vertexShader: `
       uniform float uTime; varying float vH; varying vec3 vN;
-      float wave(vec2 p) { float h = 0.0; ${waveGLSL} return h; }
+      float wave(vec2 p) { float h = 0.0; ${waveGLSL} return h * ${TANK.toFixed(2)}; }
       void main() {
         vec4 w = modelMatrix * vec4(position, 1.0);
         vec2 p = w.xz; float h = wave(p);
@@ -71,25 +73,22 @@ export function buildSea(g, mesh, std, part, furniture) {
     fragmentShader: `
       uniform vec3 uDeep, uShallow, uFoam; varying float vH; varying vec3 vN;
       void main() {
-        float k = smoothstep(-0.03, 0.04, vH);
+        float k = smoothstep(-0.01, 0.012, vH);
         vec3 c = mix(uDeep, uShallow, k) * (0.55 + 0.45 * vN.y);
-        c += uFoam * smoothstep(0.03, 0.045, vH) * 0.8;
-        c += vec3(0.25, 0.6, 1.0) * pow(1.0 - vN.y, 2.0) * 1.2; // the glints
-        gl_FragColor = vec4(c * 1.05, 0.92);
+        c += vec3(0.5, 0.8, 1.0) * pow(1.0 - vN.y, 2.0) * 2.0; // the glints
+        gl_FragColor = vec4(c * 0.9, 0.5);
       }`,
   });
-  const surface = mesh('', new THREE.PlaneGeometry(D - 0.02, L - 0.02, 24, 80), water, [X, waterY, Z], tankGroup);
-  surface.rotation.x = -Math.PI / 2; surface.castShadow = surface.receiveShadow = false; surface.renderOrder = 1;
-  const body = mesh('', new THREE.BoxGeometry(D - 0.02, waterY - top - 0.04, L - 0.02), new THREE.MeshBasicMaterial({ color: '#0a2c4d', transparent: true, opacity: 0.55, depthWrite: false }), [X, (waterY + top + 0.04) / 2, Z], tankGroup);
-  body.castShadow = false;
-  const glow = new THREE.PointLight('#3aa0ff', 1.1, 2.2, 2); glow.position.set(X - 0.3, waterY + 0.2, Z); g.add(glow);
+  const surface = mesh('', new THREE.PlaneGeometry(D - 0.016, L - 0.016, 16, 52), water, [X, waterY, Z], aq.group);
+  surface.position.set(0, aq.waterY, 0); surface.rotation.x = -Math.PI / 2; surface.castShadow = surface.receiveShadow = false; surface.renderOrder = 3;
+  surface.raycast = () => {};
 
-  // the buoys: one per marola-dev repo, each one mesh (vertex colours)
+  // the buoys: one per marola-dev repo, each one mesh (vertex colours), riding the surface
   const buoys = art('buoy').map((h, i, all) => {
     const geos = [
-      new THREE.CylinderGeometry(0.028, 0.034, 0.05, 14).translate(0, 0.0, 0),
-      new THREE.CylinderGeometry(0.006, 0.006, 0.07, 6).translate(0, 0.06, 0),
-      new THREE.SphereGeometry(0.014, 10, 8).translate(0, 0.1, 0),
+      new THREE.CylinderGeometry(0.022, 0.027, 0.04, 14).translate(0, 0.0, 0),
+      new THREE.CylinderGeometry(0.005, 0.005, 0.06, 6).translate(0, 0.05, 0),
+      new THREE.SphereGeometry(0.012, 10, 8).translate(0, 0.085, 0),
     ];
     const colors = [new THREE.Color(h.art.color), new THREE.Color('#d8d2c4'), new THREE.Color('#fff2c0')];
     geos.forEach((geo, j) => {
@@ -105,28 +104,62 @@ export function buildSea(g, mesh, std, part, furniture) {
     return b;
   });
 
-  // the mural above: the name, in the sea's own words
+  // the name, painted on the wall above, in the sea's own words
   const mural = mesh('', new THREE.PlaneGeometry(1.5, 0.375), new THREE.MeshBasicMaterial({ map: label(tank.label, tank.hint), transparent: true, toneMapped: false }), [3.39, 2.15, Z]);
   mural.rotation.y = -Math.PI / 2; mural.castShadow = false;
-  // a line of waves painted along the wall
-  const strokes = [];
-  for (let j = 0; j < 3; j++) {
-    const pts = [];
-    for (let s = 0; s <= 80; s++) { const z = -1.9 + (s / 80) * 3.4; pts.push(new THREE.Vector3(3.395, 1.68 + j * 0.06 + Math.sin(z * 6 + j) * 0.025, z)); }
-    strokes.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 160, 0.004, 4));
-  }
-  const waveLine = mesh('', mergeGeometries(strokes), new THREE.MeshBasicMaterial({ color: theme.lanes.host }), [0, 0, 0]);
-  waveLine.castShadow = false;
+  // the wall: blue stripes, the sea's swell, from corner to corner and from the skirting to the cornice
+  buildWaveWall(g, { lite, clear: { z: Z - 0.05, y: 2.15, w: 1.7, h: 0.5 } });
 
   return (t) => {
-    uniforms.uTime.value = t;
+    uniforms.uTime.value = t; aq.update(t);
     for (const b of buoys) {
-      const p = b.userData.home, y = waveHeight(p.x, p.z, t);
-      const sx = (waveHeight(p.x + 0.02, p.z, t) - y) / 0.02, sz = (waveHeight(p.x, p.z + 0.02, t) - y) / 0.02;
+      const p = b.userData.home, y = TANK * waveHeight(p.x, p.z, t);
+      const sx = TANK * (waveHeight(p.x + 0.02, p.z, t) - waveHeight(p.x, p.z, t)) / 0.02, sz = TANK * (waveHeight(p.x, p.z + 0.02, t) - waveHeight(p.x, p.z, t)) / 0.02;
       b.position.set(p.x, p.y + y + 0.005, p.z);
       b.rotation.set(sz * 0.6, b.userData.phase + t * 0.2, -sx * 0.6);
     }
   };
+}
+
+// The marola wall (the right one, x = 3.4): stripes of the sea's blues painted across all of it,
+// each a band between two swells, the deep ones low and the shallow ones high, drawn once on a
+// canvas from config.sea.wall. One plane, lit like the paint it is. `clear` keeps the name readable.
+function buildWaveWall(g, { lite, clear }) {
+  const cols = sea.wall?.colors ?? ['#06243f', '#1682D4', '#8cc8f0'];
+  const z0 = ROOM.z0 + 0.012, z1 = ROOM.z1 - 0.012, y0 = 0.165, y1 = ROOM.h - 0.15;
+  const W = lite ? 1024 : 2048, H = Math.round(W * (y1 - y0) / (z1 - z0) / 2) * 2;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d'), r = mulberry32(5);
+  const bands = 26;
+  for (let j = 0; j < bands; j++) {
+    const v = j / (bands - 1); // 0 at the floor, 1 under the cornice
+    const base = H * (1 - (j + 0.5) / bands);
+    const thick = H / bands * (0.28 + 0.3 * r());
+    const k1 = (2 + r() * 3) * Math.PI * 2 / W, k2 = (7 + r() * 6) * Math.PI * 2 / W, a1 = H * (0.006 + 0.01 * r()), a2 = H * 0.004 * r(), p1 = r() * 6.28, p2 = r() * 6.28;
+    const yAt = (x, off) => base + off + a1 * Math.sin(k1 * x + p1) + a2 * Math.sin(k2 * x + p2);
+    const ci = Math.min(cols.length - 1, Math.floor((1 - v) * cols.length * 0.999));
+    ctx.fillStyle = cols[cols.length - 1 - ci]; ctx.globalAlpha = 0.78 + 0.2 * r();
+    ctx.beginPath(); ctx.moveTo(0, yAt(0, -thick / 2));
+    for (let x = 0; x <= W; x += 8) ctx.lineTo(x, yAt(x, -thick / 2));
+    for (let x = W; x >= 0; x -= 8) ctx.lineTo(x, yAt(x + 30, thick / 2) + thick * 0.15 * Math.sin(x * k2 * 0.5));
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  if (clear) { // the name's place, cleared with soft edges
+    const px = (z) => ((z - z0) / (z1 - z0)) * W, py = (y) => ((y1 - y) / (y1 - y0)) * H;
+    ctx.globalCompositeOperation = 'destination-out'; ctx.filter = `blur(${W / 120}px)`;
+    ctx.fillRect(px(clear.z - clear.w / 2), py(clear.y + clear.h / 2), px(clear.z + clear.w / 2) - px(clear.z - clear.w / 2), py(clear.y - clear.h / 2) - py(clear.y + clear.h / 2));
+    ctx.filter = 'none'; ctx.globalCompositeOperation = 'source-over';
+  }
+  const tex = texture(c);
+  const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.92, emissiveMap: tex, emissive: '#ffffff', emissiveIntensity: 0.08, depthWrite: false });
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(z1 - z0, y1 - y0), mat);
+  plane.position.set(ROOM.x1 - 0.004, (y0 + y1) / 2, (z0 + z1) / 2); plane.rotation.y = -Math.PI / 2;
+  plane.receiveShadow = true; plane.castShadow = false; plane.name = 'marola_wall'; plane.raycast = () => {};
+  g.add(plane);
+}
+function mulberry32(a) {
+  return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
 // ── the loop: a wheel on the front wall that never stops ──

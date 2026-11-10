@@ -52,12 +52,15 @@ export function createInteractions(camera, canvas, tooltip, { root, onHover = ()
   canvas.addEventListener('click', (e) => {
     if (ignoreClick()) return; // the end of a drag to look around
     const p = pick(e); if (!p) return;
+    if (e.pointerType === 'touch') navigator.vibrate?.(8); // a finger feels the tap where a phone can
     targets.get(p.obj).onClick?.(p.hit);
   });
 
   const read = (v) => (typeof v === 'function' ? v() : v);
   return {
     add(obj, opts) { if (obj) targets.set(obj, opts); },
+    // the same label and click, now on another object (Nash, when he is made again)
+    move(from, to) { const o = targets.get(from); if (!o || !to) return; targets.delete(from); targets.set(to, o); if (hovered === from) hovered = null; },
     remove(obj) { targets.delete(obj); },
     get hovered() { return hovered; },
     // Called every frame; the ray runs again only when the pointer or the camera moved.

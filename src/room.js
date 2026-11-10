@@ -14,15 +14,15 @@ import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, no
 import { buildTapeStack, buildVCR, buildMixtape } from './vhs.js';
 
 // Photographed surfaces (Poly Haven, CC0; CREDITS.md): colour, normal and roughness, or only
-// some of them (`maps`). The phone's look takes the colour alone, at 512 px.
+// some of them (`maps`). The small files (a phone, a small screen, a slow line) are the colour alone, at 512 px.
 const loader = new THREE.TextureLoader();
-let anisotropy = 8, lite = false; // the quality's (src/quality.js), set by loadRoom before anything is built
+let anisotropy = 8, lite = false, small = false; // the quality's look and files (src/quality.js), set by loadRoom before anything is built
 function pbr(name, repeat = [1, 1], rot = 0, maps = ['diff', 'nor', 'rough']) {
   const map = (k, srgb) => { const t = loader.load(`/textures/pbr/${name}_${k}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.rotation = rot; t.anisotropy = anisotropy; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
   const out = {};
-  if (maps.includes('diff')) out.map = map(lite ? 'diff.lite' : 'diff', true);
-  if (!lite && maps.includes('nor')) out.normalMap = map('nor');
-  if (!lite && maps.includes('rough')) out.roughnessMap = map('rough');
+  if (maps.includes('diff')) out.map = map(small ? 'diff.lite' : 'diff', true);
+  if (!small && maps.includes('nor')) out.normalMap = map('nor');
+  if (!small && maps.includes('rough')) out.roughnessMap = map('rough');
   return out;
 }
 
@@ -30,8 +30,8 @@ function pbr(name, repeat = [1, 1], rot = 0, maps = ['diff', 'nor', 'rough']) {
 // from config. Either way it returns the same handles, so the rest of
 // the app doesn't care where the geometry came from.
 export async function loadRoom(scene, url, onProgress = () => {}, quality = { shadowSize: 1024, anisotropy: 8, dust: 400 }) {
-  anisotropy = quality.anisotropy; lite = quality.name === 'lite';
-  let root, animated = [], ready = Promise.resolve();
+  anisotropy = quality.anisotropy; lite = quality.name === 'lite'; small = (quality.files ?? (lite ? 'lite' : 'full')) === 'lite';
+  let root, animated = [], ready = Promise.resolve(), furnish = () => {};
   try {
     const head = await fetch(url, { method: 'HEAD' });
     if (!head.ok || !(head.headers.get('content-type') || '').match(/gltf|octet|model/)) throw 0;
@@ -42,7 +42,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     useBakedLighting(root);
   } catch {
     await fontsReady();
-    ({ root, animated, ready } = placeholderRoom());
+    ({ root, animated, ready, furnish } = placeholderRoom());
   }
   onProgress(1);
   scene.add(root);
@@ -98,6 +98,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
   const bulb = find('lamp_bulb');
   const handle = {
     root, find, lamp, tvLight, screen, vcr: find('vcr'),
+    furnish,        // asks for the furniture that is files: called once the room is on screen
     ready,          // the furniture that is files has arrived, or failed and left its stand-in (src/furniture.js)
     onChange: null, // called when a piece of it arrives after the room is on screen: draw the shadows again
     get day() { return day; }, setDay,
@@ -210,7 +211,7 @@ function placeholderRoom() {
   const named = (name) => { const grp = new THREE.Group(); grp.name = name; g.add(grp); return grp; };
   const art = (kind) => hotspots.filter((h) => h.art?.kind === kind);
   // the furniture that is files: each `place` leaves a holder with a stand-in, and the model takes its place
-  const F = createFurniture(modelFiles, { lite, anisotropy, onChange: () => { g.userData.arrived = true; } });
+  const F = createFurniture(modelFiles, { lite, small, anisotropy, onChange: () => { g.userData.arrived = true; } });
   const sbox = (s, size, pos, color, opts) => mesh('', new THREE.BoxGeometry(...size), std(color, opts), pos, s); // a stand-in's box
 
   // ── the shell: an old apartment (src/shell.js) ──
@@ -352,7 +353,7 @@ function placeholderRoom() {
   const { x: wx, y: wy, w: ww, h: wh } = WIN;
   const glass = mesh('window', new THREE.PlaneGeometry(ww - 0.1, wh - 0.1), new THREE.MeshPhysicalMaterial({ color: '#9fb6d8', roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.07, depthWrite: false }), [wx, wy, fz - 0.01]);
   glass.renderOrder = 3; glass.castShadow = false;
-  const view = buildOutside(g, { center: new THREE.Vector3(wx, wy, fz - 0.02), aim: outside?.aim, night: outside?.night, day: outside?.day });
+  const view = buildOutside(g, { center: new THREE.Vector3(wx, wy, fz - 0.02), aim: outside?.aim, night: outside?.night, day: outside?.day, small });
   animated.push(view); g.userData.outside = view;
 
   // piabrota RADIO on the sill: a radio cassette player, its dial lit while it plays
@@ -540,7 +541,7 @@ function placeholderRoom() {
   ]));
 
   // ── the other walls: marola-dev's sea, ouroboric-dev's loop, the slipbox ──
-  animated.push(buildSea(g, mesh, std, part, F), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
+  animated.push(buildSea(g, mesh, std, part, F, { lite }), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
 
   // the leaves sway a little in the air of the room (the vertex shader; still under reduced motion)
   const sway = std('#2f6b3a', LEAF);
@@ -593,7 +594,7 @@ function placeholderRoom() {
     });
     geo.setIndex(new THREE.BufferAttribute(out, 1)); o.geometry = geo; o.material = uniq;
   });
-  return { root: g, animated, ready: F.ready };
+  return { root: g, animated, ready: F.ready, furnish: () => F.start() };
 }
 
 // You: a pair of sneakers and the legs of a pair of jeans, standing under

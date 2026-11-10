@@ -10,23 +10,31 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 // A thing is a holder: an empty group at its place, with an optional stand-in of a few boxes.
 // The room can open with the stand-ins and never needs a file (invariant 8); each model takes
 // its stand-in's place when it arrives, and a file that is missing or broken leaves the stand-in
-// where it is. `ready` resolves when every file has arrived or failed.
+// where it is. Nothing is fetched before `start()`; `ready` resolves when every file has arrived or failed.
 //
 // `fit` gives the size: { w, h, d } in metres, any of them. One number scales the model evenly
 // to it; with `stretch`, each number given scales its own axis (a cabinet made a little shorter).
 // `anchor` says which point of the model sits on the holder: 'floor' (the middle of its foot,
 // the default), 'back' (the middle of its back, for a picture on a wall), 'top' (the middle of
 // its top, for a lamp that hangs), 'centre', or 'origin' (the model's own origin, as its author set it).
-export function createFurniture(models, { lite = false, anisotropy = 8, onChange = () => {} } = {}) {
+export function createFurniture(models, { lite = false, small = lite, anisotropy = 8, onChange = () => {} } = {}) {
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const pending = [];
+  // No file is asked for before `start()`: the room shows first, with its stand-ins, and the
+  // furniture comes after, four files at a time, so the room's own code and pictures never wait
+  // behind a chair on a slow line.
+  let go; const started = new Promise((done) => { go = done; });
+  const slots = { free: 4, wait: [] };
+  const take = () => (slots.free > 0 ? (slots.free--, Promise.resolve()) : new Promise((done) => slots.wait.push(done)));
+  const give = () => { const next = slots.wait.shift(); if (next) next(); else slots.free++; };
+  const fetchModel = (url) => started.then(take).then(() => loader.loadAsync(url)).finally(give);
   const cache = new Map(); // one download for a file that stands in two places
   const base = models?.base ?? '/models/';
   const fileOf = (key) => {
     const def = models?.files?.[key]; if (!def) return null;
     const { file, phone = true } = typeof def === 'string' ? { file: def } : def;
     if (lite && !phone) return null; // a prop the phone's look leaves out
-    return `${base}${file}${lite ? '.lite' : ''}.glb`;
+    return `${base}${file}${small ? '.lite' : ''}.glb`; // the small file on a phone, a small screen or a slow line (src/quality.js)
   };
   const box = new THREE.Box3(), size = new THREE.Vector3(), centre = new THREE.Vector3();
 
@@ -66,7 +74,7 @@ export function createFurniture(models, { lite = false, anisotropy = 8, onChange
       standin?.(placeholder);
       const url = fileOf(key);
       if (url) {
-        if (!cache.has(url)) cache.set(url, loader.loadAsync(url));
+        if (!cache.has(url)) cache.set(url, fetchModel(url));
         pending.push(cache.get(url).then((gltf) => {
           const model = settle(gltf.scene.clone(true), how); // a copy: a file can stand in two places
           model.name = key;
@@ -77,6 +85,14 @@ export function createFurniture(models, { lite = false, anisotropy = 8, onChange
       }
       return holder;
     },
+    // the glTF of a file that is not furniture (the aquarium's fish), loaded like the rest after
+    // `start()`: a promise of the glTF, or of null when there is no file or it failed
+    load(key) {
+      const url = fileOf(key); if (!url) return Promise.resolve(null);
+      if (!cache.has(url)) cache.set(url, fetchModel(url));
+      const p = cache.get(url).catch(() => null); pending.push(p); return p;
+    },
+    start() { go(); },
     get ready() { return Promise.all(pending); },
     get count() { return pending.length; },
   };

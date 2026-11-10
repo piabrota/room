@@ -58,6 +58,10 @@ peek *args: _deps
 record: build
     node scripts/record.mjs
 
+# the aquarium's fish into public/models/ (fish.glb and fish.lite.glb): Microsoft's Barramundi from the Khronos glTF sample assets, CC0, pinned to a commit
+fish: _deps
+    node scripts/fish.mjs
+
 # only the ▲ grid's stills and a clip that clicks each of its views into docs/record/ (headless Chrome, ffmpeg)
 record-grid: build
     node scripts/record.mjs --grid
