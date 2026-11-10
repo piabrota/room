@@ -61,6 +61,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 28 | 9 Nov 23:13 | [#33](https://github.com/piabrota/room/pull/33) a "lyrics" toggle in the playlist's player that says where the lyrics are (Spotify's own app) and shows none, since the room has no licence for them; the playlist's tracks and artists read again from Spotify's player, 37 tracks and 42 artists, in `CREDITS.md` and beside the player | 25 min |
 | 29 | 10 Nov 00:03 | [#34](https://github.com/piabrota/room/pull/34) the room as an old apartment, at real sizes: plaster walls, a cornice and a ceiling rose, tall skirting, a wooden window of two leaves in a deep reveal, curtains, parquet and a drawn rug; 24 pieces of furniture and props from Poly Haven (CC0) through `just models`, each with a lighter file for the phone; VHS cassettes in card sleeves, in two piles, and a video recorder they fly into, at their real sizes; the night lit by its lamps; a credits button, its card and a brass plate that name Felix Rieseberg; `just peek` to look at a change and count its draw calls | 3 h 55 min |
 | 30 | 10 Nov 12:48 | [#36](https://github.com/piabrota/room/pull/36) the room opens faster: nothing waits for the furniture any more (it comes after the first frame, four files at a time), the files are sized to the device (the small ones on a phone, a small screen or a slow line), the grid chart's mesh waits too, so a laptop downloads 2.3 MB before the room shows instead of 9.5 and a phone 0.8 instead of 2.6; the marola wall painted with blue stripes from corner to corner; the floating water is an aquarium, with sand, stones, plants, bubbles, a school of small fish and Microsoft's Barramundi (CC0) swimming; on a phone, the buttons in two rows that scroll under the thumb and hints for a finger; three skills, `room-threejs-perf`, `room-assets` and `room-load` | 2 h 25 min |
+| 31 | 10 Nov 20:07 | [#37](https://github.com/piabrota/room/pull/37) the playlist credited to Leonardo AL aracyla, its owner now, beside the player and in `CREDITS.md`; its tracks and artists read again from Spotify's player, 60 tracks and 63 artists; what plays now beside the player (title, artists, time, bars that dance) and the mixtape's reels turning, read from the messages Spotify's player posts, the covers left in Spotify's player; a window button that puts Copacabana live (Homes in Rio's webcam at Posto 6, YouTube, muted) behind the glass, the frame in front of it, with invariant 1 widened for it; "how I read", ten ebooks on the bookcase under the works with a DOI, each a spine in its cover's colours and a link to its Leanpub page | 1 h 50 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -357,6 +358,22 @@ be refactored, the blue strips need to fill all the wall. Change the water float
 aquarium with realistic fishes. In the same PR optimize the experience for mobile users. Grab more
 skills from github that you feel can help maintain this 3d complex project'
 user> 'would be good if the size of the things could depend on the device of the user'
+```
+
+**31.**
+
+```text
+user> 'fix playlist ownership, Leonardo AI aracyla now owns it'
+user> 'https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U also update playlist text, with current cast'
+user> 'in the same PR
+* Add music thumbnail to site if possible
+* Also add music animation in website related to the music being played on spotify'
+user> 'I mean, the specific photo used by every track'
+user> 'in the same PR allow users to change the window to a youtube 24/7 feed in copacabana I know exists'
+user> 'https://www.youtube.com/watch?v=Bz9Hkrk1NcY'
+user> 'it should be after the window, for better realism'
+user> 'Leonardo AL'
+user> 'in the same PR, add this to the shelf in the website, with according colors and leanpub links'
 ```
 
 The address of the reference room is left out of the prompts: this repository credits Felix

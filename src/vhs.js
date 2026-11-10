@@ -986,6 +986,21 @@ export function buildMixtape(words = {}, { lite = false, anisotropy = 8, theme, 
     const box = new THREE.Mesh(new RoundedBoxGeometry(109 * M, 70 * M, 16 * M, 1, 1.2 * M), new THREE.MeshPhysicalMaterial({ color: '#e8f0f4', roughness: 0.08, metalness: 0, transparent: true, opacity: 0.16, depthWrite: false }));
     box.position.y = 1.5 * M; box.renderOrder = 2; g.add(box);
   }
+  // the reels' hubs, which turn while the playlist plays (`userData.playing`, set by src/app.js
+  // from Spotify's player): the take-up reel, nearly full, slower than the one that feeds it
+  const hubGeo = new THREE.CylinderGeometry(4.4 * M, 4.4 * M, 0.8 * M, 6).rotateX(Math.PI / 2);
+  const hubMat = new THREE.MeshStandardMaterial({ color: '#ece8de', roughness: 0.6 });
+  const hubs = MIX.eyes.map(([x, y]) => {
+    const h = new THREE.Mesh(hubGeo, hubMat); h.position.set((x - MIX.w / 2) * M, (MIX.h / 2 - y) * M, MIX.t / 2 * M + 0.2 * M);
+    h.castShadow = false; g.add(h); return h;
+  });
+  let last = null, speed = 0;
+  g.userData.update = (t) => {
+    const dt = last == null ? 0 : Math.min(0.1, t - last); last = t;
+    speed += ((g.userData.playing ? 1 : 0) - speed) * Math.min(1, dt * 3); // the motor eases in and out
+    if (speed < 1e-3) return;
+    hubs[0].rotation.z -= dt * speed * 1.4; hubs[1].rotation.z -= dt * speed * 2.6;
+  };
   g.scale.setScalar(scale); g.userData.foot = (boxed ? 33.5 : 32) * M * scale; // from its middle down to what it stands on
   return g;
 }

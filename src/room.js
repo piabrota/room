@@ -368,6 +368,7 @@ function placeholderRoom() {
   for (const h of art('mixtape')) {
     const tape = buildMixtape(playlist.tape, { lite, anisotropy, theme, scale: 1.6 }); tape.name = h.name; g.add(tape); // a big one, to be seen from the room
     tape.position.set(0.47, SILL.y + tape.userData.foot, SILL.z - 0.035); tape.rotation.set(-0.1, 0.22, 0);
+    animated.push(tape.userData.update);
   }
 
   // ── the board: people pinned as polaroids, under the eye ──
@@ -476,8 +477,18 @@ function placeholderRoom() {
     b.rotation.z = i === 5 ? -0.14 : 0;
     if (i === 5) b.position.x += 0.035;
   });
-  // the rest of it: three runs of an encyclopaedia, a clock, a vase, records and boxes at the bottom
-  for (const [dx, lv, turn] of [[0.33, 4, 0], [-0.36, 5, 0], [-0.04, 3, 0], [-0.37, 3, 0]]) F.place('books', g, { at: [sx + dx, levels[lv], sz + 0.02], rot: turn, fit: { h: 0.235 } });
+  // under them, "how I read" (config.reads): ten ebooks as spines in their covers' colours, each
+  // one draw call: its box's other faces read the corner of its spine, the cover's colour
+  let rx = sx - 0.52;
+  art('read').forEach((h, i) => {
+    const hgt = 0.215 + ((i * 29) % 5) * 0.008, th = 0.03 + ((i * 7) % 3) * 0.005;
+    const geo = new THREE.BoxGeometry(th, hgt, 0.17), uv = geo.attributes.uv;
+    for (let v = 0; v < uv.count; v++) if (v < 16 || v >= 20) uv.setXY(v, 0.02, 0.5); // every face but the spine (+z): plain colour
+    const b = mesh(h.name, geo, new THREE.MeshStandardMaterial({ map: spineArt({ title: h.art.spine, color: h.art.color, ink: h.art.ink, by: h.art.by, theme }), roughness: 0.65 }), [rx + th / 2, levels[3] + hgt / 2, sz + 0.06]);
+    b.castShadow = true; rx += th + 0.003;
+  });
+  // the rest of it: two runs of an encyclopaedia, a clock, a vase, records and boxes at the bottom
+  for (const [dx, lv, turn] of [[0.33, 4, 0], [-0.36, 5, 0]]) F.place('books', g, { at: [sx + dx, levels[lv], sz + 0.02], rot: turn, fit: { h: 0.235 } });
   F.place('vase', g, { at: [sx + 0.36, levels[5], sz], fit: { h: 0.3 } });
   F.place('alarm', g, { at: [sx + 0.36, levels[3], sz + 0.04], rot: 0.35, fit: { h: 0.15 } });
   for (let i = 0; i < 14; i++) box([0.005, 0.24, 0.3], [sx - 0.5 + i * 0.016 + (i % 4) * 0.002, levels[1] + 0.12, sz + 0.01], i % 3 ? '#1b1b1b' : '#3a2d2a'); // records, on edge

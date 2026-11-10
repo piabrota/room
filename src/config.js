@@ -91,6 +91,18 @@ export const outside = {
   day:   { photo: '/textures/rio-day.jpg',   anchor: [0.72, 0.4] },
   dayHours: [6, 18],
   aim: [0.4, 6.0], // where the landmark sits, in metres from the middle of the window, 25 m out
+  // Copacabana, live, behind the glass instead of the photographs: the webcam of Homes in Rio at
+  // Posto 6, on YouTube, given by the owner on 10 November 2026 (AGENTS.md, invariants 1 and 7).
+  // Its iframe is made on the click of the window's button, muted, and removed when it goes back
+  // to Rio; the credit shows beside the button while it plays. A live stream's id can change when
+  // its channel starts it again: then put the new one here.
+  live: {
+    button: { off: 'window: Rio', on: 'window: Copacabana live' }, hint: 'see Copacabana, Posto 6, live',
+    title: 'Panorama Webcam Rio de Janeiro - Copacabana beach - Posto 6',
+    embed: 'https://www.youtube-nocookie.com/embed/Bz9Hkrk1NcY?autoplay=1&mute=1&controls=0&playsinline=1&rel=0&disablekb=1&iv_load_policy=3',
+    url: 'https://www.youtube.com/watch?v=Bz9Hkrk1NcY',
+    credit: 'live: Copacabana, Posto 6 · Homes in Rio on YouTube',
+  },
 };
 
 // Named camera shots. Keys 1..n or the buttons switch between them.
@@ -126,14 +138,78 @@ export const ui = {
 // Spotify's Embed player over the room (AGENTS.md, invariants 1 and 7):
 // an iframe made on the click and removed on close, the one thing in the
 // room that loads from another host. Its artists are credited beside it
-// and in CREDITS.md (the playlist as Spotify listed it on 9 November 2026).
+// and in CREDITS.md (the playlist as Spotify listed it on 10 November 2026; who it is
+// by, as the owner said that day).
 export const playlist = {
   label: 'the mixtape', hint: 'GREAT RESET, a playlist on Spotify', button: '♫ playlist',
-  title: 'GREAT RESET', by: 'a playlist by Matheus Hoffmann',
+  title: 'GREAT RESET', by: 'a playlist by Leonardo AL aracyla',
   url: 'https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U',
   embed: 'https://open.spotify.com/embed/playlist/2hsuqvhCouatM8DtmKKl7U?theme=0',
   tape: { title: 'GREAT RESET', side: 'A · on Spotify' },
-  artists: ['Brone', 'Jamé', 'Leo Gandelman', 'Machine Series', 'BK', 'El Lif Beatz', 'Flora Matos', 'Sain', 'Luccas Carlos', 'Akira Presidente', 'Bril', 'CHS', 'JXNV$', 'Pirâmide Perdida', 'Nectar Gang', 'Tyler, The Creator', 'Kanye West', 'Dead Kennedys', 'Marina Sena', 'Preta Gil', 'Los Hermanos', 'Marcelo D2', 'Juçara Marçal', 'Baco Exu do Blues', 'Anelis Assumpção', 'NF', 'Filipe Ret', 'Mãolee', 'WesGhost', 'Wealstarcks', 'Paulo DK', 'Abud', 'Djavan', 'Link do Zap', 'pluglip', 'R.E.M.', 'Apashe', 'Wasiu', 'Imagine Dragons', 'JID', 'Arcane', 'League of Legends'],
+  // the tracks, as Spotify's Embed player listed them on 10 November 2026 (CREDITS.md): the
+  // player names the one that plays by its id, and the room shows its title and artists
+  tracks: [
+    { id: '3wZXoE4fHQ2jwK6rScF9gM', title: 'Brasileiro', artists: ['Puro Suco', 'BEATDOMK'] },
+    { id: '39glDGcpBhLVMSsQhvtqHR', title: 'I Only Smoke When I Drink', artists: ['nimino'] },
+    { id: '1aCr3cnbGeJgOtOqS1ahKG', title: 'NASCI PELADO, TÔ VESTIDO', artists: ['Brone', 'Jamé'] },
+    { id: '750rGcrtBGUlPWh16o0r9D', title: 'Deus Do Furdunço', artists: ['Leo Gandelman', 'Machine Series', 'BK'] },
+    { id: '3BYG6GNJypc1bIOxSkorDh', title: 'Julius', artists: ['BK', 'El Lif Beatz'] },
+    { id: '2HkiLuom1eTh8ZEaGqQjLY', title: 'O Jeito', artists: ['Flora Matos'] },
+    { id: '00XfUDUYQJ2hgG0vKpdwa6', title: 'Bora Dançar', artists: ['Flora Matos'] },
+    { id: '7cP99Dd9VNjDpr4yYIRGK9', title: 'Sonhos Gangsta', artists: ['Flora Matos'] },
+    { id: '7bWZVRVczxNi7MMzFLvJkw', title: 'Reunião', artists: ['Sain', 'Luccas Carlos', 'Akira Presidente', 'Bril', 'CHS', 'JXNV$', 'BK', 'Pirâmide Perdida'] },
+    { id: '6uFYfyehWLRozy4VeOIjYX', title: 'Avanço', artists: ['Nectar Gang'] },
+    { id: '4f8Mh5wuWHOsfXtzjrJB3t', title: 'I THINK', artists: ['Tyler, The Creator'] },
+    { id: '0fv2KH6hac06J86hBUTcSf', title: 'NEW MAGIC WAND', artists: ['Tyler, The Creator'] },
+    { id: '5hVghJ4KaYES3BFUATCYn0', title: 'EARFQUAKE', artists: ['Tyler, The Creator'] },
+    { id: '0j2T0R9dR9qdJYsB7ciXhf', title: 'Stronger', artists: ['Kanye West'] },
+    { id: '1y5redkkyifDxFKju5VcBD', title: 'California Uber Alles', artists: ['Dead Kennedys'] },
+    { id: '73CgP34HUZQMvZf6TWkXQF', title: 'Me Toca', artists: ['Marina Sena'] },
+    { id: '0eLBf8kyaS182M4gyTfoH1', title: 'Pelejei', artists: ['Marina Sena'] },
+    { id: '00AAP0UYSQsvVboXEJ3n6h', title: 'Voltei Pra Mim', artists: ['Marina Sena'] },
+    { id: '1Bl7yB00tqTkXE7fAXQ83r', title: 'Amiúde', artists: ['Marina Sena'] },
+    { id: '70iK9fZYPTpxbpQ4ox8usx', title: 'Seu Olhar', artists: ['Marina Sena'] },
+    { id: '0MAc9pefRKSDEjq8Q85Mky', title: 'Coisas Naturais', artists: ['Marina Sena'] },
+    { id: '6C8H63gGFeDqAYJ75uLPA6', title: 'Sem Lei', artists: ['Marina Sena'] },
+    { id: '64uJ4QVY4bsS9uSquePNGV', title: 'SENSEI', artists: ['Marina Sena'] },
+    { id: '3CaW1cyS7f9PC8Bf0XCpZ6', title: 'CARNAVAL', artists: ['Marina Sena'] },
+    { id: '7D9BJEcWwRqvQVqPbj1dbF', title: 'Sinais de fogo', artists: ['Preta Gil'] },
+    { id: '4PCyzOTAB7zfJaxaS1uLSY', title: 'O Vento', artists: ['Los Hermanos'] },
+    { id: '6aboy6b50nYKU7gW7RPXU1', title: 'ROMPEU O COURO.', artists: ['Marcelo D2', 'Juçara Marçal', 'BK', 'Baco Exu do Blues', 'Anelis Assumpção'] },
+    { id: '2OKo7g3KfmCt3kyLvUAL0g', title: 'The Search', artists: ['NF'] },
+    { id: '5C90YMJ6OMaPHD7MpRGubZ', title: 'Desenho', artists: ['Filipe Ret', 'Mãolee'] },
+    { id: '6Stz1dIY7OD61gU7SdVR22', title: 'SPINE', artists: ['WesGhost'] },
+    { id: '3excIMe9HKY56gkXWNkQDj', title: 'Ta Faltando Um', artists: ['Wealstarcks'] },
+    { id: '1VkG1IcHVZfMS9CjuF3Iaq', title: 'LOVE IN RIO', artists: ['Wealstarcks'] },
+    { id: '55niXiXepPmABGxm28vYmA', title: 'Copacabana 89', artists: ['Wealstarcks'] },
+    { id: '0eAN72pD742qdEQxGQ7bYq', title: 'Quente !', artists: ['Akira Presidente', 'BK', 'Paulo DK', 'Abud'] },
+    { id: '7EP8iM3OAfom5hLiVvKmJM', title: 'Asa', artists: ['Djavan'] },
+    { id: '1mGOpXrIsTJFTeG5ITgjBF', title: 'Melhoria Gang', artists: ['Akira Presidente', 'El Lif Beatz'] },
+    { id: '096gZM7wp5GKHBwtWY3d0z', title: 'a última dança', artists: ['Link do Zap', 'pluglip'] },
+    { id: '2oSpQ7QtIKTNFfA08Cy0ku', title: 'It\'s The End Of The World As We Know It (And I Feel Fine)', artists: ['R.E.M.'] },
+    { id: '04zVcQYcV9iPQVsQVVDkKD', title: 'Human', artists: ['Apashe', 'Wasiu'] },
+    { id: '23zqFHNiDYWoayPU5k0IIR', title: 'Libertários Não Morrem', artists: ['Filipe Ret', 'IbraBeats', 'Funkero'] },
+    { id: '7dcogxYnGecgTSnXOKgibA', title: 'Música', artists: ['Alternativo Ponto de Vista', 'Luiz Barata', 'Hariel Malay'] },
+    { id: '3yfqSUWxFvZELEM4PmlwIR', title: 'The Real Slim Shady', artists: ['Eminem'] },
+    { id: '0VyCznZeMBOKcYAbg5tBn0', title: 'Asas', artists: ['Luedji Luna'] },
+    { id: '5uSnNITp4UvRePHXo9vGV7', title: 'Um Corpo no Mundo', artists: ['Luedji Luna'] },
+    { id: '5TTWOyGAjATPEuDiTIRd62', title: 'Acalanto', artists: ['Luedji Luna'] },
+    { id: '1RJJN0Q4lAwh13t2keNEFK', title: 'Banho de Folhas', artists: ['Luedji Luna'] },
+    { id: '4TaY35s44Bf6OQnRK4R8Y5', title: 'West Coast', artists: ['The Neighbourhood'] },
+    { id: '4I5mAYL7q5kqCTUtcvGlTm', title: 'TOKYO HEAT', artists: ['C.H.A.Y.'] },
+    { id: '3x4378ztiLvFmm2nuzEI0C', title: 'The Cruel Angel\'s Thesis (Director\'s Edit Version)', artists: ['高橋 洋子'] },
+    { id: '6tr15ncrJk0TSHQ7V8wzSC', title: 'O Samba Morreu', artists: ['Link do Zap'] },
+    { id: '1YK3f7UWuW7uVTBJlsNrPC', title: 'Pseudosocial', artists: ['Froid'] },
+    { id: '4kDzgYkIVT1JHFpKZOPxGW', title: 'Babylon By Gus', artists: ['Black Alien'] },
+    { id: '6SNGzhVrisdq63Ndz58ovT', title: 'Luv (sic)', artists: ['Nujabes'] },
+    { id: '1mXmnRFhiJNX50L1KhIRnw', title: 'Rio', artists: ['Ugovhb', 'EF'] },
+    { id: '3GTIrQEHUadwd6RZgvBnaE', title: 'Mar', artists: ['pumapjl', 'Babidi'] },
+    { id: '6bo8PYoNd8EHwv03a5z87D', title: 'Gypsy Woman', artists: ['Levi.Sct'] },
+    { id: '1gWnuGAiTk3Q4yrIbwymUK', title: 'Zoom Zoom', artists: ['Polo & Pan'] },
+    { id: '16iyre1V8HTENspdKCaG3u', title: 'São Paulo Sunset', artists: ['Saib'] },
+    { id: '1qpP75RkuITWHlDo6RmMMs', title: 'FESTA DE ADEUS', artists: ['Julio Secchin'] },
+    { id: '5AKrqJ7RiOCfCaaCuxxGk0', title: 'Preciso Me Encontrar', artists: ['Cartola'] },
+  ],
   words: {
     open: 'open in Spotify', close: 'close', artists: 'with',
     note: 'Full tracks play when you are logged in to Spotify in this browser; otherwise Spotify plays 30-second previews. "open in Spotify" plays them all, in any browser.',
@@ -141,9 +217,12 @@ export const playlist = {
     // the lyrics toggle: the room shows no lyrics (they are their writers', and Spotify is the one
     // licensed to show them), so it says where they are
     lyrics: 'lyrics', lyricsHide: 'hide lyrics',
+    now: 'now playing',
     lyricsNote: 'Spotify shows the lyrics of each song, line by line with the music, in its own app: "open in Spotify", play a track and open its lyrics under the player. The room shows none of them; they belong to the people who wrote them.',
   },
 };
+// every artist of the playlist, once, in the order they first play: named beside the player
+playlist.artists = [...new Set(playlist.tracks.flatMap((t) => t.artists))];
 // piabrota RADIO: lofi under a free licence only (CC0 or CC BY,
 // CREDITS.md), in two stations. A station plays its tracks one after
 // another from a random start. The radio plays through the room's sound,
@@ -332,6 +411,27 @@ export const works = [
   { id: 'marola-bench',  title: 'marola-bench',           doi: '10.5281/zenodo.23352633', color: '#4a8fd4' },
   { id: 'nashkell',      title: 'nashkell, the open book', doi: '10.5281/zenodo.23356739', color: '#D29922' },
 ];
+
+// ── how I read: ten technical ebooks from the owner's library, most on functional programming
+// and the architecture of real systems, on the bookcase under the works with a DOI. Each is a
+// spine in its cover's colours (`color` the cover, `ink` its title), named by its language
+// (`lang`, the one the cover names), and a link to its page on Leanpub (the owner, 10 November
+// 2026). No cover is copied into the room: only the colours, the title and the authors.
+export const reads = {
+  group: 'how I read', on: 'on Leanpub',
+  books: [
+    { id: 'certainty-by-construction', title: 'Certainty by Construction', by: 'Sandy Maguire', lang: 'agda', color: '#f6d200', ink: '#1b1b1b', url: 'https://leanpub.com/certainty-by-construction' },
+    { id: 'devops-toolkit-catalog', title: 'The DevOps Toolkit: Catalog, Patterns, and Blueprints', spine: 'The DevOps Toolkit', by: 'Viktor Farcic, Darin Pope', lang: 'devops', color: '#f3f2ee', ink: '#2b2b2b', url: 'https://leanpub.com/the-devops-toolkit-catalog' },
+    { id: 'rust-from-the-ground-up', title: 'Rust From the Ground Up', by: 'Matthew Provost', lang: 'rust', color: '#2a1b14', ink: '#ff6a1f', url: 'https://leanpub.com/rust-from-the-ground-up' },
+    { id: 'python-master', title: 'The Python Master', by: 'Robert Smallshire, Austin Bingham', lang: 'python', color: '#f6f6f4', ink: '#2c4a6e', url: 'https://leanpub.com/python-master' },
+    { id: 'clean-architectures-in-python', title: 'Clean Architectures in Python', by: 'Leonardo Giordani', lang: 'python', color: '#d9821c', ink: '#fff6e4', url: 'https://leanpub.com/clean-architectures-in-python' },
+    { id: 'feda', title: 'Functional Event-Driven Architecture', by: 'Gabriel Volpe', lang: 'scala', color: '#8f8ef0', ink: '#141414', url: 'https://leanpub.com/feda' },
+    { id: 'simple-haskell-book', title: 'The Simple Haskell Handbook', by: 'Marco Sampellegrini', lang: 'haskell', color: '#f27d0c', ink: '#fff8ee', url: 'https://leanpub.com/simple-haskell-book' },
+    { id: 'production-haskell', title: 'Production Haskell', by: 'Matt Parsons', lang: 'haskell', color: '#f5f1e6', ink: '#262626', url: 'https://leanpub.com/production-haskell' },
+    { id: 'functional-design-and-architecture', title: 'Functional Design and Architecture', by: 'Alexander Granin', lang: 'haskell', color: '#222222', ink: '#ececec', url: 'https://leanpub.com/functional-design-and-architecture' },
+    { id: 'pfp-scala', title: 'Practical FP in Scala', by: 'Gabriel Volpe', lang: 'scala', color: '#a88ae8', ink: '#161616', url: 'https://leanpub.com/pfp-scala' },
+  ],
+};
 
 // ── the sea: marola-dev's repositories as buoys on an aquarium, the wall painted with the sea ──
 // The waves are computed live, a nod to ww3-gpu (WAVEWATCH III). `aquarium` is how many fish swim
@@ -543,6 +643,7 @@ export const credits = {
     { what: 'the lofi on the radio', who: 'HoliznaCC0', licence: 'CC0 1.0' },
     { what: '"Cafezinho com Leite", on lofi brasil', who: 'Popoi', licence: 'CC BY 3.0' },
     { what: 'the music of the playlist', who: 'its artists and their labels, streamed by Spotify', licence: 'Spotify\'s terms' },
+    { what: 'Copacabana live behind the window', who: 'the webcam of Homes in Rio, streamed by YouTube', licence: 'YouTube\'s terms' },
     { what: 'the typefaces', who: 'Sorkin Type, JetBrains, Font Diner, Vernon Adams, CodeMan38, Peter Hull, Astigmatic', licence: 'OFL-1.1, Apache-2.0' },
     { what: 'the land on the ▲ grid map', who: 'Natural Earth', licence: 'public domain' },
     { what: 'the wind on that map', who: 'NOAA (GFS), through Open-Meteo', licence: 'public domain, CC BY 4.0' },
@@ -674,6 +775,10 @@ export const hotspots = [
   ...works.map((w) => ({
     name: `book_${w.id}`, label: w.title, hint: `doi ${w.doi}`, action: 'link', value: `https://doi.org/${w.doi}`, group: 'works with a DOI',
     art: { kind: 'book', color: w.color },
+  })),
+  ...reads.books.map((b) => ({
+    name: `read_${b.id}`, label: b.title, hint: `${b.by} · ${b.lang} · ${reads.on}`, action: 'link', value: b.url, group: reads.group,
+    art: { kind: 'read', color: b.color, ink: b.ink, spine: b.spine ?? b.title, by: b.by },
   })),
   { name: 'tank', label: sea.label, hint: sea.hint, action: 'link', value: sea.url, group: 'marola-dev', art: { kind: 'tank' } },
   ...sea.buoys.map((b, i) => ({

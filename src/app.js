@@ -10,7 +10,8 @@ import { createRadio } from './radio.js';
 import { createPost } from './post.js';
 import { renderSignature } from './signature.js';
 import { createGrid } from './grid.js';
-import { createPlayer } from './player.js';
+import { createPlayer, equalizer } from './player.js';
+import { createLive } from './live.js';
 import { pick } from './quality.js';
 import { createLock } from './lock.js';
 import { createCat } from './cat.js';
@@ -22,7 +23,8 @@ const canvas = document.getElementById('scene');
 // A phone or a weak machine gets the lite look: fewer pixels, frames and passes (src/quality.js).
 const quality = pick();
 document.body.dataset.quality = quality.name;
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: quality.fps ? 'default' : 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, // alpha: the live window shows through (src/live.js)
+  powerPreference: quality.fps ? 'default' : 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, quality.ratios[0]));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 // AgX rolls bright colours off gently where ACES clips them to white
@@ -235,6 +237,23 @@ rainBtn.onclick = async () => {
   else rain?.stop();
 };
 
+// ── Copacabana live behind the window (src/live.js; config.outside.live) ──
+const liveDef = config.outside?.live, liveBtn = document.getElementById('window-live'), liveCredit = document.getElementById('live-credit');
+const glass = room.root.getObjectByName('window');
+const live = createLive(document.getElementById('live'), glass && liveDef, {
+  scene, camera, center: glass?.getWorldPosition(new THREE.Vector3()),
+  onChange: (on) => {
+    liveBtn.textContent = on ? liveDef.button.on : liveDef.button.off;
+    liveBtn.classList.toggle('active', on); liveBtn.setAttribute('aria-pressed', String(on));
+    liveCredit.hidden = !on;
+  },
+});
+if (glass && liveDef?.embed) {
+  liveBtn.textContent = liveDef.button.off; liveBtn.title = liveDef.hint; liveBtn.hidden = false;
+  liveCredit.textContent = liveDef.credit; liveCredit.href = liveDef.url;
+  liveBtn.onclick = () => live.toggle();
+}
+
 // ── day and night ──
 const dayBtn = document.getElementById('daylight');
 function setDay(on) {
@@ -265,9 +284,11 @@ const playlistBtn = document.getElementById('playlist');
 const player = createPlayer(document.getElementById('player'), config.playlist, {
   onOpen: () => { if (radio.on) radio.toggle(); playlistBtn.classList.add('active'); playlistBtn.setAttribute('aria-pressed', 'true'); },
   onClose: () => { playlistBtn.classList.remove('active'); playlistBtn.setAttribute('aria-pressed', 'false'); },
+  // while Spotify plays, the ♫ button's bars dance and the mixtape's reels turn
+  onPlayback: (on) => { playlistBtn.classList.toggle('playing', on); const m = room.root.getObjectByName('mixtape'); if (m) m.userData.playing = on; },
 });
 if (config.playlist?.embed) {
-  playlistBtn.textContent = config.playlist.button; playlistBtn.title = config.playlist.hint; playlistBtn.hidden = false;
+  playlistBtn.textContent = config.playlist.button; playlistBtn.append(equalizer()); playlistBtn.title = config.playlist.hint; playlistBtn.hidden = false;
   playlistBtn.setAttribute('aria-pressed', 'false');
   playlistBtn.onclick = () => player.toggle();
 }
@@ -336,7 +357,7 @@ function tick(dt, measure) {
     if (gridPending && !rig.moving) { gridPending = false; gridView.show(); }
     gridView.update(dt);
   }
-  if (!gridView?.covering) post.render(dt, elapsed, measure); // under the open map the room rests
+  if (!gridView?.covering) { live.update(); post.render(dt, elapsed, measure); } // under the open map the room rests
 }
 renderer.setAnimationLoop(frame);
 

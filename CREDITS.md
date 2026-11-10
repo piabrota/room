@@ -15,53 +15,85 @@ brass plate on the wall, and the credits of the LOFI page (`AGENTS.md`, invarian
 ## The playlist
 
 The mixtape on the sill and the ♫ playlist button open **GREAT RESET**, a playlist by
-Matheus Hoffmann on [Spotify](https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U), in
+Leonardo AL aracyla (the owner, 10 November 2026) on [Spotify](https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U), in
 Spotify's Embed player (`src/player.js`; `AGENTS.md`, invariants 1 and 7). The music belongs
 to its artists and their labels. It is streamed by Spotify, under Spotify's terms, and no
 audio, cover or logo of it is copied into this repository. Without a Spotify login in the
 browser, Spotify plays 30-second previews.
 
-The tracks, as Spotify's Embed player listed them on 9 November 2026 at 23:22 UTC:
+The tracks, as Spotify's Embed player listed them on 10 November 2026 at 20:12 UTC:
 
 | # | Track | Artists |
 |---|---|---|
-| 1 | NASCI PELADO, TÔ VESTIDO | Brone, Jamé |
-| 2 | Deus Do Furdunço | Leo Gandelman, Machine Series, BK |
-| 3 | Julius | BK, El Lif Beatz |
-| 4 | O Jeito | Flora Matos |
-| 5 | Bora Dançar | Flora Matos |
-| 6 | Sonhos Gangsta | Flora Matos |
-| 7 | Reunião | Sain, Luccas Carlos, Akira Presidente, Bril, CHS, JXNV$, BK, Pirâmide Perdida |
-| 8 | Avanço | Nectar Gang |
-| 9 | I THINK | Tyler, The Creator |
-| 10 | NEW MAGIC WAND | Tyler, The Creator |
-| 11 | EARFQUAKE | Tyler, The Creator |
-| 12 | Stronger | Kanye West |
-| 13 | California Uber Alles | Dead Kennedys |
-| 14 | Me Toca | Marina Sena |
-| 15 | Pelejei | Marina Sena |
-| 16 | Voltei Pra Mim | Marina Sena |
-| 17 | Amiúde | Marina Sena |
-| 18 | Seu Olhar | Marina Sena |
-| 19 | Coisas Naturais | Marina Sena |
-| 20 | Sem Lei | Marina Sena |
-| 21 | SENSEI | Marina Sena |
-| 22 | CARNAVAL | Marina Sena |
-| 23 | Sinais de fogo | Preta Gil |
-| 24 | O Vento | Los Hermanos |
-| 25 | ROMPEU O COURO. | Marcelo D2, Juçara Marçal, BK, Baco Exu do Blues, Anelis Assumpção |
-| 26 | The Search | NF |
-| 27 | Desenho | Filipe Ret, Mãolee |
-| 28 | SPINE | WesGhost |
-| 29 | Ta Faltando Um | Wealstarcks |
-| 30 | LOVE IN RIO | Wealstarcks |
-| 31 | Quente ! | Akira Presidente, BK, Paulo DK, Abud |
-| 32 | Asa | Djavan |
-| 33 | Melhoria Gang | Akira Presidente, El Lif Beatz |
-| 34 | a última dança | Link do Zap, pluglip |
-| 35 | It's The End Of The World As We Know It (And I Feel Fine) | R.E.M. |
-| 36 | Human | Apashe, Wasiu |
-| 37 | Enemy (with JID) - from the series Arcane League of Legends | Imagine Dragons, JID, Arcane, League of Legends |
+| 1 | Brasileiro | Puro Suco, BEATDOMK |
+| 2 | I Only Smoke When I Drink | nimino |
+| 3 | NASCI PELADO, TÔ VESTIDO | Brone, Jamé |
+| 4 | Deus Do Furdunço | Leo Gandelman, Machine Series, BK |
+| 5 | Julius | BK, El Lif Beatz |
+| 6 | O Jeito | Flora Matos |
+| 7 | Bora Dançar | Flora Matos |
+| 8 | Sonhos Gangsta | Flora Matos |
+| 9 | Reunião | Sain, Luccas Carlos, Akira Presidente, Bril, CHS, JXNV$, BK, Pirâmide Perdida |
+| 10 | Avanço | Nectar Gang |
+| 11 | I THINK | Tyler, The Creator |
+| 12 | NEW MAGIC WAND | Tyler, The Creator |
+| 13 | EARFQUAKE | Tyler, The Creator |
+| 14 | Stronger | Kanye West |
+| 15 | California Uber Alles | Dead Kennedys |
+| 16 | Me Toca | Marina Sena |
+| 17 | Pelejei | Marina Sena |
+| 18 | Voltei Pra Mim | Marina Sena |
+| 19 | Amiúde | Marina Sena |
+| 20 | Seu Olhar | Marina Sena |
+| 21 | Coisas Naturais | Marina Sena |
+| 22 | Sem Lei | Marina Sena |
+| 23 | SENSEI | Marina Sena |
+| 24 | CARNAVAL | Marina Sena |
+| 25 | Sinais de fogo | Preta Gil |
+| 26 | O Vento | Los Hermanos |
+| 27 | ROMPEU O COURO. | Marcelo D2, Juçara Marçal, BK, Baco Exu do Blues, Anelis Assumpção |
+| 28 | The Search | NF |
+| 29 | Desenho | Filipe Ret, Mãolee |
+| 30 | SPINE | WesGhost |
+| 31 | Ta Faltando Um | Wealstarcks |
+| 32 | LOVE IN RIO | Wealstarcks |
+| 33 | Copacabana 89 | Wealstarcks |
+| 34 | Quente ! | Akira Presidente, BK, Paulo DK, Abud |
+| 35 | Asa | Djavan |
+| 36 | Melhoria Gang | Akira Presidente, El Lif Beatz |
+| 37 | a última dança | Link do Zap, pluglip |
+| 38 | It's The End Of The World As We Know It (And I Feel Fine) | R.E.M. |
+| 39 | Human | Apashe, Wasiu |
+| 40 | Libertários Não Morrem | Filipe Ret, IbraBeats, Funkero |
+| 41 | Música | Alternativo Ponto de Vista, Luiz Barata, Hariel Malay |
+| 42 | The Real Slim Shady | Eminem |
+| 43 | Asas | Luedji Luna |
+| 44 | Um Corpo no Mundo | Luedji Luna |
+| 45 | Acalanto | Luedji Luna |
+| 46 | Banho de Folhas | Luedji Luna |
+| 47 | West Coast | The Neighbourhood |
+| 48 | TOKYO HEAT | C.H.A.Y. |
+| 49 | The Cruel Angel's Thesis (Director's Edit Version) | 高橋 洋子 |
+| 50 | O Samba Morreu | Link do Zap |
+| 51 | Pseudosocial | Froid |
+| 52 | Babylon By Gus | Black Alien |
+| 53 | Luv (sic) | Nujabes |
+| 54 | Rio | Ugovhb, EF |
+| 55 | Mar | pumapjl, Babidi |
+| 56 | Gypsy Woman | Levi.Sct |
+| 57 | Zoom Zoom | Polo & Pan |
+| 58 | São Paulo Sunset | Saib |
+| 59 | FESTA DE ADEUS | Julio Secchin |
+| 60 | Preciso Me Encontrar | Cartola |
+
+## The live window
+
+The window's button puts **Copacabana, Posto 6, live** behind the glass in place of the two
+photographs of Rio: the webcam of Homes in Rio,
+"[Panorama Webcam Rio de Janeiro - Copacabana beach - Posto 6](https://www.youtube.com/watch?v=Bz9Hkrk1NcY)",
+streamed by YouTube in its privacy-enhanced embed, under YouTube's terms, and muted
+(`src/live.js`; `AGENTS.md`, invariants 1 and 7). Nothing of the stream is copied into this
+repository; the room names the channel beside the button while it plays.
 
 ## Assets
 
