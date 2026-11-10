@@ -97,7 +97,7 @@ export const outside = {
 // "shot_desk" etc. are picked up from the GLB (see cameras.js).
 export const shots = {
   overview: { position: [3.1, 2.15, 3.3], target: [-0.4, 1.05, -0.6], fov: 50 },
-  desk:     { position: [0.05, 1.42, 0.75], target: [0.05, 1.08, -1.0], fov: 45 },
+  desk:     { position: [0.32, 1.36, 0.02], target: [0.2, 1.1, -1.5], fov: 46 },
   fabric:   { position: [-0.7, 1.6, 0.55], target: [-3.0, 1.6, -0.2], fov: 52 },
   shelf:    { position: [-1.75, 1.55, 0.4], target: [-2.1, 1.8, -1.9], fov: 52 }, // the works with a DOI, and tyler-durden-bot's board above them
   board:    { position: [2.55, 1.8, 0.25], target: [2.55, 1.82, -2.0], fov: 50 },
@@ -475,13 +475,13 @@ export const door = {
 export const cat = {
   name: 'Nash', hint: 'a black cat. he goes where he wants', color: '#0c0c0f', eyes: '#d9e84a',
   perches: [
-    { id: 'rug', at: [-0.75, 0.013, 0.25], face: 2.6 },
+    { id: 'rug', at: [0.2, 0.013, 0.3], face: 2.6 },
     { id: 'rug2', at: [1.0, 0.013, 0.2], face: -2.2 },
     { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8 },
     { id: 'sofa', at: [-2.5, 0.42, -0.35], face: 1.6 },
     { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8 },
-    { id: 'deskLeft', at: [-0.72, 0.805, -1.2], face: 2.4 },
-    { id: 'tv', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk' },
+    { id: 'deskLeft', at: [-0.82, 0.805, -1.17], face: 2.4 },
+    { id: 'monitor', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk' },
     { id: 'sill', at: [0.72, 1.015, -2.03], face: 2.9, via: 'desk' },
     { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2 },
     { id: 'shelf', at: [-2.4, 1.9, -1.8], face: 3.14, via: 'deskLeft' },

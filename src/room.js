@@ -110,7 +110,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     update(t) {
       for (const a of animated) a(t); if (!still) dust.material.uniforms.time.value = t;
       if (bulb) bulb.visible = lamp.intensity > 0; // the bulb is lit only while the lamp is on
-      if (root.userData.lampGlow) root.userData.lampGlow.emissiveIntensity = lamp.intensity > 0 ? 2.5 : 0;
+      if (root.userData.lampGlow) root.userData.lampGlow.emissiveIntensity = lamp.intensity > 0 ? 0.9 : 0;
       if (root.userData.arrived) { root.userData.arrived = false; if (root.userData.hangGlow) root.userData.hangGlow.emissiveIntensity = hang.intensity ? 1.6 : 0; handle.onChange?.(); }
     },
   };
@@ -254,19 +254,19 @@ function placeholderRoom() {
 
   // the desk lamp: an architect's lamp clamped to the back of the desk, its shade over the papers
   // (the file's own origin is the middle of its footprint: the clamp is 0.3 behind it, the bulb 0.18 before it and 0.69 up)
-  const LAMP = { at: [-0.56, top, -1.68], rot: Math.PI + 0.6, bulb: [-0.005, 0.69, -0.18] };
+  const LAMP = { at: [-0.6, top, -1.7], rot: Math.PI + 0.1, bulb: [-0.005, 0.69, -0.18] };
   const lamp = F.place('lamp', g, { at: LAMP.at, rot: LAMP.rot, name: 'lamp', anchor: 'origin', standin: (s) => {
     mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.56, 8).rotateX(-0.35), brass, [0, 0.27, 0.2], s);
     mesh('', new THREE.CylinderGeometry(0.01, 0.01, 0.36, 8).rotateX(1.25), brass, [0, 0.6, -0.02], s);
     mesh('', new THREE.ConeGeometry(0.09, 0.11, 20, 1, true), std('#c8551e', { side: THREE.DoubleSide, roughness: 0.5 }), [0, 0.72, -0.18], s);
   }, tune: (m, o) => { if (/light/.test(m.name)) { o.castShadow = false; g.userData.lampGlow = m; } } }); // the bulb glows, and does not shade its own light
   // where the light is: a small bulb, inside the file's own when it is there
-  const bulb = mesh('lamp_bulb', new THREE.SphereGeometry(0.016, 12, 8), new THREE.MeshBasicMaterial({ color: '#fff1d6', toneMapped: false }), LAMP.bulb, lamp);
+  const bulb = mesh('lamp_bulb', new THREE.SphereGeometry(0.014, 12, 8), new THREE.MeshBasicMaterial({ color: '#ffe2b0' }), LAMP.bulb, lamp);
   bulb.castShadow = false;
 
   // the fax: the address on the page it printed, and a LinkedIn button
   for (const h of art('fax')) {
-    const fax = named(h.name); fax.position.set(-0.63, top, -1.52); fax.rotation.y = 0.35;
+    const fax = named(h.name); fax.position.set(-0.84, top, -1.56); fax.rotation.y = 0.5;
     const faxPlastic = new THREE.MeshStandardMaterial({ map: plasticArt('#cfc8ba', 11), bumpMap: noiseTex(256, 30, 11), bumpScale: 0.4, roughness: 0.62 });
     mesh('', new RoundedBoxGeometry(0.32, 0.09, 0.26, 2, 0.02), faxPlastic, [0, 0.045, 0], fax);
     mesh('', new RoundedBoxGeometry(0.3, 0.05, 0.12, 2, 0.015), faxPlastic, [0, 0.1, -0.06], fax);
@@ -284,7 +284,7 @@ function placeholderRoom() {
 
   // the note: the inspiration
   for (const h of art('note')) {
-    const note = mesh(h.name, new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: noteArt({ glyph: h.art.glyph, lines: [h.label.replace(/^.*?: /, ''), h.hint], theme }), roughness: 0.9 }), [-0.42, top + 0.002, -1.17]);
+    const note = mesh(h.name, new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: noteArt({ glyph: h.art.glyph, lines: [h.label.replace(/^.*?: /, ''), h.hint], theme }), roughness: 0.9 }), [-0.2, top + 0.002, -1.16]);
     note.rotation.set(-Math.PI / 2, 0, 0.18); note.castShadow = false;
   }
   for (const h of art('credits')) g.add(creditsPlate(h.name, h.art, [3.08, 1.47, ROOM.z0 + 0.007])); // the credits plate, on the back wall beside the people's board (src/credits.js)
@@ -300,7 +300,7 @@ function placeholderRoom() {
   // ── the bots: two small robots on the desk, eyes that blink ──
   art('bot').forEach((h, i) => {
     const bot = named(h.name);
-    bot.position.set(i === 0 ? 1.14 : -0.76, top, i === 0 ? -1.72 : -1.2);
+    bot.position.set(i === 0 ? 1.14 : -0.5, top, i === 0 ? -1.72 : -1.3);
     bot.rotation.y = i === 0 ? -0.5 : 0.45;
     const shell = std(h.art.color, { roughness: 0.4, metalness: 0.2 });
     const dark = std('#15171d', { roughness: 0.5 });
@@ -488,7 +488,7 @@ function placeholderRoom() {
   // ── the rest of the furniture: photographed pieces, each at its real size ──
   const dark = '#3a2a22', cloth = '#cfc6b4';
   // the chair at the desk: an armchair, pulled out and turned a little
-  F.place('chair', g, { at: [-0.12, 0, -0.52], rot: Math.PI + 0.32, fit: { h: 1.0 }, standin: (s) => {
+  F.place('chair', g, { at: [-0.62, 0, -0.5], rot: Math.PI + 0.45, fit: { h: 1.0 }, standin: (s) => {
     sbox(s, [0.56, 0.1, 0.52], [0, 0.38, 0.02], '#4d6b5a'); sbox(s, [0.5, 0.52, 0.08], [0, 0.72, -0.26], '#4d6b5a');
     for (const kx of [-1, 1]) for (const kz of [-1, 1]) sbox(s, [0.045, 0.34, 0.045], [kx * 0.26, 0.17, kz * 0.24], dark);
   } });
@@ -521,7 +521,7 @@ function placeholderRoom() {
   // the soft shadow each thing leaves where it stands
   g.add(contactShadows([
     [DESK.x, DESK.z + 0.05, DESK.w + 0.5, DESK.d + 0.6, 0.34],
-    [-0.12, -0.52, 0.95, 0.95, 0.42, 0.014],
+    [-0.62, -0.5, 0.95, 0.95, 0.42, 0.014],
     [SOFA.x + 0.05, SOFA.z, 1.05, SOFA.w + 0.35, 0.5], [-2.7, 1.24, 0.6, 0.6, 0.4], [-2.6, ROOM.z1 - 0.26, 0.95, 0.75, 0.5],
     [CASE.x, CASE.z + 0.06, CASE.w + 0.3, CASE.d + 0.42, 0.5], [-2.2, -1.15, 0.72, 0.8, 0.45],
     [2.32, -1.6, 0.7, 0.7, 0.45], [3.08, -0.45, 0.95, 2.1, 0.5], [3.0, 3.36, 0.75, 0.8, 0.42], [2.42, 3.62, 0.95, 0.5, 0.4], [1.02, -1.62, 0.6, 0.7, 0.3],
