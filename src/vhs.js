@@ -329,7 +329,7 @@ function paintShellRelief(ctx) {
   for (const [key, flapAt] of [['px', 1], ['nx', 0]]) region(ctx, A[key], CAS.d, CAS.h, (c, w, h) => {
     seam(c, w, h); c.fillStyle = low; c.fillRect((flapAt ? w - 22 : 22) - 0.2, 0, 0.4, h); c.fillRect(flapAt ? w - 15 : 9, 9.5, 6, 6);
   });
-  grain(ctx, 0.14);
+  grain(ctx, 0.07);
   // after the grain, what is smooth: the glass of the windows, and the paper
   region(ctx, A.py, CAS.w, CAS.d, (c) => {
     for (const [x, y, ww, wh] of CAS.windows) { c.fillStyle = relief(110, 0.3); c.fillRect(x, y, ww, wh); c.fillStyle = relief(120, 0.07); c.fillRect(x + 1, y + 1, ww - 2, wh - 2); }
@@ -488,8 +488,8 @@ const STYLES = {
       const [bg, type, dot, extra = type] = d.colors, t = d.title.toUpperCase();
       c.fillStyle = bg; c.fillRect(0, 0, w, h);
       c.fillStyle = type; c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-      c.font = `39px ${d.font}`; const tw = c.measureText(t).width, sx = Math.min(1.5, 150 / tw);
-      c.save(); c.translate(5, h + 0.9); c.scale(sx, 1); c.fillText(t, 0, 0); c.restore();
+      c.font = `30px ${d.font}`; const tw = c.measureText(t).width, sx = Math.min(1.6, 150 / tw); // the capitals as tall as the spine, less a hair
+      c.save(); c.translate(5, h - 2.1); c.scale(sx, 1); c.fillText(t, 0, 0); c.restore();
       c.fillStyle = extra; c.beginPath(); c.ellipse(w - 14, h / 2, 9.5, 7.2, 0, 0, 7); c.fill();
       c.fillStyle = dot; c.beginPath(); c.arc(w - 14, h / 2, 4.6, 0, 7); c.fill();
       c.fillStyle = bg; c.beginPath(); c.arc(w - 14, h / 2, 1.9, 0, 7); c.fill();
@@ -637,58 +637,77 @@ export function buildSleeve(def, { lite = false, anisotropy = 8, len = SLV.w, op
 // a cassette travels to the VCR and back.
 // ─────────────────────────────────────────────────────────────
 // `tapes` is config.tapes; `stack` says who lies on whom ({ piles: [[ids, from the bottom]], gap });
-// a tape in no pile goes on the shortest. Returns a group, its origin on the desk between the
-// piles, with one Object3D named `tape_<id>` for each tape. Each has in its userData:
+// a tape in no pile goes on the shortest. Returns a group named `tapes`: its origin is on the desk,
+// midway between the piles, which stand side by side along x; the spines look toward +z. It holds
+// one Object3D named `tape_<id>` for each tape, with in its userData:
 //   cassette            the part that travels
-//   load(vcr, done)     the cassette leaves its sleeve (the sleeve stays in the pile), flies to
-//                       the VCR's slot and goes in; `done` when it is inside
-//   unload(done)        and back
+//   load(vcr, done)     the cassette leaves its sleeve (the sleeve stays in the pile), rises, flies to
+//                       the front of the VCR's slot and goes in; `done` when it is inside
+//   unload(done)        and back the same way
 // The group's userData.update(t) moves them with the room's clock.
-// `open` is the side the sleeves open to (-1 is -x, 1 is +x): leave 0.2 m free there.
-export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8, open = -1 } = {}) {
+// `open` is the side each pile's sleeves open to (-1 is -x, 1 is +x), one number for all or one a
+// pile; left out, the first pile opens to -x and the last to +x, away from each other. A cassette
+// needs 0.21 m of free desk on that side to slide out. On its way it keeps above every pile it
+// crosses, and it reaches the slot from the front, so a shelf over the VCR is not in its way.
+export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8, open } = {}) {
   const g = new THREE.Group(); g.name = 'tapes';
   const byId = new Map(tapes.map((t) => [t.id, t]));
   const piles = (stack.piles ?? [[], []]).map((p) => p.filter((id) => byId.has(id)));
   const placed = new Set(piles.flat());
   for (const t of tapes) if (!placed.has(t.id)) piles.reduce((a, b) => (b.length < a.length ? b : a)).push(t.id);
-  const pitch = SLV.w * M + (stack.gap ?? 0.016), items = [];
+  const pitch = SLV.w * M + (stack.gap ?? 0.016), items = [], tops = [];
+  const side = (pi) => (Array.isArray(open) ? open[pi] : open) ?? (pi === piles.length - 1 && pi > 0 ? 1 : -1);
   piles.forEach((ids, pi) => {
-    const pr = rng(seedOf(`pile${pi}`)), x0 = (pi - (piles.length - 1) / 2) * pitch, z0 = (pr() - 0.5) * 0.03, yaw0 = (pr() - 0.5) * 0.12;
+    const pr = rng(seedOf(`pile${pi}`)), x0 = (pi - (piles.length - 1) / 2) * pitch, z0 = (pr() - 0.5) * 0.03, yaw0 = (pr() - 0.5) * 0.12, dir = side(pi);
+    let top = 0;
     ids.forEach((id, i) => {
       const def = byId.get(id), r = rng(seedOf(id)), bare = !def.sleeve, loose = bare && i === ids.length - 1 && i > 0;
       const look = { text: def.label, ...def.spine };
       const tape = new THREE.Group(); tape.name = `tape_${id}`;
       const cas = buildCassette(look, { lite, anisotropy, small: !bare, id }); tape.add(cas);
       const len = SLV.w - 1 + Math.round(r() * 9) / 2;
-      if (!bare) { tape.add(buildSleeve(def, { lite, anisotropy, len, open })); cas.position.x = open * ((len - CAS.w) / 2 - 1.4) * M; } // its end just inside the sleeve's mouth
-      tape.position.set(x0 + (r() - 0.5) * (loose ? 0.024 : 0.008), 0, z0 + (r() - 0.5) * 0.01 + (loose ? 0.004 + r() * 0.01 : 0));
-      tape.rotation.y = yaw0 + (r() - 0.5) * 0.11 + (loose ? (r() < 0.5 ? -1 : 1) * (0.14 + r() * 0.14) : 0);
+      if (!bare) { tape.add(buildSleeve(def, { lite, anisotropy, len, open: dir })); cas.position.x = dir * ((len - CAS.w) / 2 - 0.4 - r() * 2.2) * M; } // its end at the sleeve's mouth, or a little inside
+      tape.position.set(x0 + (r() - 0.5) * (loose ? 0.03 : 0.013), 0, z0 + (r() - 0.5) * 0.016 + (loose ? 0.004 + r() * 0.01 : 0));
+      tape.rotation.y = yaw0 + (r() - 0.5) * 0.15 + (loose ? (r() < 0.5 ? -1 : 1) * (0.14 + r() * 0.14) : 0);
       g.add(tape);
-      const it = { tape, cas, bare, pile: pi, thick: (bare ? CAS.h : SLV.h) * M, k: 0, to: 0, door: 0, done: null, vcr: null,
-        home: cas.position.clone(), out: new THREE.Vector3(), p2: new THREE.Vector3(), p3: new THREE.Vector3(), q2: new THREE.Quaternion() };
-      it.out.copy(it.home); if (bare) it.out.y += 0.045; else it.out.x += open * (len + 12) * M;
+      const it = { tape, cas, bare, pile: pi, thick: (bare ? CAS.h : SLV.h) * M, k: 0, to: 0, door: 0, done: null, vcr: null, cruise: 0,
+        home: cas.position.clone(), out: new THREE.Vector3(), a: new THREE.Vector3(), b: new THREE.Vector3(), c: new THREE.Vector3(), m: new THREE.Matrix4(), q2: new THREE.Quaternion() };
+      it.out.copy(it.home); if (bare) it.out.y += 0.03; else it.out.x += dir * (len + 12) * M;
+      top += it.thick;
       tape.userData.cassette = cas;
       tape.userData.load = (vcr, done) => {
-        tape.updateWorldMatrix(true, false); vcr.updateWorldMatrix(true, false);
-        const slot = vcr.userData.slot ?? new THREE.Vector3(0, 0.02, 0.16);
-        const m = tape.matrixWorld.clone().invert().multiply(vcr.matrixWorld); // from the VCR's space to the tape's
-        it.p2.copy(slot).add(_v.set(0, 0, CAS.d * M / 2 + 0.02)).applyMatrix4(m);
-        it.p3.copy(slot).add(_v.set(0, 0, -CAS.d * M / 2 - 0.012)).applyMatrix4(m);
-        m.decompose(_v, it.q2, _s);
+        g.updateWorldMatrix(true, true); vcr.updateWorldMatrix(true, false);
+        const slot = vcr.userData.slot ?? new THREE.Vector3(0, 0.02, 0.16), inv = _m.copy(vcr.matrixWorld).invert();
+        it.m.copy(tape.matrixWorld).invert().multiply(vcr.matrixWorld);          // from the VCR's space to the tape's
+        it.m.decompose(_v, it.q2, _s);
+        it.a.copy(it.out).applyMatrix4(tape.matrixWorld).applyMatrix4(inv);       // where it leaves the pile, in the VCR's space
+        it.b.copy(slot); it.b.z += CAS.d * M / 2 + 0.02;                          // in front of the slot
+        it.c.copy(slot); it.c.z -= CAS.d * M / 2 + 0.012;                         // and inside
+        // how high it must fly: over the piles between it and the slot
+        const ax = _v.copy(it.out).applyMatrix4(tape.matrix).x, bx = _v.copy(it.b).applyMatrix4(vcr.matrixWorld).applyMatrix4(_m2.copy(g.matrixWorld).invert()).x;
+        const half = CAS.w * M / 2, reach = SLV.w * M / 2 + 0.008; let over = 0;
+        tops.forEach((h, j) => { const x = (j - (piles.length - 1) / 2) * pitch; if (Math.max(ax, bx) + half > x - reach && Math.min(ax, bx) - half < x + reach) over = Math.max(over, h); });
+        const clear = _v.set(0, over + CAS.h * M / 2 + 0.03, 0).applyMatrix4(g.matrixWorld).applyMatrix4(inv).y;
+        it.cruise = Math.max(clear, it.a.y + 0.02, it.b.y + 0.02);
         it.vcr = vcr; it.to = 1; it.done = done; cas.visible = true;
         if (still) it.k = 0.999;
       };
       tape.userData.unload = (done) => { it.to = 0; it.done = done; cas.visible = true; if (still) it.k = 0.001; };
       items.push(it);
     });
+    tops.push(top);
   });
-  const A = 0.26, B = 0.72, LOAD = 1.25; // the legs of the trip: out of the sleeve, across, in; and its seconds
+  const A = 0.2, B = 0.76, LOAD = 1.5; // the legs of the trip: out of the sleeve, across, in; and its seconds
   function pose(it) {
-    const { k, cas } = it;
+    const { k, cas, a, b } = it;
     if (k < A) { cas.position.lerpVectors(it.home, it.out, S(k / A)); cas.quaternion.identity(); }
-    else if (k < B) { const s = S((k - A) / (B - A)); cas.position.lerpVectors(it.out, it.p2, s); cas.position.y += Math.sin(s * Math.PI) * 0.045; cas.quaternion.identity().slerp(it.q2, s); }
-    else { cas.position.lerpVectors(it.p2, it.p3, S((k - B) / (1 - B))); cas.quaternion.copy(it.q2); }
-    it.door = S(clamp((k - (B - 0.1)) / 0.1)) * (1 - S(clamp((k - 0.93) / 0.07))); // the slot's flap gives way, and falls shut behind
+    else if (k < B) { // in the VCR's space: up and to the slot's depth first, then along its face and down to the slot
+      const s = (k - A) / (B - A), sx = S(clamp((s - 0.15) / 0.85)), sz = S(clamp(s / 0.5));
+      const y = s < 0.5 ? a.y + (it.cruise - a.y) * S(clamp(s / 0.4)) : it.cruise + (b.y - it.cruise) * S(clamp((s - 0.55) / 0.45));
+      cas.position.set(a.x + (b.x - a.x) * sx, y, a.z + (b.z - a.z) * sz).applyMatrix4(it.m);
+      cas.quaternion.identity().slerp(it.q2, sx);
+    } else { cas.position.lerpVectors(b, it.c, S((k - B) / (1 - B))).applyMatrix4(it.m); cas.quaternion.copy(it.q2); }
+    it.door = S(clamp((k - (B - 0.08)) / 0.08)) * (1 - S(clamp((k - 0.94) / 0.06))); // the slot's flap gives way, and falls shut behind
   }
   function settle() { // a pile closes up when a bare cassette leaves it
     const y = piles.map(() => 0);
@@ -709,7 +728,7 @@ export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8
   };
   return g;
 }
-const _v = new THREE.Vector3(), _s = new THREE.Vector3();
+const _v = new THREE.Vector3(), _s = new THREE.Vector3(), _m = new THREE.Matrix4(), _m2 = new THREE.Matrix4();
 
 // ─────────────────────────────────────────────────────────────
 // The VCR. Its origin is under its middle, on the desk; its

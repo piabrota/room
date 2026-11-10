@@ -227,8 +227,8 @@ function placeholderRoom() {
   const kb = mesh('', new THREE.BoxGeometry(0.44, 0.025, 0.16), [plastic, plastic, new THREE.MeshStandardMaterial({ map: keyboardArt(), bumpMap: keyboardArt(), bumpScale: 0.6, roughness: 0.7 }), plastic, plastic, plastic], [-0.5, top + 0.0125, -1.14]);
   kb.rotation.set(0.06, 0.1, 0);
 
-  // the tapes: two piles beside the VCR, most in their card sleeves, the sleeves' mouths toward it (src/vhs.js)
-  const pile = buildTapeStack(tapes, tapeStack, { lite, anisotropy, open: -1 }); pile.position.set(0.69, top, -1.2); g.add(pile); animated.push(pile.userData.update);
+  // the tapes: two piles beside the VCR, most in their card sleeves (src/vhs.js)
+  const pile = buildTapeStack(tapes, tapeStack, { lite, anisotropy }); pile.position.set(0.69, top, -1.2); g.add(pile); animated.push(pile.userData.update);
 
   // desk lamp: a base, an arm and a shade, hoverable as one
   const lamp = named('lamp'); lamp.position.set(-0.3, top, -1.75);
