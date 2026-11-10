@@ -205,7 +205,7 @@ export const tapes = [
 // tape id; nothing is squared up. A tape named in no pile goes on the
 // shortest. A bare cassette belongs on top of its pile (the pile closes up
 // when it leaves). `gap` is the space between two piles, in metres.
-export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots']], gap: 0.016 };
+export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots']], gap: 0.03 };
 // The VCR's face (src/vhs.js): a brand that does not exist, the words printed
 // on it, and the clock that nobody ever set. `lit` are the words behind the
 // display's glass (the first one is on), `keys` the six under it.

@@ -482,14 +482,14 @@ const STYLES = {
       c.fillRect(w - 79, 30, 70, 0.4);
     },
   },
-  // the name alone, set larger than the card
+  // the name alone, as large as the card takes
   bigtype: {
     spine(c, w, h, d) {
       const [bg, type, dot, extra = type] = d.colors, t = d.title.toUpperCase();
       c.fillStyle = bg; c.fillRect(0, 0, w, h);
       c.fillStyle = type; c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-      c.font = `30px ${d.font}`; const tw = c.measureText(t).width, sx = Math.min(1.6, 150 / tw); // the capitals as tall as the spine, less a hair
-      c.save(); c.translate(5, h - 2.1); c.scale(sx, 1); c.fillText(t, 0, 0); c.restore();
+      c.font = `28.5px ${d.font}`; const tw = c.measureText(t).width, sx = Math.min(1.7, 150 / tw); // the capitals nearly as tall as the spine
+      c.save(); c.translate(5, h - 2.7); c.scale(sx, 1); c.fillText(t, 0, 0); c.restore();
       c.fillStyle = extra; c.beginPath(); c.ellipse(w - 14, h / 2, 9.5, 7.2, 0, 0, 7); c.fill();
       c.fillStyle = dot; c.beginPath(); c.arc(w - 14, h / 2, 4.6, 0, 7); c.fill();
       c.fillStyle = bg; c.beginPath(); c.arc(w - 14, h / 2, 1.9, 0, 7); c.fill();
@@ -639,7 +639,8 @@ export function buildSleeve(def, { lite = false, anisotropy = 8, len = SLV.w, op
 // `tapes` is config.tapes; `stack` says who lies on whom ({ piles: [[ids, from the bottom]], gap });
 // a tape in no pile goes on the shortest. Returns a group named `tapes`: its origin is on the desk,
 // midway between the piles, which stand side by side along x; the spines look toward +z. It holds
-// one Object3D named `tape_<id>` for each tape, with in its userData:
+// one Object3D named `tape_<id>` for each tape (its own origin is the middle of its spine), with
+// in its userData:
 //   cassette            the part that travels
 //   load(vcr, done)     the cassette leaves its sleeve (the sleeve stays in the pile), rises, flies to
 //                       the front of the VCR's slot and goes in; `done` when it is inside
@@ -655,7 +656,7 @@ export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8
   const piles = (stack.piles ?? [[], []]).map((p) => p.filter((id) => byId.has(id)));
   const placed = new Set(piles.flat());
   for (const t of tapes) if (!placed.has(t.id)) piles.reduce((a, b) => (b.length < a.length ? b : a)).push(t.id);
-  const pitch = SLV.w * M + (stack.gap ?? 0.016), items = [], tops = [];
+  const pitch = SLV.w * M + (stack.gap ?? 0.03), items = [], tops = [];
   const side = (pi) => (Array.isArray(open) ? open[pi] : open) ?? (pi === piles.length - 1 && pi > 0 ? 1 : -1);
   piles.forEach((ids, pi) => {
     const pr = rng(seedOf(`pile${pi}`)), x0 = (pi - (piles.length - 1) / 2) * pitch, z0 = (pr() - 0.5) * 0.03, yaw0 = (pr() - 0.5) * 0.12, dir = side(pi);
@@ -666,9 +667,11 @@ export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8
       const tape = new THREE.Group(); tape.name = `tape_${id}`;
       const cas = buildCassette(look, { lite, anisotropy, small: !bare, id }); tape.add(cas);
       const len = SLV.w - 1 + Math.round(r() * 9) / 2;
-      if (!bare) { tape.add(buildSleeve(def, { lite, anisotropy, len, open: dir })); cas.position.x = dir * ((len - CAS.w) / 2 - 0.4 - r() * 2.2) * M; } // its end at the sleeve's mouth, or a little inside
-      tape.position.set(x0 + (r() - 0.5) * (loose ? 0.03 : 0.013), 0, z0 + (r() - 0.5) * 0.016 + (loose ? 0.004 + r() * 0.01 : 0));
-      tape.rotation.y = yaw0 + (r() - 0.5) * 0.15 + (loose ? (r() < 0.5 ? -1 : 1) * (0.14 + r() * 0.14) : 0);
+      const back = (bare ? CAS.d : SLV.d) * M / 2; cas.position.z = -back; // the tape's origin is the middle of its spine: what the visitor sees, and clicks
+      if (!bare) { const sleeve = buildSleeve(def, { lite, anisotropy, len, open: dir }); sleeve.position.z = -back; tape.add(sleeve); cas.position.x = dir * ((len - CAS.w) / 2 - 0.4 - r() * 2.2) * M; } // its end at the sleeve's mouth, or a little inside
+      const cx = x0 + (r() - 0.5) * (loose ? 0.03 : 0.013), cz = z0 + (r() - 0.5) * 0.016 + (loose ? 0.004 + r() * 0.01 : 0);
+      const yaw = yaw0 + (r() - 0.5) * 0.15 + (loose ? (r() < 0.5 ? -1 : 1) * (0.1 + r() * 0.1) : 0);
+      tape.rotation.y = yaw; tape.position.set(cx + Math.sin(yaw) * back, 0, cz + Math.cos(yaw) * back);
       g.add(tape);
       const it = { tape, cas, bare, pile: pi, thick: (bare ? CAS.h : SLV.h) * M, k: 0, to: 0, door: 0, done: null, vcr: null, cruise: 0,
         home: cas.position.clone(), out: new THREE.Vector3(), a: new THREE.Vector3(), b: new THREE.Vector3(), c: new THREE.Vector3(), m: new THREE.Matrix4(), q2: new THREE.Quaternion() };
@@ -714,6 +717,7 @@ export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8
     for (const it of items) { it.tape.position.y = y[it.pile] + it.thick / 2; y[it.pile] += it.thick * (it.bare ? 1 - S(clamp(it.k / A)) : 1); }
   }
   settle();
+  g.userData.size = [piles.length * pitch + 0.02, Math.max(...tops), SLV.d * M + 0.04]; // about what it takes of the desk, and how tall it stands
   let last = null;
   g.userData.update = (t) => {
     const dt = last == null ? 0 : clamp(t - last, 0, 0.1); last = t;
@@ -761,7 +765,7 @@ function digits(c, text, x, y, w, h, t, ghost) { // a seven-segment clock
 const GLOW = '#8dffe0'; // the display's phosphor
 function lit(c, deck, ghost) { // what is lit behind the display's glass
   const [dx, dy, dw, dh] = VCR.display;
-  c.fillStyle = ghost ? 'rgba(120,200,180,0.06)' : GLOW;
+  c.fillStyle = ghost ? 'rgba(120,200,180,0.07)' : GLOW;
   digits(c, deck.clock ?? '', dx + 14, dy + 7.5, 10.5, 17, 1.9, ghost);
   c.textBaseline = 'middle'; c.textAlign = 'left'; c.font = `4.2px ${FONT_MONO}`;
   (deck.lit ?? []).forEach((word, i) => { if (ghost || i === 0) c.fillText(word, dx + 92, dy + 10 + i * 6.4); });
@@ -772,7 +776,7 @@ function paintVCR(ctx, deck) {
   ctx.fillStyle = '#17171a'; ctx.fillRect(0, 0, ...VCR.size);
   region(ctx, A.front, FW, FH, (c, w, h) => {
     c.fillStyle = '#101012'; c.fillRect(-2, -2, w + 4, VCR.groove + 2);              // the upper band, glossy
-    const g = c.createLinearGradient(0, VCR.groove, 0, h); g.addColorStop(0, '#2b2b30'); g.addColorStop(1, '#202024');
+    const g = c.createLinearGradient(0, VCR.groove, 0, h); g.addColorStop(0, '#35353b'); g.addColorStop(1, '#26262b');
     c.fillStyle = g; c.fillRect(-2, VCR.groove, w + 4, h);                            // the lower, brushed
     for (let i = 0; i < 520; i++) { c.fillStyle = `rgba(255,255,255,${0.02 + rnd() * 0.035})`; c.fillRect(rnd() * w, VCR.groove + rnd() * (h - VCR.groove), 20 + rnd() * 90, 0.12); }
     specks(c, w, h, 700, rnd, { light: 0.05, dark: 0.2 });
@@ -782,7 +786,7 @@ function paintVCR(ctx, deck) {
     const [dx, dy, dw, dh] = VCR.display; c.fillStyle = '#030405'; c.fillRect(dx, dy, dw, dh);                       // the display's smoked glass
     c.strokeStyle = 'rgba(255,255,255,0.08)'; c.strokeRect(dx - 1, dy - 1, dw + 2, dh + 2);
     lit(c, deck, true);
-    c.save(); c.globalAlpha = 0.9; lit(c, deck, false); c.restore();
+    c.save(); c.globalAlpha = 0.5; lit(c, deck, false); c.restore(); // unlit, the segments that are on show a little; their light is the `vcr_led` mesh
     const sheen = c.createLinearGradient(dx, dy, dx + dw, dy + dh); sheen.addColorStop(0.3, 'rgba(255,255,255,0)'); sheen.addColorStop(0.45, 'rgba(255,255,255,0.05)'); sheen.addColorStop(0.6, 'rgba(255,255,255,0)');
     c.fillStyle = sheen; c.fillRect(dx, dy, dw, dh);
     c.fillStyle = '#c9c9d0'; c.textBaseline = 'middle'; c.textAlign = 'left';                                        // the brand plate
@@ -824,13 +828,13 @@ function paintVCR(ctx, deck) {
   });
 }
 function paintVCRRelief(ctx) {
-  const A = VCR.at, FW = VCR.w, FH = VCR.fh, steel = relief(120, 0.5, 0.25);
+  const A = VCR.at, FW = VCR.w, FH = VCR.fh, steel = relief(120, 0.6, 0.12);
   ctx.fillStyle = steel; ctx.fillRect(0, 0, ...VCR.size);
   region(ctx, A.top, 428, 290, (c) => { for (const x0 of [40, 268]) for (let i = 0; i < 14; i++) { c.fillStyle = relief(20, 0.7, 0.3); c.fillRect(x0 + i * 8.6, 26, 3.6, 62); } });
   region(ctx, A.front, FW, FH, (c, w, h) => {
     c.fillStyle = relief(120, 0.2, 0); c.fillRect(-2, -2, w + 4, VCR.groove + 2);
-    c.fillStyle = relief(120, 0.46, 0.3); c.fillRect(-2, VCR.groove, w + 4, h);
-    const r = rng(5); for (let i = 0; i < 700; i++) { c.fillStyle = relief(90 + r() * 70, 0.46, 0.3); c.fillRect(r() * w, VCR.groove + r() * (h - VCR.groove), 20 + r() * 90, 0.14); }
+    c.fillStyle = relief(120, 0.42, 0.15); c.fillRect(-2, VCR.groove, w + 4, h);
+    const r = rng(5); for (let i = 0; i < 700; i++) { c.fillStyle = relief(90 + r() * 70, 0.42, 0.15); c.fillRect(r() * w, VCR.groove + r() * (h - VCR.groove), 20 + r() * 90, 0.14); }
     c.fillStyle = relief(40, 0.5, 0); c.fillRect(0, VCR.groove - 0.4, w, 0.8);
     const K = VCR.keys; for (let i = 0; i < 6; i++) c.fillRect(K.x + i * K.pitch - 0.5, K.y - 0.5, K.w + 1, K.h + 1);
   });
@@ -842,10 +846,13 @@ function paintVCRRelief(ctx) {
 }
 
 // `deck` is config.deck: the made-up brand, the words on the fascia, the clock.
-// Returns a group named `vcr` (the body, the slot's flap `vcr_door`, the LED `vcr_led`), with
-//   userData.slot        the middle of the slot's mouth, in the group's space
-//   userData.setDoor(k)  the flap: 0 shut, 1 tilted in
-//   userData.update(t)   the clock that nobody set, blinking with the room's clock
+// Returns a group named `vcr`: its origin is on the desk under its middle (between its feet), its
+// front looks toward +z. Three meshes: the body, the slot's flap `vcr_door`, and `vcr_led`, all that
+// is lit (the clock behind the display's glass and the power LED). In its userData:
+//   size        [width, height, depth] in metres, feet included
+//   slot        the middle of the slot's mouth, in the group's space
+//   setDoor(k)  the flap: 0 shut, 1 tilted in
+//   update(t)   the clock that nobody set, blinking with the room's clock
 export function buildVCR(deck = {}, { lite = false, anisotropy = 8 } = {}) {
   const k = lite ? 0.5 : 1, A = VCR.at, size = VCR.size;
   const W = VCR.w * M, D = VCR.d * M, foot = VCR.foot * M, FH = VCR.fh * M, FD = VCR.fd * M, yc = foot + FH / 2, zf = D / 2;
@@ -866,23 +873,36 @@ export function buildVCR(deck = {}, { lite = false, anisotropy = 8 } = {}) {
   const fg = new THREE.CylinderGeometry(15 * M, 13 * M, foot, 10, 1), fbx = boxOf(30 * M, foot, 30 * M);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) parts.push(shift(unwrap(fromGeometry(fg), A.foot, size, fbx), sx * 180 * M, foot / 2, sz * 118 * M));
   fg.dispose();
-  const maps = sheet(size, k), rb = sheet(size, k / 2), glow = sheet(size, k / 2);
+  const maps = sheet(size, k), rb = sheet(size, k / 2);
   paintVCR(maps[1], deck); paintVCRRelief(rb[1]);
-  glow[1].fillStyle = '#000'; glow[1].fillRect(0, 0, ...size); region(glow[1], A.front, VCR.w, VCR.fh, (c) => lit(c, deck, false));
   const rbt = texture(rb[0], { srgb: false, anisotropy });
-  const mat = new THREE.MeshStandardMaterial({ map: texture(maps[0], { anisotropy }), roughnessMap: rbt, metalnessMap: rbt, bumpMap: rbt, bumpScale: 1.2, roughness: 1, metalness: 1,
-    emissiveMap: texture(glow[0], { anisotropy }), emissive: '#ffffff', emissiveIntensity: 2.2 });
+  const mat = new THREE.MeshStandardMaterial({ map: texture(maps[0], { anisotropy }), roughnessMap: rbt, metalnessMap: rbt, bumpMap: rbt, bumpScale: 1.2, roughness: 1, metalness: 1 });
   const body = shadowed(new THREE.Mesh(geometry(parts), mat)); g.add(body);
   // the slot's flap, hung by its top edge a little behind the fascia's face
   const [sx, sy, sw, sh] = VCR.slot, dw = 191 * M, dh = 31 * M, dt = 2.4 * M;
   const door = shadowed(new THREE.Mesh(geometry([shift(unwrap(rbox(dw, dh, dt, 0.8 * M), { px: A.trim, nx: A.trim, py: A.trim, ny: A.trim, pz: A.door, nz: A.trim }, size, boxOf(dw, dh, dt)), 0, -dh / 2, -dt / 2)]), mat));
   door.name = 'vcr_door'; door.position.set((sx + sw / 2) * M - W / 2, foot + FH - (sy + 0.5) * M, zf - 0.8 * M); g.add(door);
-  const [lx, ly] = VCR.led;
-  const led = new THREE.Mesh(new THREE.CircleGeometry(1.7 * M, 12), new THREE.MeshBasicMaterial({ color: '#ff3b2f', toneMapped: false }));
-  led.name = 'vcr_led'; led.position.set(lx * M - W / 2, foot + FH - ly * M, zf + 0.15 * M); g.add(led);
+  // what is lit: the clock and the power LED, two small quads of light added over the fascia
+  const [dx, dy, dwd, dhd] = VCR.display, [lx, ly] = VCR.led, L = [dx, dy, lx + 5 - dx, dhd], px = 4 * k; // the strip of the fascia they are drawn on, mm
+  const [lc, lctx] = sheet([L[2] * px, L[3] * px]);
+  lctx.fillStyle = '#000'; lctx.fillRect(0, 0, L[2] * px, L[3] * px); lctx.scale(px, px); lctx.translate(-dx, -dy); lit(lctx, deck, false);
+  const halo = lctx.createRadialGradient(lx, ly, 0, lx, ly, 3.4); halo.addColorStop(0, '#ffb8a8'); halo.addColorStop(0.35, '#ff3b2f'); halo.addColorStop(0.6, '#7a1108'); halo.addColorStop(1, '#000');
+  lctx.fillStyle = halo; lctx.fillRect(lx - 4, ly - 4, 8, 8);
+  const lg = new THREE.BufferGeometry(), P = [], U = [], C = [], zl = zf + 0.2 * M;
+  for (const [x0, y0, x1, y1, c] of [[dx + 1, dy + 1, dx + dwd - 1, dy + dhd - 1, 2.2], [lx - 4, ly - 4, lx + 4, ly + 4, 1.5]]) {
+    for (const [x, y] of [[x0, y1], [x1, y1], [x1, y0], [x0, y1], [x1, y0], [x0, y0]]) { P.push(x * M - W / 2, foot + FH - y * M, zl); U.push((x - L[0]) / L[2], 1 - (y - L[1]) / L[3]); C.push(c, c, c); }
+  }
+  lg.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); lg.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); lg.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
+  const led = new THREE.Mesh(lg, new THREE.MeshBasicMaterial({ map: texture(lc, { anisotropy }), vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+  led.name = 'vcr_led'; g.add(led);
+  g.userData.size = [W, VCR.h * M, D];
   g.userData.slot = new THREE.Vector3((sx + sw / 2) * M - W / 2, foot + FH - (sy + sh / 2) * M - 1.5 * M, zf);
   g.userData.setDoor = (o) => { door.rotation.x = clamp(o) * 1.5; };
-  g.userData.update = (t) => { body.material.emissiveIntensity = still || t % 1.2 < 0.75 ? 2.2 : 0.25; }; // 12:00, 12:00, 12:00
+  let shown = null;
+  g.userData.update = (t) => { // 12:00, 12:00, 12:00
+    const on = still || t % 1.2 < 0.75; if (on === shown) return; shown = on;
+    const col = lg.attributes.color; for (let i = 0; i < 6; i++) col.setXYZ(i, on ? 2.2 : 0.12, on ? 2.2 : 0.12, on ? 2.2 : 0.12); col.needsUpdate = true;
+  };
   return g;
 }
 
