@@ -222,12 +222,12 @@ body.guarded #lock .gate input { -webkit-user-select: text; user-select: text; }
 #credits[hidden] { display: none; }
 #hud:has(#credits-card.on) { z-index: 4; } /* over the player and the lock, while it shows */
 #credits-card { position: absolute; right: 0; bottom: calc(100% + 8px); width: 400px; max-width: 100%; overflow-y: auto; overscroll-behavior: contain;
-  background: #0b0d12f5; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 10px 14px 12px;
+  background: #0b0d12f5; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 10px 14px 0;
   backdrop-filter: blur(8px); -webkit-user-select: text; user-select: text;
   visibility: hidden; opacity: 0; transition: opacity .15s, visibility 0s .15s; }
 #credits-card.on { visibility: visible; opacity: 1; transition: opacity .15s; }
 #credits-card:not(.on) { pointer-events: none; } /* while it fades out it is already out of the pointer's way: the room behind it is hovered, not the card */
-#credits-card::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 9px; } /* the pointer's way down to the button */
+#credits.active::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 10px; } /* the pointer's way up to the card: the gap between them is the button's too */
 #credits-card .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 #credits-card .head strong { font: 400 13px/1.2 var(--mono); color: var(--dim); letter-spacing: .08em; text-transform: lowercase; }
 #credits-card .close { padding: 2px 9px; font-size: 16px; line-height: 1.2; }
@@ -236,13 +236,14 @@ body.guarded #lock .gate input { -webkit-user-select: text; user-select: text; }
 #credits-card p { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; }
 #credits-card .name { margin: 0 0 6px; font: 400 30px/1.1 var(--title); letter-spacing: .02em; }
 #credits-card .own { color: var(--dim); }
-#credits-card .sources { margin: 4px 0 10px; padding: 0; list-style: none; font-size: 11.5px; line-height: 1.45; }
+#credits-card .sources { margin: 4px 0 6px; padding: 0; list-style: none; font-size: 11.5px; line-height: 1.45; }
 #credits-card .sources li { padding: 3px 0; border-top: 1px solid #2a303c99; }
 #credits-card .sources strong { font-weight: normal; color: var(--fg); }
 #credits-card .sources .what, #credits-card .sources .licence { color: var(--dim); }
 #credits-card .sources .what::after { content: ":"; }
 #credits-card .sources .licence::before { content: "· "; }
-#credits-card .full { margin: 0; color: var(--dim); }
+/* where the full list is: the card's last line stays in sight while the list above it scrolls */
+#credits-card .full { position: sticky; bottom: 0; margin: 0 -14px; padding: 8px 14px 10px; background: #0b0d12; border-top: 1px solid var(--border); color: var(--dim); }
 #credits-card a { color: var(--fg); text-decoration-color: var(--accent); text-underline-offset: 3px; }
 #credits-card a:hover { color: var(--accent-text); }
 #credits-card a:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; border-radius: 2px; }

@@ -48,9 +48,9 @@ export function creditsPlate(name, { top = '', name: who = '', bottom = '' } = {
   const cut = (text, x, y) => { ctx.fillStyle = lit; ctx.fillText(text, x, y + 2); ctx.fillStyle = ink; ctx.fillText(text, x, y); };
   const sized = (texts, max, size, font) => { let px = size; do { ctx.font = `${px}px ${font}`; px -= 2; } while (px > 10 && texts.some((t) => ctx.measureText(t).width > max)); };
   const lines = who.toUpperCase().split(/\s+/).filter(Boolean);
-  const small = Math.round(H * 0.075), inner = W - 2 * m - 150;
+  const small = Math.round(H * 0.075), inner = W - 2 * m - 110; // between the screws
   if ('letterSpacing' in ctx) ctx.letterSpacing = '5px';
-  sized([top.toUpperCase()], inner, small, FONT_MONO); cut(top.toUpperCase(), W / 2, H * 0.17);
+  sized([top.toUpperCase()], inner, Math.round(H * 0.1), FONT_MONO); cut(top.toUpperCase(), W / 2, H * 0.17);
   if ('letterSpacing' in ctx) ctx.letterSpacing = '3px';
   sized(lines, W - 2 * m - 70, Math.round(H * 0.3), FONT_TITLE);
   const lh = parseInt(ctx.font, 10) * 1.02, y0 = H * 0.5 - ((lines.length - 1) * lh) / 2;
