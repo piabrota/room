@@ -8,6 +8,7 @@ import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { woodGrain, planks, plaster } from './textures.js';
+import { creditsPlate } from './credits.js';
 import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt } from './art.js';
 
 // Photographed wood (Poly Haven, CC0; CREDITS.md): colour, normal and roughness.
@@ -268,6 +269,7 @@ function placeholderRoom() {
     const note = mesh(h.name, new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: noteArt({ glyph: h.art.glyph, lines: [h.label.replace(/^.*?: /, ''), h.hint], theme }), roughness: 0.9 }), [-0.98, top + 0.002, -1.12]);
     note.rotation.set(-Math.PI / 2, 0, 0.18); note.castShadow = false;
   }
+  for (const h of art('credits')) g.add(creditsPlate(h.name, h.art, [1.8, 0.97, -1.993])); // the credits plate, on the back wall under the board (src/credits.js)
 
   // ── under the desk: a file marked closed source, a letter half out of it ──
   for (const h of art('folder')) {

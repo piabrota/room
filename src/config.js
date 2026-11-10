@@ -432,13 +432,61 @@ export const guard = { screenshots: true };
 // ── you: a pair of feet under the camera, seen when you look down ──
 export const body = { shoes: '#e9e6df', soles: '#f7f5f0', jeans: '#2b3a55', laces: '#c9c3b6' };
 
+// ── the credits: whose idea a room like this is, and whose work is in this one ──
+// One export, shown in three places: the credits button of the HUD and its card
+// (src/creditscard.js), the brass plate on the back wall (src/credits.js, the hotspot `credits`),
+// and the credits of the LOFI page (src/lofi.js).
+// The idea is credited by name, in text only: nothing here links to a page of his, and the one
+// address is this repository's own (AGENTS.md, invariant 2; the check asks).
+// `idea.where`: his own site's description read "I work on Claude at Anthropic." on
+// 10 November 2026. Say nothing else about him.
+// `sources` is the short list; CREDITS.md is the full one, and every name and licence here is
+// copied from it. A row added there gets its row here: what it is in the room, who made it,
+// and its licence.
+const ideaBy = 'Felix Rieseberg';
+export const credits = {
+  button: 'credits', title: 'credits', close: 'close',
+  idea: {
+    heading: 'the idea', name: ideaBy,
+    line: `A personal site that is a 3D room, with camera shots, things to hover and VHS tapes that play on a TV: the idea comes from ${ideaBy}, who built one for his own site.`,
+    where: 'He works on Claude at Anthropic.',
+    own: 'This room is a separate work. It uses no code, model, texture, sound or text of his.',
+  },
+  sourcesHeading: 'in this room, from others',
+  sources: [
+    { what: 'the rain on the window', who: 'cori', licence: 'public domain' },
+    { what: 'Nash\'s meow', who: 'Heismark', licence: 'public domain' },
+    // made by `just compose` from samples that are not in the repository: a build without them plays synthesized sounds
+    { what: 'the field recordings in the VCR\'s sounds and on the piabrota tape', who: 'klankbeeld, YleArkisto, magedu', licence: 'CC BY 4.0' },
+    { what: 'the wood of the floor, the desk and the door', who: 'Sergej Majboroda, Jenelle van Heerden, on Poly Haven', licence: 'CC0 1.0' },
+    // the furniture and the props of Poly Haven: put their authors in, as CREDITS.md names them, and take the `//` away
+    // { what: 'the furniture and the props', who: '…, on Poly Haven', licence: 'CC0 1.0' },
+    { what: 'Rio by day, behind the window', who: 'Arian Zwegers', licence: 'CC BY 2.0' },
+    { what: 'Rio at night, behind the window', who: 'Wilfredor', licence: 'CC0 1.0' },
+    { what: 'the lofi on the radio', who: 'HoliznaCC0', licence: 'CC0 1.0' },
+    { what: '"Cafezinho com Leite", on lofi brasil', who: 'Popoi', licence: 'CC BY 3.0' },
+    { what: 'the music of the playlist', who: 'its artists and their labels, streamed by Spotify', licence: 'Spotify\'s terms' },
+    { what: 'the typefaces', who: 'Sorkin Type, JetBrains, Font Diner, Vernon Adams, CodeMan38, Peter Hull, Astigmatic', licence: 'OFL-1.1, Apache-2.0' },
+    { what: 'the land on the ▲ grid map', who: 'Natural Earth', licence: 'public domain' },
+    { what: 'the wind on that map', who: 'NOAA (GFS), through Open-Meteo', licence: 'public domain, CC BY 4.0' },
+    { what: 'the sea\'s temperature on that map', who: 'Met Office (OSTIA), E.U. Copernicus Marine Service', licence: 'the Copernicus Marine Service licence' },
+    { what: 'the libraries', who: 'three.js, Vite, MapLibre GL JS', licence: 'MIT, MIT, BSD-3-Clause' },
+  ],
+  full: { line: 'Every file, source and licence is in', label: 'CREDITS.md', url: 'https://github.com/piabrota/room/blob/main/CREDITS.md' },
+  // the plate on the wall: what its hover says, and what is engraved on it
+  plate: {
+    label: `the idea: ${ideaBy}`, hint: 'he works on Claude at Anthropic · click for the credits',
+    top: 'the idea', name: ideaBy, bottom: 'works on Claude at Anthropic',
+  },
+};
+
 // ── LOFI: the room as a page to read. The sections are in this order,
 // each with its word. Posts are Markdown files in posts/ (front matter:
 // title, date, summary); the newest is first, and the feed lists them.
 export const reading = {
   site: 'https://room.piabrota.art',
   feed: '/feed.xml',
-  sections: { home: 'home', about: 'about', work: 'work', posts: 'posts', online: 'online', subscribe: 'subscribe' },
+  sections: { home: 'home', about: 'about', work: 'work', posts: 'posts', online: 'online', subscribe: 'subscribe', credits: 'credits' },
   about: [
     'pia, brota is an open software fabric made in Rio de Janeiro: a company chart, a second brain, a runtime for agents and the box that serves this site, built in the open.',
     'Its people are pinned to the board of the room, its two bots sit on the desk, and its friends, marola and Ouroboric, have a wall each. This page is the same room, as text.',
@@ -457,7 +505,8 @@ export const reading = {
 
 // Hoverable things. `name` matches a mesh name in your GLB (or the
 // placeholder room, which builds one for each `art`). `action` is one
-// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio'. `group` titles the LOFI list.
+// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits'.
+// `group` titles the LOFI list.
 // ── ▲ grid: the Brazilian coast on a triangle mesh, its waves played back
 // on a map (src/grid.js, docs/SURVEY.md, section 6). The chart hangs on
 // the right wall; its shot (key 0) opens the map. `just grid` makes the
@@ -528,6 +577,7 @@ export const hotspots = [
   { name: 'folder_closed-source', label: closedSource.label, hint: closedSource.hint, action: 'link', value: closedSource.url, group: 'closed source', art: { kind: 'folder' } },
   { name: 'letter_closed-source', label: closedSource.letter.label, hint: closedSource.letter.hint, action: 'link', value: closedSource.letter.url, group: 'closed source' },
   { name: 'note',   label: 'inspiration: Robert M. Pirsig', hint: 'Zen and the Art of Motorcycle Maintenance', action: 'link', value: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig', group: 'inspiration', art: { kind: 'note', glyph: '無' } },
+  { name: 'credits', label: credits.plate.label, hint: credits.plate.hint, action: 'credits', art: { kind: 'credits', top: credits.plate.top, name: credits.plate.name, bottom: credits.plate.bottom } },
   ...projects.map((p) => ({
     name: `frame_${p.id}`, label: p.id, hint: p.line, action: 'link', value: p.url, group: 'projects',
     art: { kind: 'frame', glyph: p.glyph, color: theme.lanes[p.lane] },
