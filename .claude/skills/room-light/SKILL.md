@@ -23,8 +23,11 @@ grade. Read `docs/SURVEY.md`, section 7, before changing any of it.
   across tone mappers.
 - **Lights are physical** (three r155+): a point light's intensity is in candela, and a
   directional light's in lux-like units. Day and night light sets are `DAY` and `NIGHT` in
-  `src/room.js`. The desk lamp runs at 35 % by day (`lamp.userData.full`); the lamp button
-  respects it.
+  `src/room.js`. The night is made of lamps: the desk lamp (`lamp`), the lamp that hangs from the
+  ceiling rose (`hang`), the TV and the sign, over a low sky. The desk lamp runs at 50 % by night
+  and 35 % by day (`lamp.userData.full`), since it stands 0.35 m from the fax's page; the lamp
+  button respects it. By day the hanging lamp is off and the sun comes in by the window only: the
+  walls and the ceiling cast shadows.
 - Invariant 9: lighting should end up baked in Blender (`useBakedLighting`), with only `*_live`
   meshes lit in real time. Real-time light tuning is for the placeholder room.
 

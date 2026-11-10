@@ -522,8 +522,8 @@ export const credits = {
     { what: 'Nash\'s meow', who: 'Heismark', licence: 'public domain' },
     // made by `just compose` from samples that are not in the repository: a build without them plays synthesized sounds
     { what: 'the field recordings in the city\'s hum, the VCR\'s sounds and the piabrota tape', who: 'klankbeeld, YleArkisto, magedu', licence: 'CC BY 4.0' },
-    // one row for all that comes from Poly Haven: the photographed wood today (CREDITS.md names Sergej Majboroda and
-    // Jenelle van Heerden), and each model and texture added later. Name the authors in `who` when the list is short.
+    // one row for all that comes from Poly Haven: the furniture, the props and the photographed surfaces.
+    // CREDITS.md names each one's author (`just models` writes those rows).
     { what: 'furniture, props and surfaces', who: 'Poly Haven and its authors', licence: 'CC0 1.0' },
     { what: 'Rio by day, behind the window', who: 'Arian Zwegers', licence: 'CC BY 2.0' },
     { what: 'Rio at night, behind the window', who: 'Wilfredor', licence: 'CC0 1.0' },

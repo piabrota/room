@@ -45,6 +45,7 @@ const rows = []; let worst = 0;
 for (const mode of modes) {
   await page.goto(`${url}?hifi&${mode}`);
   await page.waitForSelector('#loading.done', { timeout: 180000 });
+  await page.evaluate(() => window.__room.room.ready); // the furniture that is files, all of it
   await page.addStyleTag({ content: '#enter{display:none!important}' });
   const shots = shotArgs.length ? shotArgs : await page.evaluate(() => window.__room.rig.names);
   for (const s of shots) {

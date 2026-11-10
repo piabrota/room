@@ -78,7 +78,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
   if (chandelier) { hang.position.copy(chandelier.getWorldPosition(v)).y -= 0.52; scene.add(hang); }
   // The walls are light, so the night is made of lamps, not of a sky that fills the room: a little
   // blue from the window, the hanging lamp dim, the desk lamp's pool on the desk.
-  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.5, hang: 3.4, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
+  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.5, hang: 2.4, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
   const DAY = { sky: [0xdbe8f7, 0x8a6e52, 1.5], moon: 0, sun: 4.2, neon: 0.5, lamp: 0.35, hang: 0, env: 0.4, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
   const dust = buildDust(quality.dust); scene.add(dust);
   let day = false;
@@ -203,6 +203,10 @@ function placeholderRoom() {
     const m = new THREE.Mesh(geo, mat); m.name = name; m.position.set(...pos);
     m.castShadow = m.receiveShadow = true; parent.add(m); return m;
   };
+  // several pieces of one material as one mesh: [[geometry, position], …]
+  const fuse = (pieces, mat, parent = g, name = '') => mesh(name, mergeGeometries(pieces.map(([geo, pos]) => {
+    const q = geo.index ? geo.toNonIndexed() : geo; q.translate(...pos); return q;
+  })), mat, [0, 0, 0], parent);
   const named = (name) => { const grp = new THREE.Group(); grp.name = name; g.add(grp); return grp; };
   const art = (kind) => hotspots.filter((h) => h.art?.kind === kind);
   // the furniture that is files: each `place` leaves a holder with a stand-in, and the model takes its place
@@ -268,10 +272,9 @@ function placeholderRoom() {
   for (const h of art('fax')) {
     const fax = named(h.name); fax.position.set(-0.84, top, -1.56); fax.rotation.y = 0.5;
     const faxPlastic = new THREE.MeshStandardMaterial({ map: plasticArt('#cfc8ba', 11), bumpMap: noiseTex(256, 30, 11), bumpScale: 0.4, roughness: 0.62 });
-    mesh('', new RoundedBoxGeometry(0.32, 0.09, 0.26, 2, 0.02), faxPlastic, [0, 0.045, 0], fax);
-    mesh('', new RoundedBoxGeometry(0.3, 0.05, 0.12, 2, 0.015), faxPlastic, [0, 0.1, -0.06], fax);
+    fuse([[new RoundedBoxGeometry(0.32, 0.09, 0.26, 2, 0.02), [0, 0.045, 0]], [new RoundedBoxGeometry(0.3, 0.05, 0.12, 2, 0.015), [0, 0.1, -0.06]]], faxPlastic, fax);
     mesh('', new THREE.PlaneGeometry(0.1, 0.03), new THREE.MeshBasicMaterial({ color: '#9fb88a' }), [-0.06, 0.0905, 0.07], fax).rotation.x = -Math.PI / 2; // the display
-    for (let k = 0; k < 12; k++) mesh('', new THREE.BoxGeometry(0.018, 0.008, 0.016), std('#4a4740'), [0.04 + (k % 3) * 0.024, 0.093, 0.03 + Math.floor(k / 3) * 0.022], fax);
+    fuse(Array.from({ length: 12 }, (_, k) => [new THREE.BoxGeometry(0.018, 0.008, 0.016), [0.04 + (k % 3) * 0.024, 0.093, 0.03 + Math.floor(k / 3) * 0.022]]), std('#4a4740'), fax); // the keys
     const page = mesh('', new THREE.PlaneGeometry(0.21, 0.27), new THREE.MeshStandardMaterial({ map: paperArt({ lines: ['FAX', '', `to: you`, `from: ${contact.name}`, '', emailText, '', contact.linkedin.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')], stamp: 'RECEIVED' }), side: THREE.DoubleSide, roughness: 0.9 }), [0, 0.24, -0.1], fax);
     page.rotation.x = -0.32; page.castShadow = false;
     const li = new THREE.Group(); li.name = 'fax_linkedin'; li.position.set(0.12, 0.092, -0.03); fax.add(li);
@@ -424,19 +427,20 @@ function placeholderRoom() {
     const door = named(h.name); door.position.set(DOOR.x, 0, ROOM.z1 - 0.02); door.rotation.y = Math.PI;
     const dw = DOOR.w, dh = DOOR.h, pw = woodPer;
     const hinge = new THREE.Group(); hinge.name = 'door_leaf'; hinge.position.set(-dw / 2, 0, 0); door.add(hinge);
-    // the leaf: a frame of stiles and rails round four raised panels, all in the dark wood
-    mesh('', woodBox(dw, dh, 0.034, { per: pw }), wood, [dw / 2, dh / 2, 0.02], hinge);
-    for (const sx of [0.065, dw - 0.065]) mesh('', woodBox(0.13, dh, 0.012, { per: pw }), wood, [sx, dh / 2, 0.043], hinge);
-    for (const y of [0.11, 0.98, 1.24, dh - 0.07]) mesh('', woodBox(dw - 0.26, y < 0.2 ? 0.22 : 0.14, 0.012, { per: pw }), wood, [dw / 2, y, 0.043], hinge);
-    mesh('', woodBox(0.1, dh - 0.3, 0.012, { per: pw }), wood, [dw / 2, dh / 2 + 0.04, 0.043], hinge);
-    for (const [px, py, w2, h2] of [[0.26, 0.565, 0.24, 0.66], [dw - 0.26, 0.565, 0.24, 0.66], [0.26, 1.63, 0.24, 0.62], [dw - 0.26, 1.63, 0.24, 0.62]]) mesh('', woodBox(w2, h2, 0.01, { per: pw }), wood, [px, py, 0.042], hinge);
+    // the leaf: a frame of stiles and rails round four raised panels, all in the dark wood, one mesh
+    const leaf = [[woodBox(dw, dh, 0.034, { per: pw }), [dw / 2, dh / 2, 0.02]]];
+    for (const sx of [0.065, dw - 0.065]) leaf.push([woodBox(0.13, dh, 0.012, { per: pw }), [sx, dh / 2, 0.043]]);
+    for (const y of [0.11, 0.98, 1.24, dh - 0.07]) leaf.push([woodBox(dw - 0.26, y < 0.2 ? 0.22 : 0.14, 0.012, { per: pw }), [dw / 2, y, 0.043]]);
+    leaf.push([woodBox(0.1, dh - 0.3, 0.012, { per: pw }), [dw / 2, dh / 2 + 0.04, 0.043]]);
+    for (const [px, py, w2, h2] of [[0.26, 0.565, 0.24, 0.66], [dw - 0.26, 0.565, 0.24, 0.66], [0.26, 1.63, 0.24, 0.62], [dw - 0.26, 1.63, 0.24, 0.62]]) leaf.push([woodBox(w2, h2, 0.01, { per: pw }), [px, py, 0.042]]);
+    fuse(leaf, wood, hinge);
     // the architrave round it
-    for (const sx of [-1, 1]) mesh('', woodBox(0.09, dh + 0.09, 0.03, { per: pw }), wood, [sx * (dw / 2 + 0.045), (dh + 0.09) / 2, 0.005], door);
-    mesh('', woodBox(dw + 0.24, 0.1, 0.036, { per: pw }), wood, [0, dh + 0.05, 0.008], door);
-    const knob = brass;
-    mesh('', new THREE.SphereGeometry(0.03, 16, 12), knob, [dw - 0.065, 1.0, 0.085], hinge);
-    mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.05, 12).rotateX(Math.PI / 2), knob, [dw - 0.065, 1.0, 0.06], hinge);
-    mesh('', new THREE.BoxGeometry(0.05, 0.16, 0.006), knob, [dw - 0.065, 1.03, 0.052], hinge);                                           // the escutcheon
+    fuse([...[-1, 1].map((sx) => [woodBox(0.09, dh + 0.09, 0.03, { per: pw }), [sx * (dw / 2 + 0.045), (dh + 0.09) / 2, 0.005]]),
+      [woodBox(dw + 0.24, 0.1, 0.036, { per: pw }), [0, dh + 0.05, 0.008]]], wood, door);
+    // the brass: the knob, its spindle and the escutcheon
+    fuse([[new THREE.SphereGeometry(0.03, 16, 12), [dw - 0.065, 1.0, 0.085]],
+      [new THREE.CylinderGeometry(0.012, 0.012, 0.05, 12).rotateX(Math.PI / 2), [dw - 0.065, 1.0, 0.06]],
+      [new THREE.BoxGeometry(0.05, 0.16, 0.006), [dw - 0.065, 1.03, 0.052]]], brass, hinge);
     mesh('', new THREE.BoxGeometry(0.05, 0.075, 0.01), std('#2a2c31', { metalness: 0.6, roughness: 0.4 }), [dw - 0.065, 1.2, 0.054], hinge); // the keypad plate
     const tag = paperArt({ lines: ['LOCKED', '', '_ _ _ _'], w: 128, h: 96, size: 14 });
     mesh('', new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: tag, roughness: 0.9 }), [dw / 2, 1.42, 0.058], hinge).castShadow = false;
@@ -570,6 +574,18 @@ function placeholderRoom() {
     const m = new THREE.Mesh(mergeGeometries(geos.map((x) => x.index ? x.toNonIndexed() : x)), mat);
     m.castShadow = m.receiveShadow = true; m.name = 'static'; g.add(m);
   }
+  // a box with one material a side is six draw calls; its sides of the same material become one
+  g.traverse((o) => {
+    if (!o.isMesh || !Array.isArray(o.material) || !o.geometry.index || o.geometry.groups.length < 3) return;
+    const geo = o.geometry.clone(), ix = geo.index.array, uniq = [...new Set(o.material)], out = new ix.constructor(ix.length);
+    let n = 0; geo.clearGroups();
+    uniq.forEach((m, k) => {
+      const start = n;
+      for (const gr of o.geometry.groups) if (o.material[gr.materialIndex] === m) { out.set(ix.subarray(gr.start, gr.start + gr.count), n); n += gr.count; }
+      geo.addGroup(start, n - start, k);
+    });
+    geo.setIndex(new THREE.BufferAttribute(out, 1)); o.geometry = geo; o.material = uniq;
+  });
   return { root: g, animated, ready: F.ready };
 }
 

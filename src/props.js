@@ -183,11 +183,11 @@ export function buildRecords(g, mesh, std, part) {
   const X = -2.2, Z = -1.15, W = 0.38, D = 0.46, H = 0.26;
   const grp = new THREE.Group(); grp.name = crate.name; grp.position.set(X, 0, Z); grp.rotation.y = 0.35; g.add(grp);
   const wood = std('#6b4a32', { roughness: 0.8 });
-  for (const [s, p] of [[[W, H, 0.02], [0, H / 2, D / 2]], [[W, H, 0.02], [0, H / 2, -D / 2]], [[0.02, H, D], [W / 2, H / 2, 0]], [[0.02, H, D], [-W / 2, H / 2, 0]], [[W, 0.02, D], [0, 0.01, 0]]]) {
-    mesh('', new THREE.BoxGeometry(...s), wood, p, grp);
-  }
-  const edge = std('#111', { roughness: 0.6 });
-  const sleeve = (h, pos) => mesh(h.name, new THREE.BoxGeometry(0.31, 0.31, 0.006), [edge, edge, edge, edge, new THREE.MeshStandardMaterial({ map: h.art.card ? cardArt({ card: h.art.card, title: h.label, theme }) : recordArt({ title: h.label, theme }), roughness: 0.6 }), edge], pos, grp);
+  mesh('', mergeGeometries([[[W, H, 0.02], [0, H / 2, D / 2]], [[W, H, 0.02], [0, H / 2, -D / 2]], [[0.02, H, D], [W / 2, H / 2, 0]], [[0.02, H, D], [-W / 2, H / 2, 0]], [[W, 0.02, D], [0, 0.01, 0]]]
+    .map(([s, p]) => new THREE.BoxGeometry(...s).translate(...p))), wood, [0, 0, 0], grp);
+  // a sleeve is a thin card: one box, one material, its picture wrapped round the 6 mm edges too
+  const board = new THREE.BoxGeometry(0.31, 0.31, 0.006);
+  const sleeve = (h, pos) => mesh(h.name, board, new THREE.MeshStandardMaterial({ map: h.art.card ? cardArt({ card: h.art.card, title: h.label, theme }) : recordArt({ title: h.label, theme }), roughness: 0.6 }), pos, grp);
   // the two that start it, side by side, leaning on the front of the crate
   for (const h of art('record').filter((x) => x.art.front !== undefined)) {
     const s = sleeve(h, [(h.art.front - 0.5) * 0.33, 0.155, D / 2 + 0.045]);
