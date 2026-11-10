@@ -81,6 +81,8 @@ rig.onChange((n) => { gridPending = n === 'grid'; if (n !== 'grid') gridView?.hi
 rig.onChange((n) => nav.querySelectorAll('button').forEach((b) => {
   b.classList.toggle('active', b.dataset.shot === n);
   b.setAttribute('aria-pressed', String(b.dataset.shot === n));
+  // on a phone the shots are one row that scrolls: the one in view comes to the middle of it
+  if (b.dataset.shot === n && nav.scrollWidth > nav.clientWidth) nav.scrollTo({ left: b.offsetLeft - (nav.clientWidth - b.offsetWidth) / 2, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }));
 addEventListener('keydown', (e) => {
   if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
@@ -139,16 +141,28 @@ ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClic
 // ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
 // On the full look he reads the room first, to walk around things and leap clear of them (src/catnav.js);
 // on the lite look (phones) he keeps the cheap life, with nothing to compute.
-// The furniture that is files (src/furniture.js). The laptop's look waits for it, six seconds at
-// most, so the room opens furnished and Nash reads the real chairs; the phone's look opens at
-// once with the stand-ins and each piece takes its place as it arrives. A piece that comes late,
-// or never, leaves its stand-in (invariant 8).
+// The furniture that is files (src/furniture.js). The room opens at once with the stand-ins, on
+// every look, and each piece takes its place as it arrives: nothing the visitor waits for is a
+// photographed chair. A piece that comes late, or never, leaves its stand-in (invariant 8).
+// `just record` (`?record`) still waits for all of it, so it films the same furnished room.
 room.onChange = () => redrawShadows();
-if (quality.name === 'full') await Promise.race([room.ready, new Promise((done) => setTimeout(done, 6000))]);
+if (recording) { room.furnish(); await room.ready; }
 room.root.updateMatrixWorld(true);
 const catStill = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const nash = config.cat ? createCat(config.cat, { still: catStill, nav: quality.name === 'full' && !catStill ? buildNav(room.root, { radius: 0.2 }) : null }) : null;
+const smartCat = quality.name === 'full' && !catStill;
+const makeCat = (nav) => createCat(config.cat, { still: catStill, nav });
+let nash = config.cat ? makeCat(recording && smartCat ? buildNav(room.root, { radius: 0.2 }) : null) : null;
 if (nash) room.root.add(nash.group);
+// On the full look Nash first lives the cheap life; once the real furniture is in, he reads the
+// room (src/catnav.js) while the browser is idle, and starts walking around it from his home perch.
+if (nash && smartCat && !recording) {
+  room.ready.then(() => new Promise((done) => (self.requestIdleCallback ?? setTimeout)(done, { timeout: 4000 }))).then(() => {
+    room.root.updateMatrixWorld(true);
+    const next = makeCat(buildNav(room.root, { radius: 0.2 }));
+    room.root.remove(nash.group); room.root.add(next.group); ui.move(nash.group, next.group);
+    nash = next; window.__room.nash = next;
+  });
+}
 
 // ── the door's lock: the keypad over the room; the right code swings the door open ──
 const doorState = { k: 0, to: 0 };
@@ -190,6 +204,9 @@ const words = config.ui;
 const soundBtn = document.getElementById('sound');
 soundBtn.textContent = `${words.sound}: ${words.off}`;
 const gate = document.getElementById('enter');
+// the hint under the gate's button: keys for a keyboard, gestures for a finger
+const hintEl = gate.querySelector('p');
+if (hintEl && words.enterHint) hintEl.textContent = matchMedia('(pointer: coarse)').matches && words.enterHintTouch ? words.enterHintTouch : words.enterHint;
 // The map needs no sound, so on the grid's own name the gate waits until the visitor first steps
 // into the room; nothing plays before its click either way (invariant 7).
 if (gridHome) {
@@ -283,6 +300,9 @@ rig.update(0);
 await renderer.compileAsync(scene, camera).catch(() => renderer.compile(scene, camera));
 redrawShadows();
 loading?.classList.add('done');
+room.furnish(); // the furniture's files, now that the room is on screen (src/furniture.js)
+performance.mark('room:shown'); // `just mobile` counts the bytes before it
+dispatchEvent(new Event('room:shown')); // the chart's mesh waits for it (src/grid.js)
 
 // ── loop ──
 const clock = new THREE.Clock();

@@ -60,6 +60,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 27 | 9 nov 22:48 | [#32](https://github.com/piabrota/room/pull/32) o Nash no computador: ele lê a sala uma vez (os triângulos dela cortados em células do chão e voxels), anda por caminhos A* arredondados em volta dos pés da mesa, da cadeira e da planta, acelerando e freando, vira antes de sair, senta onde o corpo cabe (não mais dentro do rádio ou do teclado) e pula em parábolas testadas contra a sala; no celular ele segue com a vida barata. O miado agora é de um gato de verdade, uma gravação em domínio público | 40 min |
 | 28 | 9 nov 23:13 | [#33](https://github.com/piabrota/room/pull/33) um botão "lyrics" no player da playlist que diz onde estão as letras (no app do Spotify) e não mostra nenhuma, porque a sala não tem licença para elas; as faixas e os artistas da playlist lidos de novo do player do Spotify, 37 faixas e 42 artistas, no `CREDITS.md` e ao lado do player | 25 min |
 | 29 | 10 nov 00:03 | [#34](https://github.com/piabrota/room/pull/34) o quarto como um apartamento antigo, em tamanho real: paredes de reboco, sanca e florão no teto, rodapé alto, janela de madeira de duas folhas num vão fundo, cortinas, taco e um tapete desenhado; 24 móveis e objetos do Poly Haven (CC0) pelo `just models`, cada um com um arquivo mais leve para o celular; fitas VHS em capas de papelão, em duas pilhas, e um videocassete para onde elas voam, em tamanho real; a noite iluminada pelas suas lâmpadas; um botão de créditos, o seu cartão e uma placa de latão que dão o nome de Felix Rieseberg; `just peek` para olhar uma mudança e contar as draw calls | 3 h 55 min |
+| 30 | 10 nov 12:48 | [#36](https://github.com/piabrota/room/pull/36) o quarto abre mais rápido: nada espera mais pelos móveis (eles chegam depois do primeiro quadro, quatro arquivos por vez), os arquivos têm o tamanho do aparelho (os pequenos no celular, numa tela pequena ou numa conexão lenta), a malha do mapa da grade espera também; assim um laptop baixa 2,3 MB antes de o quarto aparecer, em vez de 9,5, e um celular 0,8 em vez de 2,6; a parede da marola pintada com listras azuis de canto a canto; a água flutuante virou um aquário, com areia, pedras, plantas, bolhas, um cardume de peixinhos e o Barramundi da Microsoft (CC0) nadando; no celular, os botões em duas fileiras que rolam sob o polegar e dicas para o dedo; três skills, `room-threejs-perf`, `room-assets` e `room-load` | 2 h 25 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -346,6 +347,16 @@ textures, this must look like an old fashioned apartment, a credits hover is sti
 credits to Felix from Anthropic. Review his site again, our quality compared to theirs is sub
 poor. For example his VHS tapes have way more quality. Do these huge improvements with Fable 5.2.
 No big time constraint, so you can use sub agents'
+```
+
+**30.**
+
+```text
+user> 'now optimize the site, it is taking too much to load. In the same PR the marola wall needs to
+be refactored, the blue strips need to fill all the wall. Change the water floating to real
+aquarium with realistic fishes. In the same PR optimize the experience for mobile users. Grab more
+skills from github that you feel can help maintain this 3d complex project'
+user> 'would be good if the size of the things could depend on the device of the user'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix

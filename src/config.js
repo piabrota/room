@@ -75,6 +75,7 @@ export const models = {
     box: { file: 'cardboard_box_01', phone: false },
     alarm: { file: 'alarm_clock_01', phone: false },
     vase: { file: 'ceramic_vase_01', phone: false },
+    fish: 'fish', // the aquarium's fish (src/aquarium.js): Microsoft's Barramundi, CC0 (`just fish`)
   },
 };
 
@@ -116,6 +117,8 @@ export const ui = {
   sound: 'sound', on: 'on', off: 'off',
   day: 'day', night: 'night', toDay: 'switch to day', toNight: 'switch to night',
   listening: (n) => `${n} listening`, by: (title, artist) => `${title}, by ${artist}`, radioHint: 'lofi, free-licensed',
+  enterHint: '1–9, 0 or ← → to look around · Esc to step back',
+  enterHintTouch: 'tap a button below to move · drag to look around · tap things to see what they are',
 };
 
 // The owner's playlist on Spotify: a mixtape on the sill, beside the
@@ -330,10 +333,19 @@ export const works = [
   { id: 'nashkell',      title: 'nashkell, the open book', doi: '10.5281/zenodo.23356739', color: '#D29922' },
 ];
 
-// ── the sea: marola-dev's repositories as buoys on a wave tank ──
-// The waves are computed live, a nod to ww3-gpu (WAVEWATCH III).
+// ── the sea: marola-dev's repositories as buoys on an aquarium, the wall painted with the sea ──
+// The waves are computed live, a nod to ww3-gpu (WAVEWATCH III). `aquarium` is how many fish swim
+// in it (the big ones and the little school, fewer on the phone's look) and the colours of the
+// fish; `wall` the blues of the stripes painted across the whole right wall, from the deep at the
+// floor to the shallows under the cornice.
 export const sea = {
   label: 'marola', hint: 'the water super app, and the sea it floats on', url: 'https://marola.dev',
+  aquarium: {
+    fish: 5, liteFish: 3, school: 16, liteSchool: 9,
+    tints: ['#ffffff', '#ffd9a0', '#d8e6ff', '#ffe9c9', '#f2f2f2'], // over the photographed skin: silver, gold, a cold one
+    schoolColors: { back: '#5fd0ff', belly: '#d9dde2', tail: '#e0473a' }, // the little ones: a blue stripe, a red tail
+  },
+  wall: { colors: ['#06243f', '#0b3a63', '#1265a8', '#1682D4', '#4aa3e3', '#8cc8f0'], paint: '#dfe6ea' },
   buoys: [
     { id: 'marola',          line: 'the water super app',                     url: 'https://github.com/marola-dev/marola' },
     { id: 'marola-app',      line: 'the backend, in Scala',                   url: 'https://github.com/marola-dev/marola-app' },
@@ -525,6 +537,7 @@ export const credits = {
     // one row for all that comes from Poly Haven: the furniture, the props and the photographed surfaces.
     // CREDITS.md names each one's author (`just models` writes those rows).
     { what: 'furniture, props and surfaces', who: 'Poly Haven and its authors', licence: 'CC0 1.0' },
+    { what: 'the big fish in the aquarium (the Barramundi)', who: 'Microsoft, from the Khronos glTF sample assets', licence: 'CC0 1.0' },
     { what: 'Rio by day, behind the window', who: 'Arian Zwegers', licence: 'CC BY 2.0' },
     { what: 'Rio at night, behind the window', who: 'Wilfredor', licence: 'CC0 1.0' },
     { what: 'the lofi on the radio', who: 'HoliznaCC0', licence: 'CC0 1.0' },

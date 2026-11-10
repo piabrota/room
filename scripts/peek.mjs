@@ -8,6 +8,7 @@
 //   just peek --shot desk --out /tmp/desk.jpg --size 1280x720 --hud --steps 60
 //   just peek --shot desk --eval "window.__room.room.lamp.intensity = 0"
 //   just peek --shot overview --calls             and what the room is made of, thing by thing
+//   just peek --shot overview --lite --hud --phone --size 390x844   the HUD as a phone shows it
 //   just peek --all --day --out /tmp/shots        every shot in one visit, into a folder (--shots desk,shelf for some)
 //
 // It prints the draw calls and the triangles of the frame, so a heavy prop shows at once.
@@ -44,7 +45,8 @@ const browser = await chromium.launch({
   executablePath: chrome(),
   args: gpu ? (process.platform === 'darwin' ? ['--use-angle=metal'] : []) : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
 });
-const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
+// --phone: a touch screen at a pixel ratio of 2, as a phone shows the HUD (with --size 390x844)
+const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: flag('phone') ? 2 : 1, isMobile: flag('phone'), hasTouch: flag('phone') });
 page.setDefaultTimeout(180000);
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));

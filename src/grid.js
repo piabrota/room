@@ -62,7 +62,9 @@ export function chartTexture(grid) {
     ctx.font = '400 22px "JetBrains Mono", monospace'; ctx.fillStyle = '#4a5866'; ctx.fillText(grid.hint, 46, 128);
   };
   paper(); tex.needsUpdate = true;
-  meshData(grid.files).then(({ n, lonlat, tris }) => {
+  // the mesh is drawn on the chart once the room is on screen and the browser is idle: its
+  // 230 kB never stand between the visitor and the room (on the grid's own name the map wants it first anyway)
+  new Promise((done) => addEventListener('room:shown', done, { once: true })).then(() => meshData(grid.files)).then(({ n, lonlat, tris }) => {
     const [w, s, e, nn] = grid.bbox, x0 = 440, y0 = 160, h = H - 200, sc = h / (nn - s);
     const px = (i) => x0 + (lonlat[i * 2] - w) * sc * Math.cos(-15 * Math.PI / 180), py = (i) => y0 + (nn - lonlat[i * 2 + 1]) * sc;
     paper();

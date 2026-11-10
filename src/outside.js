@@ -26,7 +26,7 @@ const ridge = (ctx, w, h, pts, color) => {
   ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
 };
 
-export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2), aim: aimAt = [0.3, 3.2], night: nightPhoto, day: dayPhoto } = {}) {
+export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2), aim: aimAt = [0.3, 3.2], night: nightPhoto, day: dayPhoto, small = false } = {}) {
   const root = new THREE.Group(); root.name = 'outside'; parent.add(root);
   const drawn = new THREE.Group(); root.add(drawn);
   let g = root;
@@ -165,7 +165,10 @@ export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2)
       }
       show();
     };
-    img.src = photo;
+    // the small file (1280 px) on a phone, a small screen or a slow line (src/quality.js); the large one if it is missing
+    const lite = photo.replace(/\.(jpe?g|webp)$/, '.lite.$1');
+    img.onerror = () => { if (img.src.endsWith(lite)) img.src = photo; };
+    img.src = small && lite !== photo ? lite : photo;
   }
   // night: the night photograph (or the drawn view while it loads), the
   // moon's sky, dark trees with lit windows; day: the day photograph,

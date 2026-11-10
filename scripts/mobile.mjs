@@ -45,11 +45,20 @@ for (const [name, d] of Object.entries(devices)) {
   cdp.on('Network.requestWillBeSent', (e) => urls.set(e.requestId, e.request.url));
   cdp.on('Network.loadingFinished', (e) => { bytes += e.encodedDataLength; files.push([e.encodedDataLength, urls.get(e.requestId)]); });
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
+  // when #loading gets `done`, for a build older than the `room:shown` mark
+  await page.addInitScript(() => new MutationObserver((_, obs) => {
+    if (document.getElementById('loading')?.classList.contains('done')) { window.__shownAt = performance.now(); obs.disconnect(); }
+  }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] }));
   const t0 = Date.now();
   await page.goto(`${url}?hifi&night${query}`);
   await page.waitForSelector('#loading.done');
   const ready = (Date.now() - t0) / 1000;
-  const shown = bytes;
+  // the bytes of every file that had arrived when the room showed (performance.mark in src/app.js)
+  const before = await page.evaluate(() => {
+    const at = performance.getEntriesByName('room:shown')[0]?.startTime ?? window.__shownAt ?? Infinity;
+    return performance.getEntriesByType('resource').filter((e) => e.responseEnd <= at).map((e) => [e.transferSize || e.encodedBodySize, e.name]);
+  });
+  const shown = before.reduce((a, [b]) => a + b, 0) + (files.find(([, u]) => u === page.url())?.[0] ?? 0);
   await page.waitForTimeout(500);
   const r = await page.evaluate(async () => {
     const { renderer, step, post } = window.__room;
@@ -58,10 +67,10 @@ for (const [name, d] of Object.entries(devices)) {
     for (let i = 0; i < 5; i++) one(); // warm up
     const ts = []; for (let i = 0; i < 20; i++) ts.push(one());
     ts.sort((a, b) => a - b);
-    return { w: gl.drawingBufferWidth, h: gl.drawingBufferHeight, ratio: renderer.getPixelRatio(), median: ts[10], profile: post.profile ?? 'full' };
+    return { w: gl.drawingBufferWidth, h: gl.drawingBufferHeight, ratio: renderer.getPixelRatio(), median: ts[10], profile: post.profile ?? 'full', files: window.__room.quality.files ?? window.__room.quality.name };
   });
-  console.log(`${name.padEnd(6)} ${r.profile.padEnd(5)} downloaded ${(shown / 1e6).toFixed(2)} MB, shown in ${ready.toFixed(1)} s, drawn at ${r.w}×${r.h} (ratio ${r.ratio}), a frame ${r.median.toFixed(0)} ms`);
-  if (process.argv.includes('--bytes')) for (const [b, u] of files.sort((a, z) => z[0] - a[0]).slice(0, 12)) console.log(`  ${(b / 1e3).toFixed(0).padStart(6)} kB  ${new URL(u).pathname}`);
+  console.log(`${name.padEnd(6)} ${r.profile.padEnd(5)} ${r.files.padEnd(4)} files, downloaded ${(shown / 1e6).toFixed(2)} MB, shown in ${ready.toFixed(1)} s, drawn at ${r.w}×${r.h} (ratio ${r.ratio}), a frame ${r.median.toFixed(0)} ms`);
+  if (process.argv.includes('--bytes')) for (const [b, u] of before.sort((a, z) => z[0] - a[0]).slice(0, 12)) console.log(`  ${(b / 1e3).toFixed(0).padStart(6)} kB  ${new URL(u).pathname}`);
   await ctx.close();
 }
 await browser.close();
