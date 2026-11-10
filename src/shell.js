@@ -167,7 +167,11 @@ export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) 
   const { x0, x1, z0, z1, h: H } = ROOM, W = x1 - x0, D = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
 
   // ── the floor: herringbone parquet, waxed and a little worn ──
-  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), new THREE.MeshStandardMaterial({ color: look.floor, ...pbr('herringbone_parquet', [3.5, 3.5]), roughness: 1, normalScale: new THREE.Vector2(0.85, 0.85) }), [0, 0, 0.5]);
+  const parquet = new THREE.MeshStandardMaterial({ color: look.floor, ...pbr('herringbone_parquet', [3.5, 3.5]), roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
+  // the wax never shines like glass: the photographed roughness has specks near zero, which a lamp
+  // seen low across the floor turns into white sparks, so it is kept above a floor of its own
+  parquet.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max( roughnessFactor, 0.5 );'); };
+  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), parquet, [0, 0, 0.5]);
   floor.rotation.x = -Math.PI / 2; floor.castShadow = false;
 
   // ── the walls: painted plaster, the paint a little uneven, the plaster's grain under it ──

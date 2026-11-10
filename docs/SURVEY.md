@@ -387,7 +387,7 @@ not link it (invariant 2). What was learnt is where its quality comes from.
 
 | # | His room | Ours, before | What was done |
 |---|---|---|---|
-| 1 | Furniture and props are photographed models with colour, normal and roughness maps; his own credits thank Poly Haven for them | Boxes and cylinders in flat colours | Twenty-three models from Poly Haven (CC0), packed by `just models`: a television, a clamp lamp, a radio cassette player, an armchair, a bookcase, a sideboard, a sofa, a long-case clock, a chandelier, plants, books, a painting, a suitcase, a ukulele |
+| 1 | Furniture and props are photographed models with colour, normal and roughness maps; his own credits thank Poly Haven for them | Boxes and cylinders in flat colours | Twenty-four models from Poly Haven (CC0), packed by `just models`: a television, a clamp lamp, a radio cassette player, an armchair, a bookcase, a sideboard, a sofa, a long-case clock, a chandelier, plants, books, a painting, a suitcase, a ukulele |
 | 2 | Light is baked: every surface has soft bounce and contact shade | Six real-time lights on flat dark walls, no bounce | Light walls that carry the lamps' light, a hanging lamp, a soft shadow drawn under each piece (`contactShadows`), ambient occlusion on the laptop's look. Baking stays future work: it needs the room in Blender |
 | 3 | The hero view is at the desk's height, close, with things overlapping in depth | A wide view of large flat surfaces; the desk seen from 1.9 m | The desk's shot is 1.5 m from the TV, at 1.36 m, with the chair, the lamp and the window in depth |
 | 4 | Tapes in card sleeves with printed spines, in two piles that are not aligned, a loose cassette on top | Eight identical black boxes, 10 % too large, a 512 × 72 label each | `src/vhs.js`: a cassette at 187 × 103 × 25 mm with windows, reels and flap; card sleeves, each its own design from config; two piles; the cassette leaves its sleeve and goes in by the slot |
@@ -408,7 +408,7 @@ in a thick wall; curtains to the floor; a rug; furniture of several decades livi
 
 ### What it costs
 
-The models are 7.1 MB for the laptop's look and 2.1 MB for the phone's, which also leaves the
+The models are 7.5 MB for the laptop's look and 2.2 MB for the phone's, which also leaves the
 small props out (`phone: false` in `config.models`). The laptop's look waits for them, six
 seconds at most; the phone's opens at once with plain stand-ins and each piece takes its place
 as it arrives. A model that is missing leaves its stand-in (invariant 8). The pull request
