@@ -167,16 +167,16 @@ export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) 
   const { x0, x1, z0, z1, h: H } = ROOM, W = x1 - x0, D = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
 
   // ── the floor: herringbone parquet, waxed and a little worn ──
-  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), new THREE.MeshStandardMaterial({ color: look.floor, ...pbr('herringbone_parquet', [3.5, 3.5]), roughness: 0.9, normalScale: new THREE.Vector2(0.9, 0.9) }), [0, 0, 0.5]);
+  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), new THREE.MeshStandardMaterial({ color: look.floor, ...pbr('herringbone_parquet', [3.5, 3.5]), roughness: 1, normalScale: new THREE.Vector2(0.85, 0.85) }), [0, 0, 0.5]);
   floor.rotation.x = -Math.PI / 2; floor.castShadow = false;
 
   // ── the walls: painted plaster, the paint a little uneven, the plaster's grain under it ──
   const paint = mottle(); paint.repeat.set(1 / 3.7, 1 / 3.7);
   const plaster = (color) => new THREE.MeshStandardMaterial({ color, map: paint, ...pbr('beige_wall_001', [1 / 2.4, 1 / 2.4], 0, ['nor', 'rough']), roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
   const wallMat = plaster(look.wall);
-  const wall = (name, w, holes, pos, rotY, cast = false) => { const m = mesh(name, sheet(w, H, holes), wallMat, pos); m.rotation.y = rotY; m.castShadow = cast; return m; };
+  const wall = (name, w, holes, pos, rotY, cast = true) => { const m = mesh(name, sheet(w, H, holes), wallMat, pos); m.rotation.y = rotY; m.castShadow = cast; return m; };
   const wx0 = WIN.x - WIN.w / 2, wy0 = WIN.y - WIN.h / 2, top = wy0 + WIN.h;
-  // the back wall has the window's opening; it casts, so the day's sun comes in by the window only
+  // the back wall has the window's opening; the walls and the ceiling cast, so the day's sun comes in by the window only
   wall('wall_back', W, [[wx0 - x0, wy0, WIN.w, WIN.h]], [x0, 0, z0], 0, true);
   wall('wall_left', D + 1, [], [x0, 0, z1 + 0.5], Math.PI / 2);
   wall('wall_right', D + 1, [], [x1, 0, z0 - 0.5], -Math.PI / 2);
@@ -188,7 +188,7 @@ export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) 
   part(new THREE.BoxGeometry(WIN.w + 0.04, 0.02, rv), [WIN.x, wy0 - 0.01, rz], look.reveal, reveal);
 
   // ── the ceiling: white, a cornice all round, a rose where the lamp hangs ──
-  const ceiling = mesh('ceiling', sheet(W, D), plaster(look.ceiling), [x0, H, z0]); ceiling.rotation.x = Math.PI / 2; ceiling.castShadow = false;
+  const ceiling = mesh('ceiling', sheet(W, D), plaster(look.ceiling), [x0, H, z0]); ceiling.rotation.x = Math.PI / 2;
   const white = { opts: { roughness: 0.75 } };
   // the cornice's profile, out from the wall and down from the ceiling: a cove between two fillets
   const cove = [[0, 0], [0.14, 0], [0.14, -0.018], [0.125, -0.018], [0.118, -0.03], [0.1, -0.05], [0.07, -0.085], [0.045, -0.105], [0.03, -0.112], [0.03, -0.132], [0.018, -0.132], [0.018, -0.15], [0, -0.15]];

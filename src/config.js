@@ -98,12 +98,12 @@ export const outside = {
 export const shots = {
   overview: { position: [3.1, 2.15, 3.3], target: [-0.4, 1.05, -0.6], fov: 50 },
   desk:     { position: [0.32, 1.36, 0.02], target: [0.2, 1.1, -1.5], fov: 46 },
-  fabric:   { position: [-0.7, 1.6, 0.55], target: [-3.0, 1.6, -0.2], fov: 52 },
+  fabric:   { position: [-0.75, 1.55, 1.25], target: [-3.0, 1.5, 0.45], fov: 52 },
   shelf:    { position: [-1.75, 1.55, 0.4], target: [-2.1, 1.8, -1.9], fov: 52 }, // the works with a DOI, and tyler-durden-bot's board above them
   board:    { position: [2.55, 1.8, 0.25], target: [2.55, 1.82, -2.0], fov: 50 },
   window:   { position: [0.2, 1.62, 0.7], target: [0.2, 2.12, -2.0], fov: 56 },
   sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
-  slipbox:  { position: [-1.62, 0.88, -0.22], target: [-2.2, 0.18, -0.98], fov: 46 },
+  slipbox:  { position: [-1.55, 0.88, -0.3], target: [-2.2, 0.18, -0.98], fov: 46 },
   loop:     { position: [0.0, 1.6, 0.6], target: [-0.4, 1.5, 3.8], fov: 58 }, // the loop, and the door with its lock
   // the tenth, on key 0: the chart on the right wall, which opens the map (`grid` below)
   grid:     { position: [1.75, 1.62, 1.55], target: [3.4, 1.62, 1.55], fov: 44, label: '▲ grid' },
@@ -478,7 +478,7 @@ export const cat = {
     { id: 'rug', at: [0.2, 0.013, 0.3], face: 2.6 },
     { id: 'rug2', at: [1.0, 0.013, 0.2], face: -2.2 },
     { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8 },
-    { id: 'sofa', at: [-2.5, 0.42, -0.35], face: 1.6 },
+    { id: 'sofa', at: [-2.5, 0.42, 0.15], face: 1.6 },
     { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8 },
     { id: 'deskLeft', at: [-0.82, 0.805, -1.17], face: 2.4 },
     { id: 'monitor', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk' },
