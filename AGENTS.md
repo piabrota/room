@@ -28,8 +28,11 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    artists credited in `CREDITS.md` and on screen beside it. Nothing else of Spotify's loads,
    not its iFrame API script (the owner, 9 November 2026).
 2. **The idea is credited to Felix Rieseberg, by name, in text only.** `README.md` and
-   `CREDITS.md` name him as the origin of the idea. No file links to his site, his
-   repositories or his issues, and no issue or pull request here links them either.
+   `CREDITS.md` name him as the origin of the idea, and the room says so on screen, from
+   `config.credits`: the card of the credits button, the plate on the wall, and the credits of
+   the LOFI page. No file links to his site, his repositories or his issues, and no issue or
+   pull request here links them either; the one address in the credits is this repository's
+   `CREDITS.md`.
 3. **`src/config.js` is the one file that makes the room someone's.** The signature (name,
    tagline, links), the camera shots, the tapes, the hotspots and the sounds are declared
    there. No other file hardcodes a name, a link, a label or a sound path. The signature is
@@ -43,8 +46,9 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    through `src/interact.js`: it shows a label and a glow on hover, and does one thing on
    click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`,
    `playlist` (opens the Spotify player of invariant 1), `door` (the lock's keypad, `src/lock.js`;
-   the open door shuts on a click), `cat` (Nash stops, looks at you and meows); a new action is
-   added to `src/app.js` and to the check together.
+   the open door shuts on a click), `cat` (Nash stops, looks at you and meows), `credits` (opens
+   the credits card of invariant 2); a new action is added to `src/app.js` and to the check
+   together.
 6. **A tape is a module with the tape contract.** Each tape is one file in `src/tapes/`,
    loaded lazily through `config.tapes`, with a unique `id`, a label, a colour and a mesh
    named `tape_<id>`. It exports `default { mount, frame, input?, stop? }` and draws only on
@@ -104,14 +108,14 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, tyler-durden-bot's square board above the bookshelf (`wip`: its logo, its red bulbs), people, works with a DOI, the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), Nash the black cat (`cat`: his perches), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, tyler-durden-bot's square board above the bookshelf (`wip`: its logo, its red bulbs), people, works with a DOI, the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), Nash the black cat (`cat`: his perches), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), the credits (`credits`: the button's word, the idea's line with the name, the short list of sources, each with what, who and licence, the address of the full list, the plate's words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8); on `config.grid.host` (grid.piabrota.art) or with `?grid` the room opens on the ▲ grid map, and Esc steps into the room |
 | `src/quality.js` | the two looks, `full` and `lite` (phones, tablets, weak machines): pixel ratio, frames a second, passes, shadow maps, anisotropy, dust; `?lite`, `?full` |
 | `src/guard.js` | the screen guard: black on PrintScreen and while the window is away, no selection or context menu in the room, a blank print; off under `?record` and in a scripted browser |
 | `src/cat.js` | Nash, the black cat: a few shapes, and a life of sitting, walking and jumping between the perches of `config.cat`, seeded so `just record` films the same walk; a click calls him. On the full look he walks rounded paths around the furniture, eased, turns before he sets off, sits where his body fits and leaps on parabolas that clear the room; on the lite look (phones) he keeps the cheap straight-line life |
 | `src/catnav.js` | where Nash can go, read once from the room's triangles on the full look: the floor cells something stands on, the floor's height, the filled voxels; A* paths pulled straight, and leaps tried against the room |
 | `src/lock.js` | the door's lock: an email first (`config.door.gate`, posted to the room's own server), then a keypad with the clues of `config.door.lock`; the right code opens the door |
-| `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, from `config.reading` and `posts/`, on hash routes (`#/posts/<slug>`) |
+| `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, credits, from `config.reading`, `config.credits` and `posts/`, on hash routes (`#/posts/<slug>`); the credits also close the home page |
 | `src/markdown.js` | reads a post: front matter, then Markdown into DOM nodes with `textContent`, never `innerHTML` |
 | `posts/*.md` | the posts of LOFI, one file each, `YYYY-MM-DD-slug.md`, with `title`, `date` and `summary` (the check asks) |
 | `scripts/feed.mjs` | the posts' RSS feed, `feed.xml` in the build (and in `just dev`) |
@@ -132,6 +136,8 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/radio.js` | piabrota RADIO: the stations of `config.radio`, one track after another through the room's sound, and the live listeners count |
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |
+| `src/creditscard.js` | the credits as text, from `config.credits`: the HUD's credits button and its card (shown on hover, on focus and on a click or a tap; closed by Esc, its ×, or a click outside), and the same nodes for the LOFI page (invariant 2) |
+| `src/credits.js` | the credits plate in the room: a brass plate engraved on a canvas, one mesh, with its position, turn and size as parameters; a click on it opens the credits card |
 | `scripts/check.mjs` | what `just check` tests |
 | `scripts/record.mjs` | what `just record` and `just record-grid` make: the stills and the video for a pull request |
 | `scripts/grid.mjs` | what `just grid` makes: `public/grid/` (land, mesh, frames, sst, run); `scripts/blosc.mjs` reads Copernicus Marine's zarr chunks (Blosc, LZ4) |
@@ -148,7 +154,7 @@ Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
 `shelf`, `frame_<project>`, `bot_<id>`, `board_<wip id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`, `cat` (Nash), `door_leaf` (the door's hinged leaf) and `door_beyond` (the light behind it),
 `belt`, `crate`, `crate_<repo>`, `record_<id>`, `quote`, `radio` and its lit `radio_dial`, `mixtape` (the playlist), `door`, `fax`,
-`fax_linkedin`, `folder_closed-source`, `letter_closed-source`, `chart`), and cameras
+`fax_linkedin`, `folder_closed-source`, `letter_closed-source`, `chart`, `credits` (the plate)), and cameras
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
 the pointer.
 
