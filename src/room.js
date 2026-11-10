@@ -110,7 +110,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     update(t) {
       for (const a of animated) a(t); if (!still) dust.material.uniforms.time.value = t;
       if (bulb) bulb.visible = lamp.intensity > 0; // the bulb is lit only while the lamp is on
-      if (root.userData.lampGlow) root.userData.lampGlow.emissiveIntensity = lamp.intensity > 0 ? 0.9 : 0;
+      if (root.userData.lampGlow) root.userData.lampGlow.material.emissiveIntensity = lamp.intensity > 0 ? 0.9 : 0;
       if (root.userData.arrived) { root.userData.arrived = false; if (root.userData.hangGlow) root.userData.hangGlow.emissiveIntensity = hang.intensity ? 1.6 : 0; handle.onChange?.(); }
     },
   };
@@ -265,7 +265,7 @@ function placeholderRoom() {
     mesh('', new THREE.ConeGeometry(0.09, 0.11, 20, 1, true), std('#c8551e', { side: THREE.DoubleSide, roughness: 0.5 }), [0, 0.72, -0.18], s);
   }, tune: (m, o) => {
     o.castShadow = !/light/.test(m.name); // the bulb does not shade its own light
-    if (/light/.test(m.name)) g.userData.lampGlow = m;
+    if (/light/.test(m.name)) g.userData.lampGlow = o; // the mesh, not the material: a hover gives the mesh a copy of it (src/interact.js)
     // The light sits inside the shade, 2 cm from its enamel, which would be thousands of times white: a white-hot
     // disc, and sparks that the bloom spreads over the frame. What the lamp's own surfaces send back is capped at
     // a warm white just above the bloom's threshold: a lit shade with a soft halo, never a burn (`just blow-light`).

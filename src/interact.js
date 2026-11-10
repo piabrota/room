@@ -35,7 +35,10 @@ export function createInteractions(camera, canvas, tooltip, { root, onHover = ()
   function glow(obj, on) {
     obj.traverse((m) => {
       if (!m.isMesh || Array.isArray(m.material) || m.userData.proxy) return;
-      if (!m.userData.baseMat) { m.userData.baseMat = m.material; m.material = m.material.clone(); }
+      if (!m.userData.baseMat) { // its own copy, so the lift stays on this object; a copy forgets the material's shader hook
+        const base = m.userData.baseMat = m.material; m.material = base.clone();
+        m.material.onBeforeCompile = base.onBeforeCompile; m.material.customProgramCacheKey = base.customProgramCacheKey;
+      }
       const mat = m.material, base = m.userData.baseMat;
       if (mat.emissive && !mat.emissiveMap) mat.emissive.copy(base.emissive).add(on ? lift : new THREE.Color(0));
       else if (!mat.emissive && !mat.map && mat.color && base.color) mat.color.copy(base.color).multiplyScalar(on ? 1.3 : 1);
