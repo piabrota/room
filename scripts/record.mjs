@@ -208,6 +208,8 @@ await wall(async () => {                                                        
   await moveTo(...(await box('#playlist')), 0.5); await wait(0.6);              // and its button at the top
   await page.keyboard.press('5'); await land();                                 // key 5: the board
   await moveTo(...(await at('photo_h0ffmann')), 0.5); await wait(1.0);          // the people
+  await moveTo(...(await at('credits')), 0.5); await wait(1.2);                 // the brass plate: whose idea a room like this is
+  await moveTo(...(await box('#credits')), 0.6); await wait(1.6);               // and the credits button: its card opens on hover
 });
 await wall(async () => {                                                        // the left wall: the projects
   await page.keyboard.press('3'); await land();
