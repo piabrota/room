@@ -59,6 +59,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 26 | 9 nov 21:54 | [#31](https://github.com/piabrota/room/pull/31) o quadro do tyler-durden-bot quadrado, acima da estante das obras com DOI, o retrato do dono como ele é; o plano do loop mostra a porta; a porta pede um email antes da fechadura, guardado no próprio servidor da sala (`POST /live/door`) | 60 min |
 | 27 | 9 nov 22:48 | [#32](https://github.com/piabrota/room/pull/32) o Nash no computador: ele lê a sala uma vez (os triângulos dela cortados em células do chão e voxels), anda por caminhos A* arredondados em volta dos pés da mesa, da cadeira e da planta, acelerando e freando, vira antes de sair, senta onde o corpo cabe (não mais dentro do rádio ou do teclado) e pula em parábolas testadas contra a sala; no celular ele segue com a vida barata. O miado agora é de um gato de verdade, uma gravação em domínio público | 40 min |
 | 28 | 9 nov 23:13 | [#33](https://github.com/piabrota/room/pull/33) um botão "lyrics" no player da playlist que diz onde estão as letras (no app do Spotify) e não mostra nenhuma, porque a sala não tem licença para elas; as faixas e os artistas da playlist lidos de novo do player do Spotify, 37 faixas e 42 artistas, no `CREDITS.md` e ao lado do player | 25 min |
+| 29 | 10 nov 00:03 | [#34](https://github.com/piabrota/room/pull/34) o quarto como um apartamento antigo, em tamanho real: paredes de reboco, sanca e florão no teto, rodapé alto, janela de madeira de duas folhas num vão fundo, cortinas, taco e um tapete desenhado; 24 móveis e objetos do Poly Haven (CC0) pelo `just models`, cada um com um arquivo mais leve para o celular; fitas VHS em capas de papelão, em duas pilhas, e um videocassete para onde elas voam, em tamanho real; a noite iluminada pelas suas lâmpadas; um botão de créditos, o seu cartão e uma placa de latão que dão o nome de Felix Rieseberg; `just peek` para olhar uma mudança e contar as draw calls | TOOK |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -335,6 +336,16 @@ Perdida · El Lif Beatz · Nectar Gang · Tyler, The Creator · Kanye West · Ma
 Çantamarta · Supercombo · Vitor Kley · Elana Dara · Preta Gil
 
 Inaccurate, fix it. in the same lyrics pr'
+```
+
+**29.**
+
+```text
+user> 'now create a big PR to improve realism of objects, proportion, quality of assets, quality of
+textures, this must look like an old fashioned apartment, a credits hover is still missing to give
+credits to Felix from Anthropic. Review his site again, our quality compared to theirs is sub
+poor. For example his VHS tapes have way more quality. Do these huge improvements with Fable 5.2.
+No big time constraint, so you can use sub agents'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
