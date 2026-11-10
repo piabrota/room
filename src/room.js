@@ -3,14 +3,15 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles } from './config.js';
+import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles, stack as tapeStack, deck } from './config.js';
 import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { ROOM, WIN, SILL, buildShell, woodBox, contactShadows } from './shell.js';
 import { createFurniture } from './furniture.js';
 import { creditsPlate } from './credits.js';
-import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt } from './art.js';
+import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, plasticArt, paperArt, folderArt } from './art.js';
+import { buildTapeStack, buildVCR, buildMixtape } from './vhs.js';
 
 // Photographed surfaces (Poly Haven, CC0; CREDITS.md): colour, normal and roughness, or only
 // some of them (`maps`). The phone's look takes the colour alone, at 512 px.
@@ -244,20 +245,12 @@ function placeholderRoom() {
   for (let i = 0; i < sp.count; i++) sp.setZ(i, -TV.glass.fall[0] * sp.getX(i) ** 2 - TV.glass.fall[1] * sp.getY(i) ** 2);
   const screen = mesh('screen', sheet, new THREE.MeshBasicMaterial({ color: 0x111111 }), [TV.x + TV.glass.at[0], tvY + TV.glass.at[1], TV.z + TV.glass.at[2] + 0.004]);
   screen.castShadow = false;
-  const beige = (seed, color) => new THREE.MeshStandardMaterial({ map: plasticArt(color, seed), bumpMap: noiseTex(256, 30, seed), bumpScale: 0.4, roughness: 0.62 });
-  const vcr = mesh('vcr', new RoundedBoxGeometry(0.43, 0.09, 0.3, 2, 0.012), std('#202023', { roughness: 0.4, metalness: 0.35 }), [TV.x, top + 0.047, TV.z + 0.1]);
-  mesh('', new THREE.PlaneGeometry(0.42, 0.0875), new THREE.MeshStandardMaterial({ map: vcrFrontArt(), roughness: 0.5, metalness: 0.2 }), [0, 0, 0.1505], vcr).castShadow = false;
-  const led = mesh('vcr_led', new THREE.PlaneGeometry(0.012, 0.006), new THREE.MeshBasicMaterial({ color: '#ff3b2f', toneMapped: false }), [0.18, 0.02, 0.152], vcr);
-  led.castShadow = false;
+  // the video recorder in the riser's slot, at its real size, its slot and its clock toward the room (src/vhs.js)
+  const vcr = buildVCR(deck, { lite, anisotropy }); vcr.position.set(TV.x, top, TV.z + 0.108); g.add(vcr); animated.push(vcr.userData.update);
 
-  // the tapes: a stack beside the VCR, spines out, labels by hand or in a retro face
-  const shell = std('#151517', { roughness: 0.55, bumpMap: noiseTex(128, 50, 2), bumpScale: 0.3 });
-  tapes.forEach((t, i) => {
-    const spine = t.spine ?? { text: t.label };
-    const faces = [shell, shell, new THREE.MeshStandardMaterial({ map: tapeTopArt(spine), roughness: 0.5 }), shell, new THREE.MeshStandardMaterial({ map: tapeSpineArt(spine), roughness: 0.6 }), shell];
-    const tape = mesh(`tape_${t.id}`, new THREE.BoxGeometry(0.187, 0.025, 0.103), faces, [0.62, top + 0.0125 + i * 0.0255, -1.3]);
-    tape.rotation.y = Math.sin(i * 2.3) * 0.07;
-  });
+  // the tapes: two piles on the desk beside it, most in their card sleeves (src/vhs.js). Each pile's
+  // sleeves open away from the other, and a cassette needs 0.21 m of free desk there to slide out.
+  const pile = buildTapeStack(tapes, tapeStack, { lite, anisotropy }); pile.position.set(0.8, top, -1.3); g.add(pile); animated.push(pile.userData.update);
 
   // the desk lamp: an architect's lamp clamped to the back of the desk, its shade over the papers
   // (the file's own origin is the middle of its footprint: the clamp is 0.3 behind it, the bulb 0.18 before it and 0.69 up)
@@ -362,10 +355,8 @@ function placeholderRoom() {
 
   // the mixtape beside it: a cassette leaning on the glass, the owner's playlist (config.playlist)
   for (const h of art('mixtape')) {
-    const tape = named(h.name); tape.position.set(0.47, SILL.y + 0.054, SILL.z - 0.03); tape.rotation.set(-0.1, 0.22, 0); tape.scale.setScalar(1.6); // a big one, to be seen from the room
-    const face = new THREE.MeshStandardMaterial({ map: cassetteArt({ ...playlist.tape, theme }), roughness: 0.55 });
-    mesh('', new RoundedBoxGeometry(0.104, 0.066, 0.012, 2, 0.003), std('#ddd5c4', { roughness: 0.5 }), [0, 0, 0], tape);
-    mesh('', new THREE.PlaneGeometry(0.1, 0.0625), face, [0, 0, 0.0062], tape).castShadow = false;
+    const tape = buildMixtape(playlist.tape, { lite, anisotropy, theme, scale: 1.6 }); tape.name = h.name; g.add(tape); // a big one, to be seen from the room
+    tape.position.set(0.47, SILL.y + tape.userData.foot, SILL.z - 0.035); tape.rotation.set(-0.1, 0.22, 0);
   }
 
   // ── the board: people pinned as polaroids, under the eye ──

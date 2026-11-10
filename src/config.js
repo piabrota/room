@@ -222,22 +222,41 @@ export const sfx = {
 };
 
 // Tapes: each one is a module in src/tapes with mount/frame/input/stop.
-// `label` shows on hover, `color` tints the shell and the room light,
+// `label` shows on hover, `color` tints the room light while it plays,
 // `text` is the line the LOFI (plain text) view shows for the tape.
-// `spine` is what is written on the tape's label, and in which face:
-// one of the retro faces in src/art.js (`marker`, `neon`, `pixel`,
-// `terminal`, `typewriter`), with the colour of the label and its ink.
-// The stack on the desk is built in this order, the last on top.
+// `spine` is what is written on the cassette's own labels, and in which
+// face: one of the retro faces in src/art.js (`marker`, `neon`, `pixel`,
+// `terminal`, `typewriter`), with the colour of the label and its ink, and
+// `code`, the length printed small on it.
+// `sleeve` is the card box the cassette lives in (src/vhs.js): a `style`
+// (`waves`, `rings`, `bigtype`, `grid`, `sunburst`, `smalltype`: six
+// layouts, not one in six colours), its `colors` (the card first, then the
+// print), a `sub` line, a `face` when the sleeve is not set in the label's
+// (`title` and `mono` are the room's two), and `finish: 'gloss'` for a
+// laminated card. A tape with no `sleeve` lies bare, its sticker written
+// by hand or typed. Where each one lies is in `stack`, below.
 export const tapes = [
-  { id: 'marola',    label: 'marola.dev',     color: '#0f3d66', text: 'the sea of marola-dev: its repositories, floating on live waves', spine: { text: 'marola.dev', face: 'neon', paper: '#08243f', ink: '#5cc8ff' }, module: () => import('./tapes/marola.js') },
-  { id: 'ouroboric', label: 'ouroboric-dev',  color: '#3a1d0e', text: 'Ouroboric\'s factory: the snake that eats its tail, and the repositories on its loop', spine: { text: 'ouroboric-dev', face: 'pixel', paper: '#f2e6c9', ink: '#c2410c' }, module: () => import('./tapes/ouroboric.js') },
-  { id: 'piabrota', label: 'PIABROTA (the fabric)', color: '#1682d4', spine: { text: 'piabrota', face: 'marker', paper: '#f4efe4', ink: '#1682d4' }, text: 'a radio piece on piabrota, its people, its agents and its works, with links', module: () => import('./tapes/piabrota.js') },
-  { id: 'hello',  label: 'HELLO (who we are)', color: '#bc2318', spine: { text: 'hello', face: 'marker', paper: '#f4efe4', ink: '#bc2318' }, text: 'the name, typed out, and where to find us', module: () => import('./tapes/hello.js') },
-  { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
-  { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950' }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
-  { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347' }, text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
-  { id: 'cv',        label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b' }, module: () => import('./tapes/cv.js') },
+  { id: 'marola',    label: 'marola.dev',     color: '#0f3d66', text: 'the sea of marola-dev: its repositories, floating on live waves', spine: { text: 'marola.dev', face: 'neon', paper: '#08243f', ink: '#5cc8ff', code: 'T-120' }, sleeve: { style: 'waves', colors: ['#0a2c4d', '#5cc8ff', '#eaf6ff', '#f2c14e'], sub: 'live waves', finish: 'gloss' }, module: () => import('./tapes/marola.js') },
+  { id: 'ouroboric', label: 'ouroboric-dev',  color: '#3a1d0e', text: 'Ouroboric\'s factory: the snake that eats its tail, and the repositories on its loop', spine: { text: 'ouroboric-dev', face: 'pixel', paper: '#f2e6c9', ink: '#c2410c', code: 'E-180' }, sleeve: { style: 'rings', colors: ['#efe2c2', '#c2410c', '#3a1d0e', '#e2a03f'], sub: 'the factory loop' }, module: () => import('./tapes/ouroboric.js') },
+  { id: 'piabrota', label: 'PIABROTA (the fabric)', color: '#1682d4', spine: { text: 'piabrota', face: 'marker', paper: '#f4efe4', ink: '#1682d4', code: 'T-160' }, sleeve: { style: 'bigtype', face: 'title', colors: [theme.accent, theme.eye.white, theme.eye.iris, theme.eye.white], sub: 'the fabric', finish: 'gloss' }, text: 'a radio piece on piabrota, its people, its agents and its works, with links', module: () => import('./tapes/piabrota.js') },
+  { id: 'hello',  label: 'HELLO (who we are)', color: '#bc2318', spine: { text: 'hello', face: 'marker', paper: '#f4efe4', ink: '#bc2318', code: 'T-30' }, text: 'the name, typed out, and where to find us', module: () => import('./tapes/hello.js') },
+  { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d', code: 'T-60' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
+  { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950', code: 'E-240' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#2e9e4f', '#3FB950', '#d8ffe0'], sub: place.city }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
+  { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347', code: 'T-90' }, sleeve: { style: 'sunburst', colors: ['#1a1208', '#d29922', '#ffe9b8', '#c2410c'], sub: 'play the screen' }, text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
+  { id: 'cv',        label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b', code: 'E-120' }, sleeve: { style: 'smalltype', face: 'typewriter', colors: ['#e4dfd2', '#22252d', ...Object.values(theme.lanes)], sub: 'track record' }, module: () => import('./tapes/cv.js') },
 ];
+// The stack beside the VCR: piles side by side, each from the bottom up, by
+// tape id; nothing is squared up. A tape named in no pile goes on the
+// shortest. A bare cassette belongs on top of its pile (the pile closes up
+// when it leaves). `gap` is the space between two piles, in metres.
+export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots']], gap: 0.03 };
+// The VCR's face (src/vhs.js): a brand that does not exist, the words printed
+// on it, and the clock that nobody ever set. `lit` are the words behind the
+// display's glass (the first one is on), `keys` the six under it.
+export const deck = {
+  brand: 'BROTA', model: 'PB-180', badge: '4 HEAD', line: 'VIDEO CASSETTE RECORDER',
+  clock: '12:00', lit: ['SP', 'HI-FI', 'TIMER'], keys: ['EJECT', 'REW', 'PLAY', 'FF', 'STOP', 'REC'], led: 'POWER',
+};
 
 // ── the fabric: piabrota's projects, framed on the left wall ──
 // `glyph` is the project's mark, typed (its drawing lives in its own
