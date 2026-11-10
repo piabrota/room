@@ -198,7 +198,7 @@ await wall(async () => {                                                        
   await moveTo(...(await at('screen')), 0.5); await wait(1.2);                  // over the TV while it plays
   await moveTo(...(await at('fax', 0.22)), 0.5); await wait(0.5);               // the fax: the address
   await moveTo(...(await at('fax_linkedin')), 0.4); await wait(0.5);            // and its LinkedIn button
-  await moveTo(...(await at('lamp', 0.4)), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
+  await moveTo(...(await at('lamp_bulb')), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
   await moveTo(...(await box('#radio')), 0.5); await click(); await wait(0.3);  // piabrota RADIO on
   await moveTo(...(await box('#stations button[data-station="brasil"]')), 0.4); await click(); // the lofi brasil station
   await moveTo(...(await box('#rain')), 0.4); await click();                    // the rain, on

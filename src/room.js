@@ -78,7 +78,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
   if (chandelier) { hang.position.copy(chandelier.getWorldPosition(v)).y -= 0.52; scene.add(hang); }
   // The walls are light, so the night is made of lamps, not of a sky that fills the room: a little
   // blue from the window, the hanging lamp dim, the desk lamp's pool on the desk.
-  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.5, hang: 2.4, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
+  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.45, hang: 2.4, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
   const DAY = { sky: [0xdbe8f7, 0x8a6e52, 1.5], moon: 0, sun: 4.2, neon: 0.5, lamp: 0.35, hang: 0, env: 0.4, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
   const dust = buildDust(quality.dust); scene.add(dust);
   let day = false;
@@ -263,7 +263,14 @@ function placeholderRoom() {
     mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.56, 8).rotateX(-0.35), brass, [0, 0.27, 0.2], s);
     mesh('', new THREE.CylinderGeometry(0.01, 0.01, 0.36, 8).rotateX(1.25), brass, [0, 0.6, -0.02], s);
     mesh('', new THREE.ConeGeometry(0.09, 0.11, 20, 1, true), std('#c8551e', { side: THREE.DoubleSide, roughness: 0.5 }), [0, 0.72, -0.18], s);
-  }, tune: (m, o) => { if (/light/.test(m.name)) { o.castShadow = false; g.userData.lampGlow = m; } } }); // the bulb glows, and does not shade its own light
+  }, tune: (m, o) => {
+    o.castShadow = !/light/.test(m.name); // the bulb does not shade its own light
+    if (/light/.test(m.name)) g.userData.lampGlow = m;
+    // The light sits inside the shade, 2 cm from its enamel, which would be thousands of times white: a white-hot
+    // disc, and sparks that the bloom spreads over the frame. What the lamp's own surfaces send back is capped at
+    // a warm white just above the bloom's threshold: a lit shade with a soft halo, never a burn (`just blow-light`).
+    m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', 'outgoingLight = min( outgoingLight, vec3( 1.6, 1.33, 0.98 ) );\n#include <opaque_fragment>'); };
+  } });
   // where the light is: a small bulb, inside the file's own when it is there
   const bulb = mesh('lamp_bulb', new THREE.SphereGeometry(0.014, 12, 8), new THREE.MeshBasicMaterial({ color: '#ffe2b0' }), LAMP.bulb, lamp);
   bulb.castShadow = false;
@@ -275,7 +282,7 @@ function placeholderRoom() {
     fuse([[new RoundedBoxGeometry(0.32, 0.09, 0.26, 2, 0.02), [0, 0.045, 0]], [new RoundedBoxGeometry(0.3, 0.05, 0.12, 2, 0.015), [0, 0.1, -0.06]]], faxPlastic, fax);
     mesh('', new THREE.PlaneGeometry(0.1, 0.03), new THREE.MeshBasicMaterial({ color: '#9fb88a' }), [-0.06, 0.0905, 0.07], fax).rotation.x = -Math.PI / 2; // the display
     fuse(Array.from({ length: 12 }, (_, k) => [new THREE.BoxGeometry(0.018, 0.008, 0.016), [0.04 + (k % 3) * 0.024, 0.093, 0.03 + Math.floor(k / 3) * 0.022]]), std('#4a4740'), fax); // the keys
-    const page = mesh('', new THREE.PlaneGeometry(0.21, 0.27), new THREE.MeshStandardMaterial({ map: paperArt({ lines: ['FAX', '', `to: you`, `from: ${contact.name}`, '', emailText, '', contact.linkedin.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')], stamp: 'RECEIVED' }), side: THREE.DoubleSide, roughness: 0.9 }), [0, 0.24, -0.1], fax);
+    const page = mesh('', new THREE.PlaneGeometry(0.21, 0.27), new THREE.MeshStandardMaterial({ map: paperArt({ lines: ['FAX', '', `to: you`, `from: ${contact.name}`, '', emailText, '', contact.linkedin.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')], stamp: 'RECEIVED' }), side: THREE.DoubleSide, color: '#d2cbbd', roughness: 0.9 }), [0, 0.24, -0.1], fax); // off-white: the lamp is 0.35 m away
     page.rotation.x = -0.32; page.castShadow = false;
     const li = new THREE.Group(); li.name = 'fax_linkedin'; li.position.set(0.12, 0.092, -0.03); fax.add(li);
     mesh('', new THREE.CylinderGeometry(0.018, 0.018, 0.012, 20), std('#0a66c2', { roughness: 0.4, emissive: '#0a66c2', emissiveIntensity: 0.25 }), [0, 0.006, 0], li);
