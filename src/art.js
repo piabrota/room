@@ -141,13 +141,15 @@ export function photoArt({ name, line, color, theme }) {
 }
 
 // A book spine with its title running up.
-export function spineArt({ title, color, theme }) {
+// `ink` and `by` (the author, small, at the foot) are for the books of "how I read".
+export function spineArt({ title, color, theme, ink, by }) {
   const [c, ctx] = canvas(64, 384);
   ctx.fillStyle = color; ctx.fillRect(0, 0, 64, 384);
   ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, 22, 64, 4); ctx.fillRect(0, 358, 64, 4);
-  ctx.save(); ctx.translate(36, 192); ctx.rotate(-Math.PI / 2);
-  ctx.fillStyle = theme.text; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  fit(ctx, title, 300, 30, FONT_TITLE); ctx.fillText(title, 0, 0);
+  ctx.save(); ctx.translate(36, by ? 168 : 192); ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = ink ?? theme.text; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  fit(ctx, title, by ? 250 : 300, 30, FONT_TITLE); ctx.fillText(title, 0, 0);
+  if (by) { ctx.globalAlpha = 0.75; const last = by.split(',')[0].split(' ').pop(); fit(ctx, last, 56, 15, FONT_MONO); ctx.fillText(last, -150, 0); }
   ctx.restore();
   return texture(c);
 }

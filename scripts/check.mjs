@@ -124,8 +124,18 @@ if (config.playlist) {
   if (!credits.includes(p.title)) fail(1, `CREDITS.md does not credit the playlist "${p.title}"`);
   for (const a of p.artists ?? []) if (!credits.includes(a)) fail(1, `CREDITS.md does not name ${a}, an artist of the playlist`);
 }
+// 1. The second: the live view of Copacabana behind the window, config.outside.live, YouTube's
+// privacy-enhanced embed, muted, made in src/live.js only, credited (the owner, 10 November 2026).
+if (config.outside?.live) {
+  const l = config.outside.live;
+  if (!/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]+\?/.test(l.embed ?? '')) fail(1, `config.outside.live.embed must be a www.youtube-nocookie.com/embed/ address, not "${l.embed}"`);
+  if (!/[?&]mute=1\b/.test(l.embed ?? '')) fail(7, 'config.outside.live.embed must be muted (mute=1): the room\'s sound stays the room\'s');
+  if (!l.credit || !l.url) fail(1, 'config.outside.live needs a credit and the stream\'s address, shown beside its button');
+  if (!readFileSync(join(root, 'CREDITS.md'), 'utf8').includes(l.url)) fail(1, `CREDITS.md does not credit the live view (${l.url})`);
+}
+const frames = { '/player.js': 'the playlist', '/live.js': 'the live window' };
 for (const f of walk(join(root, 'src'))) {
-  if (/createElement\(\s*['"]iframe/.test(readFileSync(f, 'utf8')) && !f.endsWith('/player.js')) fail(1, `${f.slice(root.length)} makes an iframe: only src/player.js may, for the playlist`);
+  if (/createElement\(\s*['"]iframe/.test(readFileSync(f, 'utf8')) && !Object.keys(frames).some((k) => f.endsWith(k))) fail(1, `${f.slice(root.length)} makes an iframe: only src/player.js (the playlist) and src/live.js (the live window) may`);
 }
 if (config.hotspots.some((h) => h.action === 'playlist') && !config.playlist?.embed) fail(5, 'a hotspot opens the playlist, but config.playlist has no embed');
 // the door's lock: a code of digits, one clue for each

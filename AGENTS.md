@@ -22,11 +22,16 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    in `public/` and `src/` are made by the owner, or come from a source whose licence allows
    it, with a row in [`CREDITS.md`](CREDITS.md) in the same commit. Nothing is copied from the
    reference room: not its code, its models, its sounds or its words. Assets ship with the
-   site and load from `public/`; nothing is hotlinked from another host. The one exception
-   is Spotify's Embed player for the owner's playlist (`config.playlist`): an iframe from
+   site and load from `public/`; nothing is hotlinked from another host. There are two
+   exceptions. The first is Spotify's Embed player for the owner's playlist (`config.playlist`): an iframe from
    `open.spotify.com/embed/`, made only after the visitor clicks for it, with the playlist's
    artists credited in `CREDITS.md` and on screen beside it. Nothing else of Spotify's loads,
-   not its iFrame API script (the owner, 9 November 2026).
+   not its iFrame API script (the owner, 9 November 2026); the room reads the `playback_update`
+   messages its player posts, to show what plays (the owner, 10 November 2026). The second is
+   the live view of Copacabana behind the window (`config.outside.live`): YouTube's
+   privacy-enhanced embed (`www.youtube-nocookie.com/embed/`), muted, made only after the visitor
+   clicks for it (`src/live.js`), with its channel credited in `CREDITS.md` and on screen beside
+   its button (the owner, 10 November 2026).
 2. **The idea is credited to Felix Rieseberg, by name, in text only.** `README.md` and
    `CREDITS.md` name him as the origin of the idea, and the room says so on screen, from
    `config.credits`: the card of the credits button, the plate on the wall, and the credits of
@@ -58,7 +63,8 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    before the click on "enter the room". The sound button mutes and unmutes everything,
    tapes included (they play through `audio.bus()`). The Spotify player plays its own sound,
    out of the room's reach, so it opens only on a click, the room's radio pauses while it is
-   open, and the sound button off or `Esc` closes it and removes its iframe. Every sound in config has a synthesized
+   open, and the sound button off or `Esc` closes it and removes its iframe. The live window
+   plays muted. Every sound in config has a synthesized
    `fallback`, so a missing or broken file is never an error. Loop beds are normalized to
    about -18 LUFS (`just audio`).
 8. **The room always opens, on any device.** Without `room.glb` the placeholder room is
@@ -111,7 +117,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, the apartment's colours (`shell`: paint, wood, cloth, the rug), the furniture's files (`models`), shots, tapes (each with its `spine` and its `sleeve`), their piles (`stack`), the video recorder's face (`deck`), the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, tyler-durden-bot's square board above the bookshelf (`wip`: its logo, its red bulbs), people, works with a DOI, the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), Nash the black cat (`cat`: his perches), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), the credits (`credits`: the button's word, the idea's line with the name, the short list of sources, each with what, who and licence, the address of the full list, the plate's words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, the apartment's colours (`shell`: paint, wood, cloth, the rug), the furniture's files (`models`), shots, tapes (each with its `spine` and its `sleeve`), their piles (`stack`), the video recorder's face (`deck`), the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, tyler-durden-bot's square board above the bookshelf (`wip`: its logo, its red bulbs), people, works with a DOI, the ten ebooks of "how I read" under them (`reads`: each book's colours and its Leanpub page), the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), Nash the black cat (`cat`: his perches), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), the credits (`credits`: the button's word, the idea's line with the name, the short list of sources, each with what, who and licence, the address of the full list, the plate's words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8); on `config.grid.host` (grid.piabrota.art) or with `?grid` the room opens on the ▲ grid map, and Esc steps into the room |
 | `src/quality.js` | the two looks, `full` and `lite` (phones, tablets, weak machines): pixel ratio, frames a second, passes, shadow maps, anisotropy, dust; `?lite`, `?full`; and the files sized to the device (`files`): the small ones on a phone, a screen with a short side under 1000 device pixels or a 2G or 3G line; `?small`, `?large` |
 | `src/guard.js` | the screen guard: black on PrintScreen and while the window is away, no selection or context menu in the room, a blank print; off under `?record` and in a scripted browser |
@@ -139,7 +145,8 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/tv.js` | the TV canvas and the tape contract; the CRT glass (bulge, corners, phosphor stripes) over it; how bright the picture is, for the TV's light |
 | `src/tapes/*.js` | one tape each |
 | `src/score.js` | the piabrota tape's score, played live by the tape and rendered by `just compose` |
-| `src/player.js` | the owner's playlist in Spotify's Embed player, over the room: the iframe made on the click and removed on close, the artists beside it (invariants 1 and 7) |
+| `src/live.js` | Copacabana live behind the window: YouTube's muted embed in an iframe under the canvas, made on the click of the window's button and removed on the way back, shown through a plane behind the glass that the canvas leaves clear, and laid on that plane in perspective each frame (invariants 1 and 7) |
+| `src/player.js` | the owner's playlist in Spotify's Embed player, over the room: the iframe made on the click and removed on close, the artists beside it, and what plays now (its title and artists, its time, bars that dance), read from the messages the player posts (invariants 1 and 7) |
 | `src/radio.js` | piabrota RADIO: the stations of `config.radio`, one track after another through the room's sound, and the live listeners count |
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |
@@ -161,7 +168,7 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_bulb`, where the
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
-`shelf`, `frame_<project>`, `bot_<id>`, `board_<wip id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`, `cat` (Nash), `door_leaf` (the door's hinged leaf) and `door_beyond` (the light behind it),
+`shelf`, `frame_<project>`, `bot_<id>`, `board_<wip id>`, `photo_<person>`, `book_<work>`, `read_<book>`, `tank`, `buoy_<repo>`, `cat` (Nash), `door_leaf` (the door's hinged leaf) and `door_beyond` (the light behind it),
 `belt`, `crate`, `crate_<repo>`, `record_<id>`, `quote`, `radio` and its lit `radio_dial`, `mixtape` (the playlist), `door`, `fax`,
 `fax_linkedin`, `folder_closed-source`, `letter_closed-source`, `chart`, `credits` (the plate)), and cameras
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under

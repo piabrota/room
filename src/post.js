@@ -46,6 +46,11 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
   // would spread it over the frame as a flash of one frame: what the bloom takes is capped
   bloom.materialHighPassFilter.fragmentShader = bloom.materialHighPassFilter.fragmentShader.replace(
     'gl_FragColor = mix( outputColor, texel, alpha );', 'gl_FragColor = mix( outputColor, vec4( min( texel.rgb, vec3( 6.0 ) ), texel.a ), alpha );');
+  // the bloom and the outline add light, never opacity: where the canvas is clear (the live
+  // window, src/live.js) it stays clear, with the glow over it
+  for (const mat of [bloom.blendMaterial, outline.overlayMaterial]) Object.assign(mat, {
+    blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+  });
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 
@@ -60,7 +65,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
         vec3 c = vec3(texture2D(tDiffuse, vUv + d * fringe * 4.0).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - d * fringe * 4.0).b);
         c *= 1.0 - vignette * smoothstep(0.08, 0.5, r);
         c += (hash(vUv * 1000.0) - 0.5) * grain;
-        gl_FragColor = vec4(c, 1.0);
+        gl_FragColor = vec4(c, texture2D(tDiffuse, vUv).a); // clear where the live window shows
       }`,
   });
   composer.addPass(grade);
