@@ -15,6 +15,7 @@ import { pick } from './quality.js';
 import { createLock } from './lock.js';
 import { createCat } from './cat.js';
 import { buildNav } from './catnav.js';
+import { createCredits } from './creditscard.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 const canvas = document.getElementById('scene');
@@ -62,6 +63,9 @@ const redrawShadows = () => { renderer.shadowMap.needsUpdate = true; };
 
 // ── camera shot buttons, number keys, arrows and swipes ──
 const nav = document.getElementById('shots');
+// the credits: the button at the end of the shots' row and its card; the plate on the wall opens it too
+const credits = createCredits(document.getElementById('credits'), document.getElementById('credits-card'), config.credits);
+if (config.credits) nav.dataset.reserve = config.credits.button; // the row keeps the button's place free (src/style.css)
 rig.names.forEach((name, i) => {
   const b = document.createElement('button');
   const k = document.createElement('kbd'); k.textContent = String((i + 1) % 10); // the tenth is 0
@@ -82,7 +86,7 @@ addEventListener('keydown', (e) => {
   if (paused || e.metaKey || e.ctrlKey || e.altKey) return; // LOFI is showing, or a browser shortcut
   if (e.target instanceof HTMLInputElement) return; // typing in a form (the door's email) never moves the camera
   const i = e.key === '0' ? 9 : Number(e.key) - 1; if (rig.names[i]) rig.go(rig.names[i]); // 1..9, and 0 for the tenth
-  if (e.key === 'Escape') { player?.close(); lock?.close(); rig.go(config.startShot); }
+  if (e.key === 'Escape') { player?.close(); lock?.close(); credits.close(); rig.go(config.startShot); }
   if (e.key === 'ArrowRight') rig.next(1);
   if (e.key === 'ArrowLeft') rig.next(-1);
 });
@@ -94,30 +98,39 @@ rig.go(gridHome ? 'grid' : config.startShot, true);
 const S = (t) => t * t * t * (t * (t * 6 - 15) + 10);
 const tweens = [];
 const tween = (obj, to, dur, done) => tweens.push({ obj, from: obj.position.clone(), to, t: 0, dur, done });
+// The placeholder room's tapes know the way themselves (src/vhs.js: the cassette leaves its sleeve,
+// which stays in the pile, and goes in by the VCR's slot); a tape of a room.glb is a plain mesh, and flies.
+let inDeck = null; // the tape in the VCR, or on its way there
 for (const def of config.tapes) {
   const mesh = room.find(`tape_${def.id}`); if (!mesh) continue;
   mesh.userData.home = mesh.position.clone();
   ui.add(mesh, {
     label: def.label, hint: def.text,
     onClick: () => {
-      if (tv.playing) eject();
+      if (inDeck?.def === def) { if (tv.playing?.def === def) eject(); return; } // its empty sleeve: the tape comes back
+      eject();
       audio.play(config.sfx.click);
-      const slot = room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2));
-      tween(mesh, slot, 0.7, async () => {
-        mesh.visible = false; redrawShadows();
+      inDeck = { def, mesh };
+      const arrived = async () => {
+        if (inDeck?.def !== def) return; // called back before it got there
+        mesh.visible = !!mesh.userData.load; redrawShadows();
         audio.play(config.sfx.insert);
         await tv.insert(def);
+        if (inDeck?.def !== def) { if (tv.playing?.def === def) tv.eject(); return; }
         room.tvLight.color.set(def.color); room.tvLight.intensity = 3;
-      });
+      };
+      if (mesh.userData.load) mesh.userData.load(room.vcr, arrived);
+      else tween(mesh, room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2)), 0.7, arrived);
       rig.go('desk');
     },
   });
 }
 function eject() {
-  const def = tv.playing?.def; if (!def) return;
+  const cur = inDeck; if (!cur) return; inDeck = null;
   tv.eject(); room.tvLight.intensity = 0;
-  const mesh = room.find(`tape_${def.id}`);
-  mesh.visible = true; tween(mesh, mesh.userData.home, 0.7, redrawShadows);
+  if (cur.mesh.userData.unload) cur.mesh.userData.unload(redrawShadows);
+  else { cur.mesh.visible = true; tween(cur.mesh, cur.mesh.userData.home, 0.7, redrawShadows); }
+  redrawShadows();
   audio.play(config.sfx.eject ?? config.sfx.insert);
 }
 ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), hint: () => (tv.playing ? tv.playing.def.label : 'pick a tape beside it'), onClick: eject });
@@ -126,6 +139,13 @@ ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClic
 // ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
 // On the full look he reads the room first, to walk around things and leap clear of them (src/catnav.js);
 // on the lite look (phones) he keeps the cheap life, with nothing to compute.
+// The furniture that is files (src/furniture.js). The laptop's look waits for it, six seconds at
+// most, so the room opens furnished and Nash reads the real chairs; the phone's look opens at
+// once with the stand-ins and each piece takes its place as it arrives. A piece that comes late,
+// or never, leaves its stand-in (invariant 8).
+room.onChange = () => redrawShadows();
+if (quality.name === 'full') await Promise.race([room.ready, new Promise((done) => setTimeout(done, 6000))]);
+room.root.updateMatrixWorld(true);
 const catStill = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const nash = config.cat ? createCat(config.cat, { still: catStill, nav: quality.name === 'full' && !catStill ? buildNav(room.root, { radius: 0.2 }) : null }) : null;
 if (nash) room.root.add(nash.group);
@@ -157,6 +177,7 @@ for (const h of config.hotspots) {
       if (h.action === 'toggleLamp') { room.lamp.intensity = room.lamp.intensity ? 0 : (room.lamp.userData.full ?? lampOn); redrawShadows(); }
       if (h.action === 'toggleRadio') radioBtn.click();
       if (h.action === 'playlist') player.open();
+      if (h.action === 'credits') credits.open();
       if (h.action === 'cat') { audio.play(config.sfx.meow); nash?.call(camera.position); }
       if (h.action === 'door') { if (doorOpen()) { openDoor(false); try { localStorage.removeItem(DOOR_KEY); } catch { /* fine */ } } else lock.open(); }
     },

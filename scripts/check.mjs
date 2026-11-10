@@ -25,7 +25,7 @@ for (const [name, s] of shots) {
 if (!config.shots?.[config.startShot]) fail(4, `startShot "${config.startShot}" is not a shot`);
 
 // 5. Every hotspot has a label and a known action.
-const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat']);
+const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits']);
 const names = new Set();
 for (const h of config.hotspots ?? []) {
   if (names.has(h.name)) fail(5, `hotspot name "${h.name}" is used twice`);
@@ -148,6 +148,22 @@ for (const t of radioTracks) {
 for (const ph of [config.outside?.night?.photo, config.outside?.day?.photo].filter(Boolean)) {
   if (!credits.includes(`\`public${ph}\``)) fail(1, `${ph} has no row in CREDITS.md`);
 }
+// the furniture and the props (config.models): each file is there for both looks, and every
+// model and photographed surface in public/ has its row
+const modelsDir = join(root, 'public', config.models?.base ?? '/models/');
+for (const [key, def] of Object.entries(config.models?.files ?? {})) {
+  const file = typeof def === 'string' ? def : def.file;
+  for (const f of [`${file}.glb`, `${file}.lite.glb`]) if (!existsSync(join(modelsDir, f))) fail(1, `config.models.files.${key}: public/models/${f} is missing (just models)`);
+}
+for (const f of existsSync(modelsDir) ? readdirSync(modelsDir) : []) {
+  if (!f.endsWith('.glb') || f === 'room.glb') continue;
+  const row = `\`public/models/${f.replace(/\.lite\.glb$/, '.glb')}\``;
+  if (!credits.includes(row)) fail(1, `public/models/${f} has no row in CREDITS.md (just models writes them)`);
+}
+const pbrDir = join(root, 'public', 'textures', 'pbr');
+for (const id of new Set((existsSync(pbrDir) ? readdirSync(pbrDir) : []).map((f) => f.replace(/_(diff|nor|rough)(\.lite)?\.jpg$/, '')))) {
+  if (!credits.includes(`\`public/textures/pbr/${id}_*.jpg\``)) fail(1, `public/textures/pbr/${id}_*.jpg has no row in CREDITS.md`);
+}
 
 // 2. The idea is credited by name, with no link to the original's site, code or issues.
 const readme = readFileSync(join(root, 'README.md'), 'utf8');
@@ -155,6 +171,25 @@ if (!readme.includes('Felix Rieseberg')) fail(2, 'README.md must credit Felix Ri
 for (const f of ['README.md', 'AGENTS.md', 'CREDITS.md', ...walk(join(root, 'src')).map((p) => p.slice(root.length))]) {
   const p = join(root, f);
   if (existsSync(p) && /rieseberg\.com|github\.com\/felixrieseberg/i.test(readFileSync(p, 'utf8'))) fail(2, `${f} links to the original; credit by name only`);
+}
+
+// 2. The credit is on screen too, from config.credits (the card, the plate, LOFI): its idea line
+// names him, every source says what, who and under which licence, and any address in it is this
+// repository's own, so no word of it can link to a page of his.
+const cr = config.credits;
+if (!cr?.idea?.line || !cr.full?.url || !Array.isArray(cr.sources)) fail(2, 'config.credits is missing, or has no idea.line, sources or full.url: the room credits the idea on screen');
+else {
+  if (!cr.idea.line.includes('Felix Rieseberg')) fail(2, 'config.credits.idea.line must name Felix Rieseberg');
+  for (const s of cr.sources) if (![s.what, s.who, s.licence].every((v) => typeof v === 'string' && v.trim())) fail(1, `config.credits.sources: ${JSON.stringify(s)} needs what, who and licence`);
+  const strings = (v) => (typeof v === 'string' ? [v] : v && typeof v === 'object' ? Object.values(v).flatMap(strings) : []);
+  const own = 'https://github.com/piabrota/';
+  if (!cr.full.url.startsWith(own)) fail(2, `config.credits.full.url must be an address under ${own}, not "${cr.full.url}"`);
+  for (const text of strings(cr)) {
+    for (const a of text.match(/[a-z][a-z0-9+.-]*:\/\/\S+|\bmailto:\S+|\bwww\.\S+|\b[\w-]+(?:\.[\w-]+)*\.(?:com|org|net|io|dev|art|ai|app|me)\b(?:\/\S*)?/gi) ?? []) {
+      if (!a.startsWith(own)) fail(2, `config.credits has the address "${a}": only addresses under ${own} go there`);
+    }
+  }
+  if (!config.hotspots.some((h) => h.action === 'credits')) fail(2, 'no hotspot has the action "credits": the plate in the room opens the credits card');
 }
 
 // AGENTS.md keeps exactly ten invariants.

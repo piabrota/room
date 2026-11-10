@@ -42,9 +42,17 @@ grid *args: _deps
 light *args: build
     node scripts/light.mjs {{args}}
 
+# the furniture and props in public/models/ and the surfaces in public/textures/pbr/, from Poly Haven (CC0): fetched, made small, credited (just models boombox; just models --list)
+models *args: _deps
+    node scripts/models.mjs {{args}}
+
 # only the stills of every shot into docs/record/ (fast; the video stays as it is)
 stills: build
     node scripts/record.mjs --stills
+
+# one still from a shot or from any camera, with the draw calls and triangles of the frame (just peek --shot desk --out /tmp/desk.jpg)
+peek *args: _deps
+    node scripts/peek.mjs {{args}}
 
 # stills of every shot and a video of the four walls by night into docs/record/ (headless Chrome, ffmpeg); every pull request carries them
 record: build

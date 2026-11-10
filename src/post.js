@@ -42,6 +42,10 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
   // (setDay below), or every bright surface glows and the frame goes white.
   const BLOOM = { night: { threshold: 0.95, strength: 0.38 }, day: { threshold: 3, strength: 0.35 } };
   const bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), BLOOM.night.strength, 0.5, BLOOM.night.threshold);
+  // one pixel can be thousands of times white (a lamp mirrored in the metal 2 cm from it), and the bloom
+  // would spread it over the frame as a flash of one frame: what the bloom takes is capped
+  bloom.materialHighPassFilter.fragmentShader = bloom.materialHighPassFilter.fragmentShader.replace(
+    'gl_FragColor = mix( outputColor, texel, alpha );', 'gl_FragColor = mix( outputColor, vec4( min( texel.rgb, vec3( 6.0 ) ), texel.a ), alpha );');
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 

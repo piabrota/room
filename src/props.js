@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { hotspots, theme } from './config.js';
+import { hotspots, theme, shell } from './config.js';
 import { recordArt, cardArt, crateArt, texture, FONT_TITLE, FONT_MONO } from './art.js';
 
 // The props of the two other walls and the floor, built from config:
@@ -34,18 +34,22 @@ export function waveHeight(x, z, t) {
 function label(text, sub, w = 1024, h = 256) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = theme.text; ctx.font = `120px ${FONT_TITLE}`; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = shell?.ink ?? theme.text; ctx.font = `120px ${FONT_TITLE}`; // painted on the wall, in the wall's ink ctx.textBaseline = 'alphabetic';
   ctx.fillText(text, 8, 130);
-  ctx.fillStyle = theme.muted; ctx.font = `34px ${FONT_MONO}`; ctx.fillText(sub, 12, 200);
+  ctx.fillStyle = shell?.inkSoft ?? theme.muted; ctx.font = `34px ${FONT_MONO}`; ctx.fillText(sub, 12, 200);
   return texture(c);
 }
 
-export function buildSea(g, mesh, std, part) {
+export function buildSea(g, mesh, std, part, furniture) {
   const tank = spot('tank'); if (!tank) return () => {};
   const X = 3.08, Z = -0.45, L = 1.6, D = 0.5, top = 0.72, waterY = top + 0.36;
   // the cabinet, and the tank on it
-  part(new THREE.BoxGeometry(D + 0.06, top, L + 0.08), [X, top / 2, Z], '#1d2029');
-  part(new THREE.BoxGeometry(D + 0.08, 0.03, L + 0.1), [X, top + 0.015, Z], '#2a303c');
+  const stand = (s) => { // what stands there until the sideboard's file arrives, or if it never does
+    mesh('', new THREE.BoxGeometry(D + 0.06, top, L + 0.08), std('#4a3426'), [0, top / 2, 0], s).rotation.y = Math.PI / 2;
+    mesh('', new THREE.BoxGeometry(D + 0.08, 0.03, L + 0.1), std('#3a281d'), [0, top + 0.015, 0], s).rotation.y = Math.PI / 2;
+  };
+  if (furniture) furniture.place('cabinet', g, { at: [X, 0, Z], rot: -Math.PI / 2, fit: { w: L + 0.16, h: top + 0.03, d: D + 0.08 }, stretch: true, standin: stand });
+  else { const s = new THREE.Group(); s.position.set(X, 0, Z); g.add(s); stand(s); }
   const tankGroup = new THREE.Group(); tankGroup.name = tank.name; g.add(tankGroup);
   const glass = new THREE.MeshPhysicalMaterial({ color: '#a8d8ff', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.14, depthWrite: false });
   const box = mesh('', new THREE.BoxGeometry(D, 0.48, L), glass, [X, top + 0.03 + 0.24, Z], tankGroup);
@@ -179,11 +183,11 @@ export function buildRecords(g, mesh, std, part) {
   const X = -2.2, Z = -1.15, W = 0.38, D = 0.46, H = 0.26;
   const grp = new THREE.Group(); grp.name = crate.name; grp.position.set(X, 0, Z); grp.rotation.y = 0.35; g.add(grp);
   const wood = std('#6b4a32', { roughness: 0.8 });
-  for (const [s, p] of [[[W, H, 0.02], [0, H / 2, D / 2]], [[W, H, 0.02], [0, H / 2, -D / 2]], [[0.02, H, D], [W / 2, H / 2, 0]], [[0.02, H, D], [-W / 2, H / 2, 0]], [[W, 0.02, D], [0, 0.01, 0]]]) {
-    mesh('', new THREE.BoxGeometry(...s), wood, p, grp);
-  }
-  const edge = std('#111', { roughness: 0.6 });
-  const sleeve = (h, pos) => mesh(h.name, new THREE.BoxGeometry(0.31, 0.31, 0.006), [edge, edge, edge, edge, new THREE.MeshStandardMaterial({ map: h.art.card ? cardArt({ card: h.art.card, title: h.label, theme }) : recordArt({ title: h.label, theme }), roughness: 0.6 }), edge], pos, grp);
+  mesh('', mergeGeometries([[[W, H, 0.02], [0, H / 2, D / 2]], [[W, H, 0.02], [0, H / 2, -D / 2]], [[0.02, H, D], [W / 2, H / 2, 0]], [[0.02, H, D], [-W / 2, H / 2, 0]], [[W, 0.02, D], [0, 0.01, 0]]]
+    .map(([s, p]) => new THREE.BoxGeometry(...s).translate(...p))), wood, [0, 0, 0], grp);
+  // a sleeve is a thin card: one box, one material, its picture wrapped round the 6 mm edges too
+  const board = new THREE.BoxGeometry(0.31, 0.31, 0.006);
+  const sleeve = (h, pos) => mesh(h.name, board, new THREE.MeshStandardMaterial({ map: h.art.card ? cardArt({ card: h.art.card, title: h.label, theme }) : recordArt({ title: h.label, theme }), roughness: 0.6 }), pos, grp);
   // the two that start it, side by side, leaning on the front of the crate
   for (const h of art('record').filter((x) => x.art.front !== undefined)) {
     const s = sleeve(h, [(h.art.front - 0.5) * 0.33, 0.155, D / 2 + 0.045]);

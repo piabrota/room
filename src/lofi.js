@@ -1,10 +1,13 @@
 // The LOFI view: the room as a page to read. Home, About, Work, Posts,
-// Online and Subscribe, from the same config as the 3D room, and the
-// posts from posts/*.md. One column, plain text, hash routes
+// Online, Subscribe and Credits, from the same config as the 3D room, and
+// the posts from posts/*.md. The credits (config.credits: whose idea a room
+// like this is, and whose work is in this one) close the home page and have
+// their own page, so a visitor without WebGL reads them too. One column, plain text, hash routes
 // (#/about, #/posts/<slug>...). Built with DOM nodes and textContent,
 // never innerHTML, so config text and posts stay text.
 import { renderSignature } from './signature.js';
 import { frontMatter, renderMarkdown } from './markdown.js';
+import { creditsNodes } from './creditscard.js';
 
 const files = import.meta.glob('../posts/*.md', { query: '?raw', import: 'default', eager: true });
 const posts = Object.entries(files).map(([path, src]) => {
@@ -53,9 +56,10 @@ export function renderLofi(root, config) {
     const p2 = el('p', `${r.subscribe.mailLine} `); if (mail) p2.append(out(mail.hint, mail.value));
     return section('subscribe', p, ...(mail ? [p2] : []));
   };
+  const credits = () => { const s = section('credits', ...(config.credits ? creditsNodes(config.credits, 'h3') : [])); s.classList.add('credits'); return s; };
   function footer() {
     const f = el('footer'), n = el('nav'); n.setAttribute('aria-label', 'footer');
-    n.append(route(S.home, ''), ...['about', 'work', 'posts', 'online', 'subscribe'].map((k) => route(S[k], k)));
+    n.append(route(S.home, ''), ...['about', 'work', 'posts', 'online', 'subscribe', 'credits'].filter((k) => S[k]).map((k) => route(S[k], k)));
     f.append(n); return f;
   }
 
@@ -72,9 +76,9 @@ export function renderLofi(root, config) {
       const back = el('p'); back.append(route(`← ${r.back}`, 'posts')); art.append(back);
       main.append(art);
     } else if (kind && S[kind] && kind !== 'home') {
-      main.append({ about, work, posts: () => posts_(true), online, subscribe }[kind]());
+      main.append({ about, work, posts: () => posts_(true), online, subscribe, credits }[kind]());
     } else {
-      main.append(about(), posts_(false), online());
+      main.append(about(), posts_(false), online(), ...(S.credits ? [credits()] : []));
     }
     root.replaceChildren(head, main, footer());
     if (document.body.classList.contains('lofi') && path) scrollTo(0, 0);

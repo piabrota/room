@@ -34,6 +34,50 @@ export const theme = {
 // a placeholder room is built from config so you can still develop.
 export const roomModel = '/models/room.glb';
 
+// The apartment: an old flat in Rio. The paint, the wood, the cloth and the rug of its shell
+// (src/shell.js): repaint it here. `ink` and `inkSoft` are the words painted on the walls.
+export const shell = {
+  wall: '#e7dcc6', ceiling: '#f3eee3', trim: '#f1ebdf', reveal: '#ded3bf',
+  floor: '#b9a48e', wood: '#9c8676', brass: '#b08a4a', curtain: '#d9cdb6',
+  ink: '#33261d', inkSoft: '#77634f',
+  rug: { at: [0.1, -0.2], size: [2.6, 1.8], colors: ['#7c1d17', '#1d2b45', '#e6d7b8', '#c59a45', '#2a120f'] },
+};
+
+// The furniture and the props that are files (src/furniture.js): photographed models from
+// Poly Haven, CC0, packed by `just models` into `public/models/` (CREDITS.md). Each is
+// `<file>.glb` for the laptop's look and `<file>.lite.glb` for the phone's; `phone: false`
+// leaves a prop out of the phone's look. Swap a file for your own here; the room keeps the
+// thing's place and size, and a missing file leaves a plain stand-in.
+export const models = {
+  base: '/models/',
+  files: {
+    tv: 'television_02',
+    lamp: 'desk_lamp_arm_01',
+    radio: 'boombox',
+    chair: 'GreenChair_01',
+    bookcase: 'wooden_bookshelf_worn',
+    cabinet: 'modern_wooden_cabinet',
+    sofa: 'Sofa_01',
+    clock: 'vintage_grandfather_clock_01',
+    chandelier: 'Chandelier_02',
+    sideTable: 'side_table_tall_01',
+    plant: 'potted_plant_02',
+    pillows: { file: 'throw_pillows_01', phone: false },
+    fern: { file: 'fern_02', phone: false },
+    pot: { file: 'planter_pot_clay', phone: false },
+    aloe: { file: 'potted_plant_04', phone: false },
+    books: { file: 'book_encyclopedia_set_01', phone: false },
+    pencilCup: { file: 'pencil_cup', phone: false },
+    pens: { file: 'pens', phone: false },
+    painting: { file: 'fancy_picture_frame_01', phone: false },
+    suitcase: { file: 'vintage_suitcase', phone: false },
+    ukulele: { file: 'Ukulele_01', phone: false },
+    box: { file: 'cardboard_box_01', phone: false },
+    alarm: { file: 'alarm_clock_01', phone: false },
+    vase: { file: 'ceramic_vase_01', phone: false },
+  },
+};
+
 // The view from the window: Botafogo bay and the Sugarloaf, a photograph
 // for the night and one for the day (CREDITS.md), set far behind the
 // glass with drawn layers around it. `anchor` is where the Sugarloaf is
@@ -53,13 +97,13 @@ export const outside = {
 // "shot_desk" etc. are picked up from the GLB (see cameras.js).
 export const shots = {
   overview: { position: [3.1, 2.15, 3.3], target: [-0.4, 1.05, -0.6], fov: 50 },
-  desk:     { position: [0.05, 1.42, 0.75], target: [0.05, 1.08, -1.0], fov: 45 },
-  fabric:   { position: [-0.7, 1.6, 0.55], target: [-3.0, 1.6, -0.2], fov: 52 },
+  desk:     { position: [0.32, 1.36, 0.02], target: [0.2, 1.1, -1.5], fov: 46 },
+  fabric:   { position: [-0.75, 1.55, 1.25], target: [-3.0, 1.5, 0.45], fov: 52 },
   shelf:    { position: [-1.75, 1.55, 0.4], target: [-2.1, 1.8, -1.9], fov: 52 }, // the works with a DOI, and tyler-durden-bot's board above them
   board:    { position: [2.55, 1.8, 0.25], target: [2.55, 1.82, -2.0], fov: 50 },
   window:   { position: [0.2, 1.62, 0.7], target: [0.2, 2.12, -2.0], fov: 56 },
   sea:      { position: [1.05, 1.62, 0.05], target: [3.35, 1.3, -0.45], fov: 50 },
-  slipbox:  { position: [-1.62, 0.88, -0.22], target: [-2.2, 0.18, -0.98], fov: 46 },
+  slipbox:  { position: [-1.55, 0.88, -0.3], target: [-2.2, 0.18, -0.98], fov: 46 },
   loop:     { position: [0.0, 1.6, 0.6], target: [-0.4, 1.5, 3.8], fov: 58 }, // the loop, and the door with its lock
   // the tenth, on key 0: the chart on the right wall, which opens the map (`grid` below)
   grid:     { position: [1.75, 1.62, 1.55], target: [3.4, 1.62, 1.55], fov: 44, label: '▲ grid' },
@@ -178,22 +222,41 @@ export const sfx = {
 };
 
 // Tapes: each one is a module in src/tapes with mount/frame/input/stop.
-// `label` shows on hover, `color` tints the shell and the room light,
+// `label` shows on hover, `color` tints the room light while it plays,
 // `text` is the line the LOFI (plain text) view shows for the tape.
-// `spine` is what is written on the tape's label, and in which face:
-// one of the retro faces in src/art.js (`marker`, `neon`, `pixel`,
-// `terminal`, `typewriter`), with the colour of the label and its ink.
-// The stack on the desk is built in this order, the last on top.
+// `spine` is what is written on the cassette's own labels, and in which
+// face: one of the retro faces in src/art.js (`marker`, `neon`, `pixel`,
+// `terminal`, `typewriter`), with the colour of the label and its ink, and
+// `code`, the length printed small on it.
+// `sleeve` is the card box the cassette lives in (src/vhs.js): a `style`
+// (`waves`, `rings`, `bigtype`, `grid`, `sunburst`, `smalltype`: six
+// layouts, not one in six colours), its `colors` (the card first, then the
+// print), a `sub` line, a `face` when the sleeve is not set in the label's
+// (`title` and `mono` are the room's two), and `finish: 'gloss'` for a
+// laminated card. A tape with no `sleeve` lies bare, its sticker written
+// by hand or typed. Where each one lies is in `stack`, below.
 export const tapes = [
-  { id: 'marola',    label: 'marola.dev',     color: '#0f3d66', text: 'the sea of marola-dev: its repositories, floating on live waves', spine: { text: 'marola.dev', face: 'neon', paper: '#08243f', ink: '#5cc8ff' }, module: () => import('./tapes/marola.js') },
-  { id: 'ouroboric', label: 'ouroboric-dev',  color: '#3a1d0e', text: 'Ouroboric\'s factory: the snake that eats its tail, and the repositories on its loop', spine: { text: 'ouroboric-dev', face: 'pixel', paper: '#f2e6c9', ink: '#c2410c' }, module: () => import('./tapes/ouroboric.js') },
-  { id: 'piabrota', label: 'PIABROTA (the fabric)', color: '#1682d4', spine: { text: 'piabrota', face: 'marker', paper: '#f4efe4', ink: '#1682d4' }, text: 'a radio piece on piabrota, its people, its agents and its works, with links', module: () => import('./tapes/piabrota.js') },
-  { id: 'hello',  label: 'HELLO (who we are)', color: '#bc2318', spine: { text: 'hello', face: 'marker', paper: '#f4efe4', ink: '#bc2318' }, text: 'the name, typed out, and where to find us', module: () => import('./tapes/hello.js') },
-  { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
-  { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950' }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
-  { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347' }, text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
-  { id: 'cv',        label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b' }, module: () => import('./tapes/cv.js') },
+  { id: 'marola',    label: 'marola.dev',     color: '#0f3d66', text: 'the sea of marola-dev: its repositories, floating on live waves', spine: { text: 'marola.dev', face: 'neon', paper: '#08243f', ink: '#5cc8ff', code: 'T-120' }, sleeve: { style: 'waves', colors: ['#0a2c4d', '#5cc8ff', '#eaf6ff', '#f2c14e'], sub: 'live waves', finish: 'gloss' }, module: () => import('./tapes/marola.js') },
+  { id: 'ouroboric', label: 'ouroboric-dev',  color: '#3a1d0e', text: 'Ouroboric\'s factory: the snake that eats its tail, and the repositories on its loop', spine: { text: 'ouroboric-dev', face: 'pixel', paper: '#f2e6c9', ink: '#c2410c', code: 'E-180' }, sleeve: { style: 'rings', colors: ['#efe2c2', '#c2410c', '#3a1d0e', '#e2a03f'], sub: 'the factory loop' }, module: () => import('./tapes/ouroboric.js') },
+  { id: 'piabrota', label: 'PIABROTA (the fabric)', color: '#1682d4', spine: { text: 'piabrota', face: 'marker', paper: '#f4efe4', ink: '#1682d4', code: 'T-160' }, sleeve: { style: 'bigtype', face: 'title', colors: [theme.accent, theme.eye.white, theme.eye.iris, theme.eye.white], sub: 'the fabric', finish: 'gloss' }, text: 'a radio piece on piabrota, its people, its agents and its works, with links', module: () => import('./tapes/piabrota.js') },
+  { id: 'hello',  label: 'HELLO (who we are)', color: '#bc2318', spine: { text: 'hello', face: 'marker', paper: '#f4efe4', ink: '#bc2318', code: 'T-30' }, text: 'the name, typed out, and where to find us', module: () => import('./tapes/hello.js') },
+  { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d', code: 'T-60' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
+  { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950', code: 'E-240' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#2e9e4f', '#3FB950', '#d8ffe0'], sub: place.city }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
+  { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347', code: 'T-90' }, sleeve: { style: 'sunburst', colors: ['#1a1208', '#d29922', '#ffe9b8', '#c2410c'], sub: 'play the screen' }, text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
+  { id: 'cv',        label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b', code: 'E-120' }, sleeve: { style: 'smalltype', face: 'typewriter', colors: ['#e4dfd2', '#22252d', ...Object.values(theme.lanes)], sub: 'track record' }, module: () => import('./tapes/cv.js') },
 ];
+// The stack beside the VCR: piles side by side, each from the bottom up, by
+// tape id; nothing is squared up. A tape named in no pile goes on the
+// shortest. A bare cassette belongs on top of its pile (the pile closes up
+// when it leaves). `gap` is the space between two piles, in metres.
+export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots']], gap: 0.03 };
+// The VCR's face (src/vhs.js): a brand that does not exist, the words printed
+// on it, and the clock that nobody ever set. `lit` are the words behind the
+// display's glass (the first one is on), `keys` the six under it.
+export const deck = {
+  brand: 'BROTA', model: 'PB-180', badge: '4 HEAD', line: 'VIDEO CASSETTE RECORDER',
+  clock: '12:00', lit: ['SP', 'HI-FI', 'TIMER'], keys: ['EJECT', 'REW', 'PLAY', 'FF', 'STOP', 'REC'], led: 'POWER',
+};
 
 // ── the fabric: piabrota's projects, framed on the left wall ──
 // `glyph` is the project's mark, typed (its drawing lives in its own
@@ -412,17 +475,18 @@ export const door = {
 export const cat = {
   name: 'Nash', hint: 'a black cat. he goes where he wants', color: '#0c0c0f', eyes: '#d9e84a',
   perches: [
-    { id: 'rug', at: [-0.2, 0.017, -0.15], face: 2.6 },
-    { id: 'rug2', at: [1.0, 0.017, 0.2], face: -2.2 },
+    { id: 'rug', at: [0.2, 0.013, 0.3], face: 2.6 },
+    { id: 'rug2', at: [1.0, 0.013, 0.2], face: -2.2 },
     { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8 },
-    { id: 'chair', at: [0.1, 0.51, -0.78], face: 3.1 },
-    { id: 'desk', at: [0.72, 0.805, -1.15], face: 2.8 },
-    { id: 'deskLeft', at: [-0.75, 0.805, -1.05], face: 2.4 },
-    { id: 'monitor', at: [0.05, 1.405, -1.6], face: 3.14, via: 'desk' },
-    { id: 'sill', at: [1.3, 1.44, -1.87], face: 3.0, via: 'desk' },
+    { id: 'sofa', at: [-2.5, 0.42, 0.15], face: 1.6 },
+    { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8 },
+    { id: 'deskLeft', at: [-0.82, 0.805, -1.17], face: 2.4 },
+    { id: 'monitor', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk' },
+    { id: 'sill', at: [0.72, 1.015, -2.03], face: 2.9, via: 'desk' },
     { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2 },
-    { id: 'shelf', at: [-2.4, 1.915, -1.8], face: 3.14, via: 'deskLeft' },
+    { id: 'shelf', at: [-2.4, 1.9, -1.8], face: 3.14, via: 'deskLeft' },
   ],
+
 };
 
 // ── the screen guard (src/guard.js): the page goes black on PrintScreen and while the window is
@@ -432,13 +496,61 @@ export const guard = { screenshots: true };
 // ── you: a pair of feet under the camera, seen when you look down ──
 export const body = { shoes: '#e9e6df', soles: '#f7f5f0', jeans: '#2b3a55', laces: '#c9c3b6' };
 
+// ── the credits: whose idea a room like this is, and whose work is in this one ──
+// One export, shown in three places: the credits button of the HUD and its card
+// (src/creditscard.js), the brass plate on the back wall (src/credits.js, the hotspot `credits`),
+// and the credits of the LOFI page (src/lofi.js).
+// The idea is credited by name, in text only: nothing here links to a page of his, and the one
+// address is this repository's own (AGENTS.md, invariant 2; the check asks).
+// `idea.where`: his own site's description read "I work on Claude at Anthropic." on
+// 10 November 2026. Say nothing else about him.
+// `sources` is the short list; CREDITS.md is the full one, and every name and licence here is
+// copied from it. A row added there gets its row here: what it is in the room, who made it,
+// and its licence.
+const ideaBy = 'Felix Rieseberg';
+export const credits = {
+  button: 'credits', title: 'credits', close: 'close',
+  idea: {
+    heading: 'the idea', name: ideaBy,
+    line: `A personal site that is a 3D room, with camera shots, things to hover and VHS tapes that play on a TV: the idea comes from ${ideaBy}, who built one for his own site.`,
+    where: 'He works on Claude at Anthropic.',
+    own: 'This room is a separate work. It uses no code, model, texture, sound or text of his.',
+  },
+  sourcesHeading: 'in this room, from others',
+  sources: [
+    { what: 'the rain on the window', who: 'cori', licence: 'public domain' },
+    { what: 'Nash\'s meow', who: 'Heismark', licence: 'public domain' },
+    // made by `just compose` from samples that are not in the repository: a build without them plays synthesized sounds
+    { what: 'the field recordings in the city\'s hum, the VCR\'s sounds and the piabrota tape', who: 'klankbeeld, YleArkisto, magedu', licence: 'CC BY 4.0' },
+    // one row for all that comes from Poly Haven: the furniture, the props and the photographed surfaces.
+    // CREDITS.md names each one's author (`just models` writes those rows).
+    { what: 'furniture, props and surfaces', who: 'Poly Haven and its authors', licence: 'CC0 1.0' },
+    { what: 'Rio by day, behind the window', who: 'Arian Zwegers', licence: 'CC BY 2.0' },
+    { what: 'Rio at night, behind the window', who: 'Wilfredor', licence: 'CC0 1.0' },
+    { what: 'the lofi on the radio', who: 'HoliznaCC0', licence: 'CC0 1.0' },
+    { what: '"Cafezinho com Leite", on lofi brasil', who: 'Popoi', licence: 'CC BY 3.0' },
+    { what: 'the music of the playlist', who: 'its artists and their labels, streamed by Spotify', licence: 'Spotify\'s terms' },
+    { what: 'the typefaces', who: 'Sorkin Type, JetBrains, Font Diner, Vernon Adams, CodeMan38, Peter Hull, Astigmatic', licence: 'OFL-1.1, Apache-2.0' },
+    { what: 'the land on the ▲ grid map', who: 'Natural Earth', licence: 'public domain' },
+    { what: 'the wind on that map', who: 'NOAA (GFS), through Open-Meteo', licence: 'public domain, CC BY 4.0' },
+    { what: 'the sea\'s temperature on that map', who: 'Met Office (OSTIA), E.U. Copernicus Marine Service', licence: 'the Copernicus Marine Service licence' },
+    { what: 'the libraries', who: 'three.js, Vite, MapLibre GL JS', licence: 'MIT, MIT, BSD-3-Clause' },
+  ],
+  full: { line: 'Every file, source and licence is in', label: 'CREDITS.md', url: 'https://github.com/piabrota/room/blob/main/CREDITS.md' },
+  // the plate on the wall: what its hover says, and what is engraved on it
+  plate: {
+    label: `the idea: ${ideaBy}`, hint: 'he works on Claude at Anthropic · click for the credits',
+    top: 'the idea', name: ideaBy, bottom: 'works on Claude at Anthropic',
+  },
+};
+
 // ── LOFI: the room as a page to read. The sections are in this order,
 // each with its word. Posts are Markdown files in posts/ (front matter:
 // title, date, summary); the newest is first, and the feed lists them.
 export const reading = {
   site: 'https://room.piabrota.art',
   feed: '/feed.xml',
-  sections: { home: 'home', about: 'about', work: 'work', posts: 'posts', online: 'online', subscribe: 'subscribe' },
+  sections: { home: 'home', about: 'about', work: 'work', posts: 'posts', online: 'online', subscribe: 'subscribe', credits: 'credits' },
   about: [
     'pia, brota is an open software fabric made in Rio de Janeiro: a company chart, a second brain, a runtime for agents and the box that serves this site, built in the open.',
     'Its people are pinned to the board of the room, its two bots sit on the desk, and its friends, marola and Ouroboric, have a wall each. This page is the same room, as text.',
@@ -457,7 +569,8 @@ export const reading = {
 
 // Hoverable things. `name` matches a mesh name in your GLB (or the
 // placeholder room, which builds one for each `art`). `action` is one
-// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio'. `group` titles the LOFI list.
+// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits'.
+// `group` titles the LOFI list.
 // ── ▲ grid: the Brazilian coast on a triangle mesh, its waves played back
 // on a map (src/grid.js, docs/SURVEY.md, section 6). The chart hangs on
 // the right wall; its shot (key 0) opens the map. `just grid` makes the
@@ -528,6 +641,7 @@ export const hotspots = [
   { name: 'folder_closed-source', label: closedSource.label, hint: closedSource.hint, action: 'link', value: closedSource.url, group: 'closed source', art: { kind: 'folder' } },
   { name: 'letter_closed-source', label: closedSource.letter.label, hint: closedSource.letter.hint, action: 'link', value: closedSource.letter.url, group: 'closed source' },
   { name: 'note',   label: 'inspiration: Robert M. Pirsig', hint: 'Zen and the Art of Motorcycle Maintenance', action: 'link', value: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig', group: 'inspiration', art: { kind: 'note', glyph: '無' } },
+  { name: 'credits', label: credits.plate.label, hint: credits.plate.hint, action: 'credits', art: { kind: 'credits', top: credits.plate.top, name: credits.plate.name, bottom: credits.plate.bottom } },
   ...projects.map((p) => ({
     name: `frame_${p.id}`, label: p.id, hint: p.line, action: 'link', value: p.url, group: 'projects',
     art: { kind: 'frame', glyph: p.glyph, color: theme.lanes[p.lane] },

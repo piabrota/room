@@ -59,6 +59,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 26 | 9 Nov 21:54 | [#31](https://github.com/piabrota/room/pull/31) tyler-durden-bot's board square, above the shelf of the works with a DOI, the owner's portrait as it is; the loop shot shows the door; the door asks for an email before its lock, kept on the room's own server (`POST /live/door`) | 60 min |
 | 27 | 9 Nov 22:48 | [#32](https://github.com/piabrota/room/pull/32) Nash on a desktop: he reads the room once (its triangles cut into floor cells and voxels), walks rounded A* paths around the desk's legs, the chair and the plant, eased in and out, turns before he sets off, sits where his body fits (no longer inside the radio or the keyboard) and leaps on parabolas tried against the room; phones keep the cheap life. His meow is a real cat now, a public-domain recording | 40 min |
 | 28 | 9 Nov 23:13 | [#33](https://github.com/piabrota/room/pull/33) a "lyrics" toggle in the playlist's player that says where the lyrics are (Spotify's own app) and shows none, since the room has no licence for them; the playlist's tracks and artists read again from Spotify's player, 37 tracks and 42 artists, in `CREDITS.md` and beside the player | 25 min |
+| 29 | 10 Nov 00:03 | [#34](https://github.com/piabrota/room/pull/34) the room as an old apartment, at real sizes: plaster walls, a cornice and a ceiling rose, tall skirting, a wooden window of two leaves in a deep reveal, curtains, parquet and a drawn rug; 24 pieces of furniture and props from Poly Haven (CC0) through `just models`, each with a lighter file for the phone; VHS cassettes in card sleeves, in two piles, and a video recorder they fly into, at their real sizes; the night lit by its lamps; a credits button, its card and a brass plate that name Felix Rieseberg; `just peek` to look at a change and count its draw calls | 3 h 55 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -337,6 +338,16 @@ Perdida · El Lif Beatz · Nectar Gang · Tyler, The Creator · Kanye West · Ma
 Inaccurate, fix it. in the same lyrics pr'
 ```
 
+**29.**
+
+```text
+user> 'now create a big PR to improve realism of objects, proportion, quality of assets, quality of
+textures, this must look like an old fashioned apartment, a credits hover is still missing to give
+credits to Felix from Anthropic. Review his site again, our quality compared to theirs is sub
+poor. For example his VHS tapes have way more quality. Do these huge improvements with Fable 5.2.
+No big time constraint, so you can use sub agents'
+```
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -359,7 +370,9 @@ just dev         # http://localhost:5173
 On macOS without Nix: `brew install node just ffmpeg`, then the same `just` recipes.
 `just check` runs the checks of [`AGENTS.md`](AGENTS.md) and a build; `just build` writes the
 site to `dist/`, ready for any static host. `just light` measures how bright each shot is by night
-and by day, and `just stills` and `just record` make the pictures a pull request carries. The
+and by day, and `just stills` and `just record` make the pictures a pull request carries.
+`just peek` renders one still from any shot, with no build, and counts its draw calls;
+`just models` fetches the furniture from Poly Haven and packs it for the laptop and for the phone. The
 skills in [`.claude/skills/`](.claude/skills/) teach Claude Code these rules in a fork too.
 
 ## Fork it, make it yours
@@ -382,10 +395,14 @@ is its own export, so you can replace one and keep the rest:
 | `sea`, `loop`, `slipbox` | the other three walls | your own collections, or remove them |
 | `reading`, `posts/` | the LOFI page: about, online, subscribe; the posts | your words, your profiles; your posts, one Markdown file each |
 | `door`, `cat`, `guard` | the door's code lock and its clues; Nash, the black cat, and where he sits; the screen guard | your puzzle, your cat (or none), `guard: { screenshots: false }` |
+| `shell`, `models` | the apartment's paint, wood, cloth and rug; the furniture and props that are files (`just models`) | your colours; other CC0 models, each with a row in `CREDITS.md` |
+| `stack`, `deck` | the piles of VHS sleeves and the video recorder's face | your piles, your brand on the deck |
+| `credits` | the credits button, its card, and the plate on the wall | keep the idea's line; list what your room takes from others |
 | `hotspots` | what can be clicked, and what it does | your labels, your words, your links |
 
-Until there is a model and recordings, the room is built from boxes and the sounds are
-synthesized, so a fork runs from its first commit.
+Until there is a model of the whole room and recordings, the room is built in code around the
+furniture's files, a piece that is missing is a plain box, and the sounds are synthesized, so a
+fork runs from its first commit.
 
 1. **Model.** Block the room out in Blender at real scale, name the meshes (`screen`, `vcr`,
    `lamp`, `tape_<id>`, hotspots) and the cameras (`shot_desk`, ...), bake the lighting, and

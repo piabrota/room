@@ -28,8 +28,11 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    artists credited in `CREDITS.md` and on screen beside it. Nothing else of Spotify's loads,
    not its iFrame API script (the owner, 9 November 2026).
 2. **The idea is credited to Felix Rieseberg, by name, in text only.** `README.md` and
-   `CREDITS.md` name him as the origin of the idea. No file links to his site, his
-   repositories or his issues, and no issue or pull request here links them either.
+   `CREDITS.md` name him as the origin of the idea, and the room says so on screen, from
+   `config.credits`: the card of the credits button, the plate on the wall, and the credits of
+   the LOFI page. No file links to his site, his repositories or his issues, and no issue or
+   pull request here links them either; the one address in the credits is this repository's
+   `CREDITS.md`.
 3. **`src/config.js` is the one file that makes the room someone's.** The signature (name,
    tagline, links), the camera shots, the tapes, the hotspots and the sounds are declared
    there. No other file hardcodes a name, a link, a label or a sound path. The signature is
@@ -43,8 +46,9 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
    through `src/interact.js`: it shows a label and a glow on hover, and does one thing on
    click. A hotspot action is one of `shot`, `link`, `sfx`, `toggleLamp`, `toggleRadio`,
    `playlist` (opens the Spotify player of invariant 1), `door` (the lock's keypad, `src/lock.js`;
-   the open door shuts on a click), `cat` (Nash stops, looks at you and meows); a new action is
-   added to `src/app.js` and to the check together.
+   the open door shuts on a click), `cat` (Nash stops, looks at you and meows), `credits` (opens
+   the credits card of invariant 2); a new action is added to `src/app.js` and to the check
+   together.
 6. **A tape is a module with the tape contract.** Each tape is one file in `src/tapes/`,
    loaded lazily through `config.tapes`, with a unique `id`, a label, a colour and a mesh
    named `tape_<id>`. It exports `default { mount, frame, input?, stop? }` and draws only on
@@ -88,6 +92,8 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just record` | stills of every shot and a video of the four walls by night, each 5 s or more, navigating and clicking (`room.mp4`, and `room.webp` for the READMEs), into `docs/record/`; on the GPU on macOS, in software at 960×540 elsewhere |
 | `just stills` | only the stills, into `docs/record/` (fast; use it while working) |
 | `just record-grid` | only the ▲ grid's stills (the map, its temperature, each of its views) and `grid-views.mp4`, a clip that clicks each view, into `docs/record/` |
+| `just peek [--shot <name>] [--from x,y,z --to x,y,z] [--all] [--day] [--lite] [--calls]` | one still of the room from a shot or from any camera, served from the source with no build, with the draw calls of the room's own pass and of all passes, the triangles and the textures; `--all` renders every shot in one visit, `--calls` lists what the draw calls are made of (`scripts/peek.mjs`) |
+| `just models [names] [--list]` | the furniture and props of `scripts/models.json` from Poly Haven (CC0) into `public/models/`: each fetched, cut to the parts the room uses, its mesh thinned, its textures re-encoded as WebP, packed with meshopt, as `<name>.glb` for the laptop's look and `<name>.lite.glb` for the phone's; the photographed surfaces into `public/textures/pbr/`; and their rows in `CREDITS.md` (`scripts/models.mjs`) |
 | `just light [day\|night] [shots]` | the mean brightness and the share of pixels burnt to white of every shot, by night and by day; fails above 1 % (`scripts/light.mjs`) |
 | `just grid [--offline]` | the ▲ grid view's files in `public/grid/`: the coast's triangle mesh (Natural Earth, Delaunay) and 24 h of GFS wind with the sea it raises, and the sea's temperature from Copernicus Marine (OSTIA) (`scripts/grid.mjs`) |
 | `just blow-light [files]` | whether the light of a video or a still is under control: fails when a frame has more than 0.25 % of its area near white (above 230) or 1 % glowing (above 200), thin text left out (`scripts/blow_light.sh`); `just record` runs it on `room.mp4` (the owner, 7 November 2026) |
@@ -104,21 +110,24 @@ macOS without Nix, `brew install node just ffmpeg`.
 
 | File | Job |
 |---|---|
-| `src/config.js` | the signature, the words of the buttons (`ui`), theme, shots, tapes, the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, tyler-durden-bot's square board above the bookshelf (`wip`: its logo, its red bulbs), people, works with a DOI, the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), Nash the black cat (`cat`: his perches), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
+| `src/config.js` | the signature, the words of the buttons (`ui`), theme, the apartment's colours (`shell`: paint, wood, cloth, the rug), the furniture's files (`models`), shots, tapes (each with its `spine` and its `sleeve`), their piles (`stack`), the video recorder's face (`deck`), the rain, the radio's stations, the playlist (`playlist`: the ♫ button, the mixtape and Spotify's player, with its artists), the views from the window by day and by night, and the room's content: projects, bots, tyler-durden-bot's square board above the bookshelf (`wip`: its logo, its red bulbs), people, works with a DOI, the CV, the contact, the closed-source file, the door and its lock (`door`: the clues, a code counted from the lists), Nash the black cat (`cat`: his perches), the screen guard (`guard`), your feet, ▲ grid (its domain, presets, files, flow and words), the credits (`credits`: the button's word, the idea's line with the name, the short list of sources, each with what, who and licence, the address of the full list, the plate's words), hotspots, and `reading`, the words of the LOFI page (invariant 3) |
 | `src/main.js` | entry: WebGL check, the LOFI/HIFI toggle, loads the room the first time HIFI shows (invariant 8); on `config.grid.host` (grid.piabrota.art) or with `?grid` the room opens on the ▲ grid map, and Esc steps into the room |
 | `src/quality.js` | the two looks, `full` and `lite` (phones, tablets, weak machines): pixel ratio, frames a second, passes, shadow maps, anisotropy, dust; `?lite`, `?full` |
 | `src/guard.js` | the screen guard: black on PrintScreen and while the window is away, no selection or context menu in the room, a blank print; off under `?record` and in a scripted browser |
 | `src/cat.js` | Nash, the black cat: a few shapes, and a life of sitting, walking and jumping between the perches of `config.cat`, seeded so `just record` films the same walk; a click calls him. On the full look he walks rounded paths around the furniture, eased, turns before he sets off, sits where his body fits and leaps on parabolas that clear the room; on the lite look (phones) he keeps the cheap straight-line life |
 | `src/catnav.js` | where Nash can go, read once from the room's triangles on the full look: the floor cells something stands on, the floor's height, the filled voxels; A* paths pulled straight, and leaps tried against the room |
 | `src/lock.js` | the door's lock: an email first (`config.door.gate`, posted to the room's own server), then a keypad with the clues of `config.door.lock`; the right code opens the door |
-| `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, from `config.reading` and `posts/`, on hash routes (`#/posts/<slug>`) |
+| `src/lofi.js` | the LOFI view, a page to read: home, about, work, posts, online, subscribe, credits, from `config.reading`, `config.credits` and `posts/`, on hash routes (`#/posts/<slug>`); the credits also close the home page |
 | `src/markdown.js` | reads a post: front matter, then Markdown into DOM nodes with `textContent`, never `innerHTML` |
 | `posts/*.md` | the posts of LOFI, one file each, `YYYY-MM-DD-slug.md`, with `title`, `date` and `summary` (the check asks) |
 | `scripts/feed.mjs` | the posts' RSS feed, `feed.xml` in the build (and in `just dev`) |
 | `src/app.js` | wires the room: renderer, shots, tapes, hotspots, the enter gate, the loop |
-| `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material; the photographed wood of `public/textures/pbr/`; your feet under the camera (`buildBody`); the day and night light sets, the desk lamp at a third by day, the dust in the window's light, the rain on the glass, the leaves that sway |
+| `src/room.js` | loads `public/models/room.glb` (meshopt-compressed or not), or builds the placeholder room from config, its static parts merged by material: where each piece of furniture stands and how big it is, in metres (the desk, the television on its riser, the bookcase's shelves); your feet under the camera (`buildBody`); the day and night light sets (the night is made of lamps: the desk lamp, the lamp that hangs from the rose, the TV, the sign), the dust in the window's light, the rain on the glass; `ready`, when the furniture that is files has arrived |
+| `src/shell.js` | the shell of an old apartment, at real sizes: plaster walls with the window's opening and its reveal, the cornice and the ceiling rose, the tall skirting, the wooden window of two leaves and a fanlight, the sill board, the curtains on their rod, the drawn rug, the soft shadow under each piece of furniture (`contactShadows`), and `woodBox`, a box with the wood's grain laid in metres along it; colours from `config.shell` |
+| `src/furniture.js` | the furniture and props that are files (`config.models`): each is a holder at its place with a plain stand-in, and the model takes the stand-in's place when it arrives, fitted to a size in metres; the laptop's look loads `<file>.glb`, the phone's `<file>.lite.glb`, and leaves out what is marked `phone: false`; a missing file leaves the stand-in (invariant 8) |
+| `src/vhs.js` | the VHS cassettes, their card sleeves, the two piles, the video recorder and the mixtape, at their real sizes, each one draw call with its own atlas drawn on a canvas from config (`tapes[].spine`, `tapes[].sleeve`, `stack`, `deck`, `playlist.tape`); a cassette leaves its sleeve, flies to the recorder's slot and goes in, and comes back |
 | `src/art.js` | the placeholder room's pictures, drawn on canvases from config: frames, the eye sign, the window, photos, spines, the note, record sleeves and the slipbox's two cards, crates, the tape labels in their retro faces, plastic, the keyboard, the VCR's front, typed paper, the folder |
-| `src/props.js` | the other walls: the marola-dev wave tank and its buoys, the ouroboric-dev crate belt, the slipbox (a crate of records, two side by side in front) |
+| `src/props.js` | the other walls: the marola-dev wave tank and its buoys on a sideboard, the ouroboric-dev crate belt, the slipbox (a crate of records, two side by side in front) |
 | `src/outside.js` | Rio behind the window, in layers at their own distances: the night and day photographs of `config.outside`, the night's lights twinkling, trees in front; a drawn view when the night file is missing |
 | `src/textures.js` | wood grain, floor planks and plaster, drawn on canvases |
 | `src/post.js` | post-processing: MSAA HDR buffer, ambient occlusion (GTAO, off under `?record`), hover outline, bloom with a threshold for the night and one for the day (`setDay`), tone mapping (AgX, set in `src/app.js`), film grade; steps quality down when frames run long |
@@ -132,10 +141,14 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `src/radio.js` | piabrota RADIO: the stations of `config.radio`, one track after another through the room's sound, and the live listeners count |
 | `src/audio.js` | ambience, one-shot sounds, the tape bus, synthesized fallbacks |
 | `src/signature.js` | renders the signature as text |
+| `src/creditscard.js` | the credits as text, from `config.credits`: the HUD's credits button and its card (shown on hover, on focus and on a click or a tap; closed by Esc, its ×, or a click outside), and the same nodes for the LOFI page (invariant 2) |
+| `src/credits.js` | the credits plate in the room: a brass plate engraved on a canvas, one mesh, with its position, turn and size as parameters; a click on it opens the credits card |
 | `scripts/check.mjs` | what `just check` tests |
 | `scripts/record.mjs` | what `just record` and `just record-grid` make: the stills and the video for a pull request |
 | `scripts/grid.mjs` | what `just grid` makes: `public/grid/` (land, mesh, frames, sst, run); `scripts/blosc.mjs` reads Copernicus Marine's zarr chunks (Blosc, LZ4) |
 | `scripts/mobile.mjs` | what `just mobile` measures |
+| `scripts/peek.mjs` | what `just peek` renders and counts |
+| `scripts/models.mjs`, `scripts/models.json` | what `just models` makes, and the list it makes it from: each Poly Haven id, the parts to keep, how far to thin it, the size of its textures |
 | `scripts/blow_light.sh` | what `just blow-light` measures, frame by frame, with ffmpeg: the share of a frame burnt or glowing white |
 | `scripts/light.mjs` | what `just light` measures: how bright each shot is, and whether any burns to white |
 | `scripts/brasil.mjs` | what `just brasil` makes: the four bossa-lofi pieces of the "lofi brasil" station |
@@ -148,7 +161,7 @@ Mesh names the code looks for in `room.glb`: `screen`, `vcr`, `lamp` (and `lamp_
 light sits), `tape_<id>` for each tape, the `name` of each hotspot (`sign`, `note`, `window`,
 `shelf`, `frame_<project>`, `bot_<id>`, `board_<wip id>`, `photo_<person>`, `book_<work>`, `tank`, `buoy_<repo>`, `cat` (Nash), `door_leaf` (the door's hinged leaf) and `door_beyond` (the light behind it),
 `belt`, `crate`, `crate_<repo>`, `record_<id>`, `quote`, `radio` and its lit `radio_dial`, `mixtape` (the playlist), `door`, `fax`,
-`fax_linkedin`, `folder_closed-source`, `letter_closed-source`, `chart`), and cameras
+`fax_linkedin`, `folder_closed-source`, `letter_closed-source`, `chart`, `credits` (the plate)), and cameras
 `shot_<name>`. An invisible hit box marked `userData.proxy` only counts when nothing real is under
 the pointer.
 
@@ -172,6 +185,11 @@ shot, `Esc` for `startShot`, and a drag (mouse or finger) to look around from wh
   in `src/config.js`, never in the code.
 - A new model: export from Blender as glTF binary to `public/models/room.glb`, with the mesh
   names above. Check the size before you commit it.
+- A new piece of furniture or a prop: add its Poly Haven id to `scripts/models.json`, run
+  `just models <id>` (it writes the two files and the row in `CREDITS.md`), name the file in
+  `config.models.files`, and place it in `src/room.js` with `F.place(key, g, { at, rot, fit })`,
+  with its real size in metres. Look at it with `just peek`. Only CC0 models; a small prop is
+  `phone: false`.
 - Every pull request that changes the site carries at least three screenshots of the room and
   a video of about 15 seconds of navigating and clicking on things (the owner, 5 November 2026).
   `just record` makes both in `docs/record/` (headless Chrome, stepped at a fixed 1/30 s per

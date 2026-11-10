@@ -3,27 +3,35 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist } from './config.js';
+import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles, stack as tapeStack, deck } from './config.js';
 import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
-import { woodGrain, planks, plaster } from './textures.js';
-import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, tapeSpineArt, tapeTopArt, plasticArt, keyboardArt, vcrFrontArt, paperArt, folderArt, cassetteArt } from './art.js';
+import { ROOM, WIN, SILL, buildShell, woodBox, contactShadows } from './shell.js';
+import { createFurniture } from './furniture.js';
+import { creditsPlate } from './credits.js';
+import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, plasticArt, paperArt, folderArt } from './art.js';
+import { buildTapeStack, buildVCR, buildMixtape } from './vhs.js';
 
-// Photographed wood (Poly Haven, CC0; CREDITS.md): colour, normal and roughness.
+// Photographed surfaces (Poly Haven, CC0; CREDITS.md): colour, normal and roughness, or only
+// some of them (`maps`). The phone's look takes the colour alone, at 512 px.
 const loader = new THREE.TextureLoader();
-let anisotropy = 8; // the quality's (src/quality.js), set by loadRoom before anything is built
-function pbr(name, repeat = [1, 1], rot = 0) {
+let anisotropy = 8, lite = false; // the quality's (src/quality.js), set by loadRoom before anything is built
+function pbr(name, repeat = [1, 1], rot = 0, maps = ['diff', 'nor', 'rough']) {
   const map = (k, srgb) => { const t = loader.load(`/textures/pbr/${name}_${k}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.rotation = rot; t.anisotropy = anisotropy; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
-  return { map: map('diff', true), normalMap: map('nor'), roughnessMap: map('rough') };
+  const out = {};
+  if (maps.includes('diff')) out.map = map(lite ? 'diff.lite' : 'diff', true);
+  if (!lite && maps.includes('nor')) out.normalMap = map('nor');
+  if (!lite && maps.includes('rough')) out.roughnessMap = map('rough');
+  return out;
 }
 
 // Loads your GLB if it exists, otherwise builds the placeholder room
 // from config. Either way it returns the same handles, so the rest of
 // the app doesn't care where the geometry came from.
 export async function loadRoom(scene, url, onProgress = () => {}, quality = { shadowSize: 1024, anisotropy: 8, dust: 400 }) {
-  anisotropy = quality.anisotropy;
-  let root, animated = [];
+  anisotropy = quality.anisotropy; lite = quality.name === 'lite';
+  let root, animated = [], ready = Promise.resolve();
   try {
     const head = await fetch(url, { method: 'HEAD' });
     if (!head.ok || !(head.headers.get('content-type') || '').match(/gltf|octet|model/)) throw 0;
@@ -34,7 +42,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     useBakedLighting(root);
   } catch {
     await fontsReady();
-    ({ root, animated } = placeholderRoom());
+    ({ root, animated, ready } = placeholderRoom());
   }
   onProgress(1);
   scene.add(root);
@@ -64,15 +72,22 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
   sun.castShadow = true; sun.shadow.mapSize.setScalar(quality.shadowSize); sun.shadow.bias = -0.001;
   Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 14 });
   scene.add(sun, sun.target);
-  const NIGHT = { sky: [0x55628a, 0x1a1410, 0.8], moon: 0.55, sun: 0, neon: 1.2, lamp: 0.55, env: scene.environmentIntensity ?? 0.18, bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
-  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 3.4], moon: 0, sun: 5, neon: 0.5, lamp: 0.35, env: 0.55, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
+  // the lamp of the room, hanging from the ceiling rose: dim and warm in the evening, off by day
+  const hang = new THREE.PointLight(0xffc48a, 0, 7.5, 1.5);
+  const chandelier = find('chandelier');
+  if (chandelier) { hang.position.copy(chandelier.getWorldPosition(v)).y -= 0.52; scene.add(hang); }
+  // The walls are light, so the night is made of lamps, not of a sky that fills the room: a little
+  // blue from the window, the hanging lamp dim, the desk lamp's pool on the desk.
+  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.45, hang: 2.4, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
+  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 1.5], moon: 0, sun: 4.2, neon: 0.5, lamp: 0.35, hang: 0, env: 0.4, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
   const dust = buildDust(quality.dust); scene.add(dust);
   let day = false;
   function setDay(on) {
     dust.material.uniforms.bright.value = on ? 1 : 0.18; // by day the sun lights it; at night only the moon
     day = on; root.userData.day = on; const m = on ? DAY : NIGHT;
     sky.color.set(m.sky[0]); sky.groundColor.set(m.sky[1]); sky.intensity = m.sky[2];
-    moon.intensity = m.moon; sun.intensity = m.sun; neon.intensity = m.neon;
+    moon.intensity = m.moon; sun.intensity = m.sun; neon.intensity = m.neon; hang.intensity = m.hang;
+    if (root.userData.hangGlow) root.userData.hangGlow.emissiveIntensity = m.hang ? 1.6 : 0;
     // a lamp in daylight adds little; at full power, 0.35 m from the fax's page, it burns it white
     lamp.userData.full = lampFull * m.lamp; if (lamp.intensity) lamp.intensity = lamp.userData.full;
     scene.environmentIntensity = m.env;
@@ -80,8 +95,11 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     root.userData.outside?.setDay?.(on);
   }
 
-  return {
+  const bulb = find('lamp_bulb');
+  const handle = {
     root, find, lamp, tvLight, screen, vcr: find('vcr'),
+    ready,          // the furniture that is files has arrived, or failed and left its stand-in (src/furniture.js)
+    onChange: null, // called when a piece of it arrives after the room is on screen: draw the shadows again
     get day() { return day; }, setDay,
     // the door: 0 shut, 1 open (about 100°); the light beyond shows only while it is ajar
     setDoor(k) {
@@ -89,8 +107,14 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
       leaf.rotation.y = -1.75 * k; if (glow) glow.visible = k > 0.001;
     },
     setRain(on) { const r = root.getObjectByName('rain_glass'); if (r) r.visible = on; },
-    update(t) { for (const a of animated) a(t); if (!still) dust.material.uniforms.time.value = t; },
+    update(t) {
+      for (const a of animated) a(t); if (!still) dust.material.uniforms.time.value = t;
+      if (bulb) bulb.visible = lamp.intensity > 0; // the bulb is lit only while the lamp is on
+      if (root.userData.lampGlow) root.userData.lampGlow.material.emissiveIntensity = lamp.intensity > 0 ? 0.9 : 0;
+      if (root.userData.arrived) { root.userData.arrived = false; if (root.userData.hangGlow) root.userData.hangGlow.emissiveIntensity = hang.intensity ? 1.6 : 0; handle.onChange?.(); }
+    },
   };
+  return handle;
 }
 
 // Dust in the window's light: 400 motes drifting in the air between the
@@ -142,8 +166,15 @@ function useBakedLighting(root) {
 // whole room stays well under 100 draw calls; anything that can be
 // hovered is its own named mesh or group.
 // ─────────────────────────────────────────────────────────────
-// The window: wide, in the middle of the back wall, above the desk.
-const WIN = { x: 0.2, y: 2.2, w: 2.8, h: 1.4 };
+// Where the furniture stands, in metres. The desk is under the window, against the back wall:
+// a writing desk of 2.20 × 0.90, its top 0.805 above the floor.
+const DESK = { x: 0.2, z: -1.51, w: 2.2, d: 0.9, top: 0.805 };
+// The television stands on a wooden riser with the video recorder in its slot: a 21-inch set,
+// 0.58 wide and 0.60 tall, its screen 0.45 × 0.34.
+// The glass of its tube bulges: `glass` is where its middle is on the set, and how fast it falls away (per metre², across and up).
+const TV = { x: 0.0, z: -1.544, rise: 0.147, h: 0.596, screen: [0.49, 0.362], glass: { at: [0.003, 0.372, 0.2577], fall: [0.659, 0.552] } };
+// The bookcase, left of the window: 1.20 × 1.90 × 0.36, and the heights of its six shelves.
+const CASE = { x: -2.15, z: -1.81, w: 1.2, h: 1.9, d: 0.36, levels: [0.101, 0.359, 0.617, 0.884, 1.179, 1.529] };
 
 const LEAF = { roughness: 0.7 }, leafTime = { value: 0 };
 function placeholderRoom() {
@@ -161,8 +192,9 @@ function placeholderRoom() {
     geo = geo.clone();
     if (rot) geo.rotateX(rot[0]).rotateY(rot[1]).rotateZ(rot[2]);
     geo.translate(...pos);
-    const key = color + JSON.stringify(opts ?? {});
-    if (!statics.has(key)) statics.set(key, { mat: std(color, opts), geos: [] });
+    const own = color?.isMaterial; // a material of its own (the wood), or a colour
+    const key = own ? color.uuid : color + JSON.stringify(opts ?? {});
+    if (!statics.has(key)) statics.set(key, { mat: own ? color : std(color, opts), geos: [] });
     statics.get(key).geos.push(geo);
   };
   const box = (size, pos, color, o) => part(new THREE.BoxGeometry(...size), pos, color, o);
@@ -171,89 +203,86 @@ function placeholderRoom() {
     const m = new THREE.Mesh(geo, mat); m.name = name; m.position.set(...pos);
     m.castShadow = m.receiveShadow = true; parent.add(m); return m;
   };
+  // several pieces of one material as one mesh: [[geometry, position], …]
+  const fuse = (pieces, mat, parent = g, name = '') => mesh(name, mergeGeometries(pieces.map(([geo, pos]) => {
+    const q = geo.index ? geo.toNonIndexed() : geo; q.translate(...pos); return q;
+  })), mat, [0, 0, 0], parent);
   const named = (name) => { const grp = new THREE.Group(); grp.name = name; g.add(grp); return grp; };
   const art = (kind) => hotspots.filter((h) => h.art?.kind === kind);
+  // the furniture that is files: each `place` leaves a holder with a stand-in, and the model takes its place
+  const F = createFurniture(modelFiles, { lite, anisotropy, onChange: () => { g.userData.arrived = true; } });
+  const sbox = (s, size, pos, color, opts) => mesh('', new THREE.BoxGeometry(...size), std(color, opts), pos, s); // a stand-in's box
 
-  // ── shell: floor, two walls, skirting, a rug ──
-  const floor = mesh('floor', new THREE.PlaneGeometry(7, 7), new THREE.MeshStandardMaterial({ color: '#b9a48e', ...pbr('herringbone_parquet', [3.5, 3.5]), roughness: 1, normalScale: new THREE.Vector2(0.8, 0.8) }), [0, 0, 0.5]);
-  floor.rotation.x = -Math.PI / 2; floor.castShadow = false;
-  const wall = (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.95, bumpMap: plaster(), bumpScale: 1.5 });
-  const wallMat = wall('#2f3442');
-  // the back wall, with a wide opening for the window in the middle (x -1.2..1.6, y 1.5..2.9)
-  const W0 = WIN.x - WIN.w / 2, W1 = WIN.x + WIN.w / 2, H0 = WIN.y - WIN.h / 2, H1 = WIN.y + WIN.h / 2;
-  for (const [w, h, x, y] of [[W0 + 3, 3.2, (W0 - 3) / 2, 1.6], [4.0 - W1, 3.2, (W1 + 4.0) / 2, 1.6], [WIN.w, H0, WIN.x, H0 / 2], [WIN.w, 3.2 - H1, WIN.x, (H1 + 3.2) / 2]]) {
-    mesh('wall_back', new THREE.PlaneGeometry(w, h), wallMat, [x, y, -2.0]); // it casts: the day's sun comes in by the window only
+  // ── the shell: an old apartment (src/shell.js) ──
+  const ROSE = [0.2, 0.9], DOOR = { x: -1.55, w: 0.9, h: 2.08 };
+  const { wood, fz, woodPer } = buildShell({ mesh, part, std, pbr, lite, look, rose: ROSE, doorGap: [DOOR.x - DOOR.w / 2 - 0.09, DOOR.x + DOOR.w / 2 + 0.09] });
+  const wb = (w, h, d, pos, o) => part(woodBox(w, h, d, { per: woodPer, ...o }), pos, wood); // a piece of the dark wood
+  const brass = std(look.brass, { metalness: 0.8, roughness: 0.3 });
+
+  // ── the desk: walnut, under the window; an apron with three drawers, four square legs ──
+  const top = DESK.top, deskZ = DESK.z;
+  const walnut = new THREE.MeshStandardMaterial({ color: '#e6a970', ...pbr('american_walnut_veneer', [1, 1]), roughness: 0.85, normalScale: new THREE.Vector2(0.6, 0.6) });
+  const wal = (w, h, d, pos, o) => part(woodBox(w, h, d, { per: 1.4, grain: 'u', ...o }), pos, walnut);
+  {
+    const { x, z, w, d } = DESK, a = 0.11, ay = top - 0.047 - a / 2; // the apron, and its middle
+    wal(w, 0.035, d, [x, top - 0.0175, z]); wal(w - 0.03, 0.012, d - 0.03, [x, top - 0.041, z]);     // the top, and the moulding under its edge
+    wal(w - 0.16, a, 0.02, [x, ay, z - d / 2 + 0.07]); wal(w - 0.16, a, 0.02, [x, ay, z + d / 2 - 0.07]); // the apron, back and front
+    for (const sx of [-1, 1]) wal(0.02, a, d - 0.16, [x + sx * (w / 2 - 0.07), ay, z]);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) wal(0.055, top - 0.035, 0.055, [x + sx * (w / 2 - 0.075), (top - 0.035) / 2, z + sz * (d / 2 - 0.075)]);
+    const dw = (w - 0.34) / 3; // three drawers in the front apron, a brass knob on each
+    for (const k of [-1, 0, 1]) {
+      wal(dw - 0.02, a - 0.024, 0.014, [x + k * dw, ay, z + d / 2 - 0.058]);
+      part(new THREE.SphereGeometry(0.013, 12, 8), [x + k * dw, ay, z + d / 2 - 0.04], look.brass, { opts: { metalness: 0.8, roughness: 0.3 } });
+    }
   }
-  const left = mesh('wall_left', new THREE.PlaneGeometry(7, 3.2), wall('#2a2f3c'), [-3.0, 1.6, 0.5]);
-  left.rotation.y = Math.PI / 2; left.castShadow = false;
-  const right = mesh('wall_right', new THREE.PlaneGeometry(7, 3.2), wall('#2a2f3c'), [3.4, 1.6, 0.5]);
-  right.rotation.y = -Math.PI / 2; right.castShadow = false;
-  const ceiling = mesh('ceiling', new THREE.PlaneGeometry(7, 7), std('#1d2029', { roughness: 1 }), [0.2, 3.1, 0.5]);
-  ceiling.rotation.x = Math.PI / 2; ceiling.castShadow = false;
-  const front = mesh('wall_front', new THREE.PlaneGeometry(7, 3.2), wall('#2c303d'), [0.2, 1.6, 3.8]);
-  front.rotation.y = Math.PI; front.castShadow = false;
-  box([7, 0.1, 0.03], [0.2, 0.05, 3.785], '#1c1f27');
-  box([7, 0.1, 0.03], [0.5, 0.05, -1.985], '#1c1f27');
-  box([0.03, 0.1, 7], [3.385, 0.05, 0.5], '#1c1f27');
-  box([0.03, 0.1, 7], [-2.985, 0.05, 0.5], '#1c1f27');
-  rbox([2.4, 0.015, 1.7], [0, 0.008, -0.55], '#6e1a14', { opts: { roughness: 1 } });
-  rbox([2.1, 0.017, 1.4], [0, 0.009, -0.55], '#3e1411', { opts: { roughness: 1 } });
 
-  // ── desk: walnut, under the window ──
-  const deskY = 0.78, deskZ = -1.45;
-  const walnut = new THREE.MeshStandardMaterial({ color: '#c9a888', ...pbr('american_walnut_veneer', [1.6, 0.6]), roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
-  mesh('', new RoundedBoxGeometry(2.3, 0.05, 0.95, 2, 0.012), walnut, [0.05, deskY, deskZ]);
-  for (const x of [-1.0, 1.1]) for (const z of [-1.82, -1.05]) mesh('', new THREE.BoxGeometry(0.05, deskY, 0.05), walnut, [x, deskY / 2, z]);
-  mesh('', new THREE.BoxGeometry(2.15, 0.1, 0.03), walnut, [0.05, deskY - 0.07, -1.88]); // the apron at the back
-  const top = deskY + 0.025;
-
-  // the computer: a beige CRT monitor on a stand, the VCR in front of it, a keyboard
-  const beige = (seed, color) => new THREE.MeshStandardMaterial({ map: plasticArt(color, seed), bumpMap: noiseTex(256, 30, seed), bumpScale: 0.4, roughness: 0.62 });
-  const plastic = beige(3, '#d6ccb8');
-  mesh('', new RoundedBoxGeometry(0.42, 0.06, 0.34, 2, 0.015), plastic, [0.05, top + 0.03, -1.66]);
-  mesh('', new RoundedBoxGeometry(0.66, 0.54, 0.34, 3, 0.03), plastic, [0.05, top + 0.06 + 0.27, -1.55]);
-  mesh('', new RoundedBoxGeometry(0.5, 0.42, 0.24, 3, 0.06), plastic, [0.05, top + 0.06 + 0.27, -1.8]); // the tube's back
-  const bezel = beige(8, '#cbbfa8');
-  mesh('', new RoundedBoxGeometry(0.6, 0.47, 0.02, 2, 0.008), bezel, [0.05, top + 0.35, -1.375]);
-  mesh('', new THREE.BoxGeometry(0.56, 0.43, 0.01), std('#141416', { roughness: 0.3 }), [0.05, top + 0.35, -1.368]);
-  const screen = mesh('screen', new THREE.PlaneGeometry(0.52, 0.39), new THREE.MeshBasicMaterial({ color: 0x111111 }), [0.05, top + 0.35, -1.36]);
+  // the television, on a riser of the same wood with the video recorder in its slot
+  const tvY = top + TV.rise;
+  wal(0.66, 0.022, 0.52, [TV.x, tvY - 0.011, TV.z]);
+  for (const sx of [-1, 1]) wal(0.022, TV.rise - 0.022, 0.52, [TV.x + sx * 0.319, (top + tvY - 0.022) / 2, TV.z], { along: 'z' });
+  F.place('tv', g, { at: [TV.x, tvY, TV.z], fit: { h: TV.h }, standin: (s) => {
+    sbox(s, [0.58, TV.h - 0.03, 0.44], [0, TV.h / 2 + 0.015, -0.035], '#2b2b2d', { roughness: 0.6 });
+    sbox(s, [0.5, 0.39, 0.02], [0, TV.glass.at[1], 0.19], '#101012', { roughness: 0.3 });
+  } });
+  // the picture lies on the glass: a sheet bent like it, a few millimetres in front, its edge behind the set's own frame
+  const sheet = new THREE.PlaneGeometry(...TV.screen, 16, 12), sp = sheet.attributes.position;
+  for (let i = 0; i < sp.count; i++) sp.setZ(i, -TV.glass.fall[0] * sp.getX(i) ** 2 - TV.glass.fall[1] * sp.getY(i) ** 2);
+  const screen = mesh('screen', sheet, new THREE.MeshBasicMaterial({ color: 0x111111 }), [TV.x + TV.glass.at[0], tvY + TV.glass.at[1], TV.z + TV.glass.at[2] + 0.004]);
   screen.castShadow = false;
-  mesh('', new THREE.SphereGeometry(0.006, 8, 6), new THREE.MeshBasicMaterial({ color: '#5dff9a', toneMapped: false }), [0.3, top + 0.09, -1.37]).castShadow = false; // power LED
-  const vcr = mesh('vcr', new RoundedBoxGeometry(0.58, 0.09, 0.32, 2, 0.012), std('#202023', { roughness: 0.4, metalness: 0.35 }), [0.05, top + 0.045, -1.17]);
-  mesh('', new THREE.PlaneGeometry(0.56, 0.0875), new THREE.MeshStandardMaterial({ map: vcrFrontArt(), roughness: 0.5, metalness: 0.2 }), [0, 0, 0.1605], vcr).castShadow = false;
-  const led = mesh('vcr_led', new THREE.PlaneGeometry(0.012, 0.006), new THREE.MeshBasicMaterial({ color: '#ff3b2f', toneMapped: false }), [0.25, 0.02, 0.162], vcr);
-  led.castShadow = false;
-  const kb = mesh('', new THREE.BoxGeometry(0.44, 0.025, 0.16), [plastic, plastic, new THREE.MeshStandardMaterial({ map: keyboardArt(), bumpMap: keyboardArt(), bumpScale: 0.6, roughness: 0.7 }), plastic, plastic, plastic], [-0.5, top + 0.0125, -1.14]);
-  kb.rotation.set(0.06, 0.1, 0);
+  // the video recorder in the riser's slot, at its real size, its slot and its clock toward the room (src/vhs.js)
+  const vcr = buildVCR(deck, { lite, anisotropy }); vcr.position.set(TV.x, top, TV.z + 0.108); g.add(vcr); animated.push(vcr.userData.update);
 
-  // the tapes: a stack beside the VCR, spines out, labels by hand or in a retro face
-  const shell = std('#151517', { roughness: 0.55, bumpMap: noiseTex(128, 50, 2), bumpScale: 0.3 });
-  tapes.forEach((t, i) => {
-    const spine = t.spine ?? { text: t.label };
-    const faces = [shell, shell, new THREE.MeshStandardMaterial({ map: tapeTopArt(spine), roughness: 0.5 }), shell, new THREE.MeshStandardMaterial({ map: tapeSpineArt(spine), roughness: 0.6 }), shell];
-    const tape = mesh(`tape_${t.id}`, new THREE.BoxGeometry(0.205, 0.028, 0.115), faces, [0.62, top + 0.014 + i * 0.0285, -1.22]);
-    tape.rotation.y = Math.sin(i * 2.3) * 0.07;
-  });
+  // the tapes: two piles on the desk beside it, most in their card sleeves (src/vhs.js). Each pile's
+  // sleeves open away from the other, and a cassette needs 0.21 m of free desk there to slide out.
+  const pile = buildTapeStack(tapes, tapeStack, { lite, anisotropy }); pile.position.set(0.8, top, -1.3); g.add(pile); animated.push(pile.userData.update);
 
-  // desk lamp: a base, an arm and a shade, hoverable as one
-  const lamp = named('lamp'); lamp.position.set(-0.3, top, -1.75);
-  const brass = std('#b08a4a', { metalness: 0.6, roughness: 0.35 });
-  mesh('', new THREE.CylinderGeometry(0.09, 0.1, 0.03, 24), brass, [0, 0.015, 0], lamp);
-  mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.42, 8), brass, [0, 0.23, 0], lamp);
-  const shade = mesh('', new THREE.ConeGeometry(0.13, 0.16, 24, 1, true), std('#d9c3a0', { side: THREE.DoubleSide, emissive: '#ffb066', emissiveIntensity: 0.6 }), [0, 0.46, 0], lamp);
-  shade.castShadow = false;
-  const bulb = mesh('lamp_bulb', new THREE.SphereGeometry(0.03, 12, 8), new THREE.MeshBasicMaterial({ color: '#fff1d6', toneMapped: false }), [0, 0.42, 0], lamp);
+  // the desk lamp: an architect's lamp clamped to the back of the desk, its shade over the papers
+  // (the file's own origin is the middle of its footprint: the clamp is 0.3 behind it, the bulb 0.18 before it and 0.69 up)
+  const LAMP = { at: [-0.6, top, -1.7], rot: Math.PI + 0.1, bulb: [-0.005, 0.69, -0.18] };
+  const lamp = F.place('lamp', g, { at: LAMP.at, rot: LAMP.rot, name: 'lamp', anchor: 'origin', standin: (s) => {
+    mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.56, 8).rotateX(-0.35), brass, [0, 0.27, 0.2], s);
+    mesh('', new THREE.CylinderGeometry(0.01, 0.01, 0.36, 8).rotateX(1.25), brass, [0, 0.6, -0.02], s);
+    mesh('', new THREE.ConeGeometry(0.09, 0.11, 20, 1, true), std('#c8551e', { side: THREE.DoubleSide, roughness: 0.5 }), [0, 0.72, -0.18], s);
+  }, tune: (m, o) => {
+    o.castShadow = !/light/.test(m.name); // the bulb does not shade its own light
+    if (/light/.test(m.name)) g.userData.lampGlow = o; // the mesh, not the material: a hover gives the mesh a copy of it (src/interact.js)
+    // The light sits inside the shade, 2 cm from its enamel, which would be thousands of times white: a white-hot
+    // disc, and sparks that the bloom spreads over the frame. What the lamp's own surfaces send back is capped at
+    // a warm white just above the bloom's threshold: a lit shade with a soft halo, never a burn (`just blow-light`).
+    m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', 'outgoingLight = min( outgoingLight, vec3( 1.6, 1.33, 0.98 ) );\n#include <opaque_fragment>'); };
+  } });
+  // where the light is: a small bulb, inside the file's own when it is there
+  const bulb = mesh('lamp_bulb', new THREE.SphereGeometry(0.014, 12, 8), new THREE.MeshBasicMaterial({ color: '#ffe2b0' }), LAMP.bulb, lamp);
   bulb.castShadow = false;
 
   // the fax: the address on the page it printed, and a LinkedIn button
   for (const h of art('fax')) {
-    const fax = named(h.name); fax.position.set(-0.95, top, -1.7); fax.rotation.y = 0.25;
-    const faxPlastic = beige(11, '#cfc8ba');
-    mesh('', new RoundedBoxGeometry(0.32, 0.09, 0.26, 2, 0.02), faxPlastic, [0, 0.045, 0], fax);
-    mesh('', new RoundedBoxGeometry(0.3, 0.05, 0.12, 2, 0.015), faxPlastic, [0, 0.1, -0.06], fax);
+    const fax = named(h.name); fax.position.set(-0.84, top, -1.56); fax.rotation.y = 0.5;
+    const faxPlastic = new THREE.MeshStandardMaterial({ map: plasticArt('#cfc8ba', 11), bumpMap: noiseTex(256, 30, 11), bumpScale: 0.4, roughness: 0.62 });
+    fuse([[new RoundedBoxGeometry(0.32, 0.09, 0.26, 2, 0.02), [0, 0.045, 0]], [new RoundedBoxGeometry(0.3, 0.05, 0.12, 2, 0.015), [0, 0.1, -0.06]]], faxPlastic, fax);
     mesh('', new THREE.PlaneGeometry(0.1, 0.03), new THREE.MeshBasicMaterial({ color: '#9fb88a' }), [-0.06, 0.0905, 0.07], fax).rotation.x = -Math.PI / 2; // the display
-    for (let k = 0; k < 12; k++) mesh('', new THREE.BoxGeometry(0.018, 0.008, 0.016), std('#4a4740'), [0.04 + (k % 3) * 0.024, 0.093, 0.03 + Math.floor(k / 3) * 0.022], fax);
-    const page = mesh('', new THREE.PlaneGeometry(0.21, 0.27), new THREE.MeshStandardMaterial({ map: paperArt({ lines: ['FAX', '', `to: you`, `from: ${contact.name}`, '', emailText, '', contact.linkedin.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')], stamp: 'RECEIVED' }), side: THREE.DoubleSide, roughness: 0.9 }), [0, 0.24, -0.1], fax);
+    fuse(Array.from({ length: 12 }, (_, k) => [new THREE.BoxGeometry(0.018, 0.008, 0.016), [0.04 + (k % 3) * 0.024, 0.093, 0.03 + Math.floor(k / 3) * 0.022]]), std('#4a4740'), fax); // the keys
+    const page = mesh('', new THREE.PlaneGeometry(0.21, 0.27), new THREE.MeshStandardMaterial({ map: paperArt({ lines: ['FAX', '', `to: you`, `from: ${contact.name}`, '', emailText, '', contact.linkedin.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')], stamp: 'RECEIVED' }), side: THREE.DoubleSide, color: '#d2cbbd', roughness: 0.9 }), [0, 0.24, -0.1], fax); // off-white: the lamp is 0.35 m away
     page.rotation.x = -0.32; page.castShadow = false;
     const li = new THREE.Group(); li.name = 'fax_linkedin'; li.position.set(0.12, 0.092, -0.03); fax.add(li);
     mesh('', new THREE.CylinderGeometry(0.018, 0.018, 0.012, 20), std('#0a66c2', { roughness: 0.4, emissive: '#0a66c2', emissiveIntensity: 0.25 }), [0, 0.006, 0], li);
@@ -265,13 +294,14 @@ function placeholderRoom() {
 
   // the note: the inspiration
   for (const h of art('note')) {
-    const note = mesh(h.name, new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: noteArt({ glyph: h.art.glyph, lines: [h.label.replace(/^.*?: /, ''), h.hint], theme }), roughness: 0.9 }), [-0.98, top + 0.002, -1.12]);
+    const note = mesh(h.name, new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: noteArt({ glyph: h.art.glyph, lines: [h.label.replace(/^.*?: /, ''), h.hint], theme }), roughness: 0.9 }), [-0.2, top + 0.002, -1.16]);
     note.rotation.set(-Math.PI / 2, 0, 0.18); note.castShadow = false;
   }
+  for (const h of art('credits')) g.add(creditsPlate(h.name, h.art, [3.08, 1.47, ROOM.z0 + 0.007])); // the credits plate, on the back wall beside the people's board (src/credits.js)
 
   // ── under the desk: a file marked closed source, a letter half out of it ──
   for (const h of art('folder')) {
-    const f = named(h.name); f.position.set(0.62, 0.006, -1.0); f.rotation.y = -0.35;
+    const f = named(h.name); f.position.set(0.72, 0.014, -0.92); f.rotation.y = -0.35;
     mesh('', new THREE.BoxGeometry(0.32, 0.012, 0.24), [std('#c9a764'), std('#c9a764'), new THREE.MeshStandardMaterial({ map: folderArt({ title: closedSource.label }), roughness: 0.85 }), std('#c9a764'), std('#c9a764'), std('#c9a764')], [0, 0, 0], f);
     const letter = mesh('letter_closed-source', new THREE.PlaneGeometry(0.2, 0.28), new THREE.MeshStandardMaterial({ map: paperArt({ lines: closedSource.letter.lines, stamp: 'CONFIDENTIAL', size: 13 }), roughness: 0.9 }), [0.13, 0.008, 0.06], f);
     letter.rotation.set(-Math.PI / 2, 0, 0.5); letter.castShadow = false;
@@ -280,7 +310,7 @@ function placeholderRoom() {
   // ── the bots: two small robots on the desk, eyes that blink ──
   art('bot').forEach((h, i) => {
     const bot = named(h.name);
-    bot.position.set(i === 0 ? 0.92 : -0.88, top, i === 0 ? -1.55 : -1.35);
+    bot.position.set(i === 0 ? 1.14 : -0.5, top, i === 0 ? -1.72 : -1.3);
     bot.rotation.y = i === 0 ? -0.5 : 0.45;
     const shell = std(h.art.color, { roughness: 0.4, metalness: 0.2 });
     const dark = std('#15171d', { roughness: 0.5 });
@@ -304,7 +334,7 @@ function placeholderRoom() {
   });
 
   // ── the right of the back wall: the eye, the letter board beside it, the people below ──
-  const RX = 2.5;
+  const RX = 2.56;
   for (const h of art('quote')) {
     const board = named(h.name); board.position.set(RX + 0.42, 2.3, -1.975);
     mesh('', new THREE.BoxGeometry(0.62, 0.44, 0.025), std('#5a3d28', { roughness: 0.7 }), [0, 0, 0], board);
@@ -318,33 +348,25 @@ function placeholderRoom() {
     animated.push((t) => { face.material.emissiveIntensity = 1.5 + Math.sin(t * 2.1) * 0.05 + (Math.sin(t * 13.7) > 0.995 ? -0.6 : 0); });
   }
 
-  // ── the window on Rio: wide, in the middle, with a frame, mullions and a sill ──
+  // ── the window on Rio: the glass in the frame of src/shell.js, and the city behind it ──
   const { x: wx, y: wy, w: ww, h: wh } = WIN;
-  const glass = mesh('window', new THREE.PlaneGeometry(ww, wh), new THREE.MeshPhysicalMaterial({ color: '#9fb6d8', roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.07, depthWrite: false }), [wx, wy, -1.995]);
+  const glass = mesh('window', new THREE.PlaneGeometry(ww - 0.1, wh - 0.1), new THREE.MeshPhysicalMaterial({ color: '#9fb6d8', roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.07, depthWrite: false }), [wx, wy, fz - 0.01]);
   glass.renderOrder = 3; glass.castShadow = false;
-  const view = buildOutside(g, { center: new THREE.Vector3(wx, wy, -2), aim: outside?.aim, night: outside?.night, day: outside?.day });
+  const view = buildOutside(g, { center: new THREE.Vector3(wx, wy, fz - 0.02), aim: outside?.aim, night: outside?.night, day: outside?.day });
   animated.push(view); g.userData.outside = view;
-  const frameMat = '#d8d2c4';
-  box([ww + 0.12, 0.07, 0.09], [wx, wy + wh / 2 + 0.03, -1.97], frameMat); box([ww + 0.12, 0.07, 0.09], [wx, wy - wh / 2 - 0.03, -1.97], frameMat);
-  box([0.07, wh + 0.12, 0.09], [wx - ww / 2 - 0.03, wy, -1.97], frameMat); box([0.07, wh + 0.12, 0.09], [wx + ww / 2 + 0.03, wy, -1.97], frameMat);
-  for (const k of [-1, 0, 1]) box([0.035, wh, 0.04], [wx + k * ww / 4 + (k === 0 ? 0 : 0), wy, -1.98], frameMat); // three mullions: four panes
-  box([ww, 0.03, 0.035], [wx, wy + wh * 0.18, -1.98], frameMat); // the transom
-  box([ww + 0.25, 0.04, 0.22], [wx, wy - wh / 2 - 0.08, -1.9], frameMat); // the sill
 
-  // piabrota RADIO on the sill: a small transistor set, its dial lit while it plays
-  const radio = named('radio'); radio.position.set(wx + ww / 2 - 0.25, wy - wh / 2 - 0.06 + 0.07, -1.88); radio.rotation.y = -0.25;
-  mesh('', new RoundedBoxGeometry(0.24, 0.14, 0.08, 2, 0.02), std('#b8442f', { roughness: 0.45 }), [0, 0, 0], radio);
-  const grille = mesh('', new THREE.CircleGeometry(0.045, 24), std('#2a2522', { roughness: 0.9, metalness: 0.2 }), [-0.055, 0, 0.041], radio); grille.castShadow = false;
-  mesh('radio_dial', new THREE.PlaneGeometry(0.07, 0.035), new THREE.MeshStandardMaterial({ color: '#f1e3c0', emissive: '#ffb066', emissiveIntensity: 0 }), [0.06, 0.02, 0.041], radio).castShadow = false;
-  mesh('', new THREE.CylinderGeometry(0.012, 0.012, 0.012, 16).rotateX(Math.PI / 2), std('#d8d2c4', { metalness: 0.5, roughness: 0.3 }), [0.06, -0.035, 0.045], radio);
-  const aerial = mesh('', new THREE.CylinderGeometry(0.002, 0.002, 0.22, 6), std('#c9c9c9', { metalness: 0.8, roughness: 0.25 }), [0.08, 0.17, -0.01], radio); aerial.rotation.z = -0.35;
+  // piabrota RADIO on the sill: a radio cassette player, its dial lit while it plays
+  const RADIO = { x: 1.07, w: 0.46 };
+  const radio = F.place('radio', g, { at: [RADIO.x, SILL.y, SILL.z - 0.02], rot: -0.12, name: 'radio', fit: { w: RADIO.w }, standin: (s) => {
+    sbox(s, [RADIO.w, 0.16, 0.1], [0, 0.08, 0], '#1b1b1d', { roughness: 0.5 });
+  } });
+  mesh('radio_dial', new THREE.PlaneGeometry(0.2, 0.012), new THREE.MeshStandardMaterial({ color: '#2a2622', emissive: '#ffb066', emissiveIntensity: 0, roughness: 0.4 }), [0, 0.139, 0.064], radio).castShadow = false;
+  F.place('aloe', g, { at: [wx - ww / 2 + 0.32, SILL.y, SILL.z - 0.01], rot: 0.6, fit: { h: 0.25 } });
 
   // the mixtape beside it: a cassette leaning on the glass, the owner's playlist (config.playlist)
   for (const h of art('mixtape')) {
-    const tape = named(h.name); tape.position.set(radio.position.x - 0.27, wy - wh / 2 - 0.06 + 0.054, -1.875); tape.rotation.set(-0.1, -0.22, 0); tape.scale.setScalar(1.6); // a big one, to be seen from the room
-    const face = new THREE.MeshStandardMaterial({ map: cassetteArt({ ...playlist.tape, theme }), roughness: 0.55 });
-    mesh('', new RoundedBoxGeometry(0.104, 0.066, 0.012, 2, 0.003), std('#ddd5c4', { roughness: 0.5 }), [0, 0, 0], tape);
-    mesh('', new THREE.PlaneGeometry(0.1, 0.0625), face, [0, 0, 0.0062], tape).castShadow = false;
+    const tape = buildMixtape(playlist.tape, { lite, anisotropy, theme, scale: 1.6 }); tape.name = h.name; g.add(tape); // a big one, to be seen from the room
+    tape.position.set(0.47, SILL.y + tape.userData.foot, SILL.z - 0.035); tape.rotation.set(-0.1, 0.22, 0);
   }
 
   // ── the board: people pinned as polaroids, under the eye ──
@@ -409,73 +431,116 @@ function placeholderRoom() {
   // The leaf hangs on a hinge (`door_leaf`, turned by room.setDoor); behind it a warm light and the
   // lines of `door.beyond`, which show only when it swings open.
   for (const h of hotspots.filter((x) => x.name === 'door')) {
-    const door = named(h.name); door.position.set(-1.55, 0, 3.78); door.rotation.y = Math.PI;
-    const dw = 0.9, dh = 2.05;
+    const door = named(h.name); door.position.set(DOOR.x, 0, ROOM.z1 - 0.02); door.rotation.y = Math.PI;
+    const dw = DOOR.w, dh = DOOR.h, pw = woodPer;
     const hinge = new THREE.Group(); hinge.name = 'door_leaf'; hinge.position.set(-dw / 2, 0, 0); door.add(hinge);
-    const doorWood = new THREE.MeshStandardMaterial({ color: '#a88a70', ...pbr('american_walnut_veneer', [0.5, 1.2], Math.PI / 2), roughness: 1 });
-    mesh('', new THREE.BoxGeometry(dw, dh, 0.045), doorWood, [dw / 2, dh / 2, 0.02], hinge);
-    for (const [px, py, pw, ph] of [[0, 1.45, 0.62, 0.7], [0, 0.55, 0.62, 0.8]]) mesh('', new THREE.BoxGeometry(pw, ph, 0.012), doorWood, [dw / 2 + px, py, 0.048], hinge); // two raised panels
-    for (const [s2, p2] of [[[0.08, dh + 0.08, 0.06], [-dw / 2 - 0.04, (dh + 0.08) / 2, 0.01]], [[0.08, dh + 0.08, 0.06], [dw / 2 + 0.04, (dh + 0.08) / 2, 0.01]], [[dw + 0.16, 0.08, 0.06], [0, dh + 0.04, 0.01]]]) mesh('', new THREE.BoxGeometry(...s2), std('#d8d2c4'), p2, door);
-    const knob = std('#b08a4a', { metalness: 0.8, roughness: 0.3 });
-    mesh('', new THREE.SphereGeometry(0.03, 16, 12), knob, [dw - 0.09, 1.0, 0.08], hinge);
-    mesh('', new THREE.CylinderGeometry(0.035, 0.035, 0.01, 20).rotateX(Math.PI / 2), knob, [dw - 0.09, 1.0, 0.05], hinge);
-    mesh('', new THREE.BoxGeometry(0.05, 0.075, 0.01), std('#2a2c31', { metalness: 0.6, roughness: 0.4 }), [dw - 0.09, 1.14, 0.05], hinge); // the keypad plate
+    // the leaf: a frame of stiles and rails round four raised panels, all in the dark wood, one mesh
+    const leaf = [[woodBox(dw, dh, 0.034, { per: pw }), [dw / 2, dh / 2, 0.02]]];
+    for (const sx of [0.065, dw - 0.065]) leaf.push([woodBox(0.13, dh, 0.012, { per: pw }), [sx, dh / 2, 0.043]]);
+    for (const y of [0.11, 0.98, 1.24, dh - 0.07]) leaf.push([woodBox(dw - 0.26, y < 0.2 ? 0.22 : 0.14, 0.012, { per: pw }), [dw / 2, y, 0.043]]);
+    leaf.push([woodBox(0.1, dh - 0.3, 0.012, { per: pw }), [dw / 2, dh / 2 + 0.04, 0.043]]);
+    for (const [px, py, w2, h2] of [[0.26, 0.565, 0.24, 0.66], [dw - 0.26, 0.565, 0.24, 0.66], [0.26, 1.63, 0.24, 0.62], [dw - 0.26, 1.63, 0.24, 0.62]]) leaf.push([woodBox(w2, h2, 0.01, { per: pw }), [px, py, 0.042]]);
+    fuse(leaf, wood, hinge);
+    // the architrave round it
+    fuse([...[-1, 1].map((sx) => [woodBox(0.09, dh + 0.09, 0.03, { per: pw }), [sx * (dw / 2 + 0.045), (dh + 0.09) / 2, 0.005]]),
+      [woodBox(dw + 0.24, 0.1, 0.036, { per: pw }), [0, dh + 0.05, 0.008]]], wood, door);
+    // the brass: the knob, its spindle and the escutcheon
+    fuse([[new THREE.SphereGeometry(0.03, 16, 12), [dw - 0.065, 1.0, 0.085]],
+      [new THREE.CylinderGeometry(0.012, 0.012, 0.05, 12).rotateX(Math.PI / 2), [dw - 0.065, 1.0, 0.06]],
+      [new THREE.BoxGeometry(0.05, 0.16, 0.006), [dw - 0.065, 1.03, 0.052]]], brass, hinge);
+    mesh('', new THREE.BoxGeometry(0.05, 0.075, 0.01), std('#2a2c31', { metalness: 0.6, roughness: 0.4 }), [dw - 0.065, 1.2, 0.054], hinge); // the keypad plate
     const tag = paperArt({ lines: ['LOCKED', '', '_ _ _ _'], w: 128, h: 96, size: 14 });
-    mesh('', new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: tag, roughness: 0.9 }), [dw / 2, 1.62, 0.056], hinge).castShadow = false;
+    mesh('', new THREE.PlaneGeometry(0.16, 0.12), new THREE.MeshStandardMaterial({ map: tag, roughness: 0.9 }), [dw / 2, 1.42, 0.058], hinge).castShadow = false;
     // beyond: a warm light, 1 cm in front of the wall, hidden by the closed leaf
     const beyond = paperArt({ lines: doorText.beyond, w: 256, h: 512, size: 22 });
     const glow = mesh('door_beyond', new THREE.PlaneGeometry(dw - 0.02, dh - 0.02), new THREE.MeshBasicMaterial({ map: beyond, color: new THREE.Color(1.0, 0.86, 0.62), fog: false }), [0, dh / 2, -0.01], door);
     glow.castShadow = glow.receiveShadow = false; glow.visible = false;
   }
 
-  // ── the bookcase: the works with a DOI on the middle shelf ──
-  const shelf = named('shelf');
-  const sx = -2.15, sz = -1.82, sw = 1.0, sh = 1.9, sd = 0.32;
-  const wood = '#4a3426';
-  box([0.03, sh, sd], [sx - sw / 2, sh / 2, sz], wood); box([0.03, sh, sd], [sx + sw / 2, sh / 2, sz], wood);
-  box([sw, sh, 0.02], [sx, sh / 2, sz - sd / 2 + 0.01], '#3a281d');
-  const levels = [0.08, 0.55, 1.05, 1.5, sh];
-  for (const y of levels) box([sw, 0.03, sd], [sx, y, sz], wood);
+  // ── the bookcase: the works with a DOI at eye level, the encyclopaedia above and below ──
+  const { x: sx, z: sz, w: sw, h: sh, d: sd, levels } = CASE;
+  const shelf = F.place('bookcase', g, { at: [sx, 0, sz], name: 'shelf', fit: { w: sw, h: sh, d: sd }, stretch: true, standin: (s) => {
+    const c = '#8a7560';
+    for (const k of [-1, 1]) sbox(s, [0.035, sh, sd], [k * (sw / 2 - 0.0175), sh / 2, 0], c);
+    for (const y of [...levels, sh]) sbox(s, [sw - 0.07, 0.03, sd], [0, y - 0.015, 0], c);
+  } });
   // an invisible box so the whole case is hoverable
-  const proxy = mesh('', new THREE.BoxGeometry(sw + 0.04, sh + 0.04, sd + 0.06), new THREE.MeshBasicMaterial({ visible: false }), [sx, sh / 2, sz + 0.03], shelf);
+  const proxy = mesh('', new THREE.BoxGeometry(sw + 0.04, sh + 0.04, sd + 0.06), new THREE.MeshBasicMaterial({ visible: false }), [0, sh / 2, 0.03], shelf);
   proxy.userData.proxy = true; proxy.castShadow = proxy.receiveShadow = false;
   art('book').forEach((h, i) => {
-    const hgt = 0.3 + ((i * 37) % 7) * 0.012, th = 0.05 + ((i * 13) % 3) * 0.008;
+    const hgt = 0.235 + ((i * 37) % 7) * 0.009, th = 0.04 + ((i * 13) % 3) * 0.007;
     const spine = spineArt({ title: h.label, color: h.art.color, theme });
     const cover = std(h.art.color, { roughness: 0.7 });
-    const b = mesh(h.name, new THREE.BoxGeometry(th, hgt, 0.22), [cover, cover, cover, cover, new THREE.MeshStandardMaterial({ map: spine, roughness: 0.7 }), cover], [sx - 0.36 + i * 0.075, 1.065 + hgt / 2, sz + 0.03]);
-    b.rotation.z = i === 5 ? -0.12 : 0;
-    if (i === 5) b.position.x += 0.03;
+    const b = mesh(h.name, new THREE.BoxGeometry(th, hgt, 0.2), [cover, cover, cover, cover, new THREE.MeshStandardMaterial({ map: spine, roughness: 0.7 }), cover], [sx - 0.43 + i * 0.064, levels[4] + hgt / 2, sz + 0.03]);
+    b.rotation.z = i === 5 ? -0.14 : 0;
+    if (i === 5) b.position.x += 0.035;
   });
-  // vinyl crate and boxes on the lower shelves, a plant on top
-  for (let i = 0; i < 9; i++) box([0.006, 0.3, 0.3], [sx - 0.3 + i * 0.022, 0.1 + 0.15, sz + 0.01], i % 3 ? '#1b1b1b' : '#2b2b2b');
-  rbox([0.3, 0.2, 0.25], [sx + 0.25, 0.1 + 0.1, sz], '#7a6448');
-  rbox([0.25, 0.26, 0.24], [sx + 0.2, 0.57 + 0.13, sz], '#5c4a36');
-  rbox([0.2, 0.15, 0.22], [sx - 0.25, 0.57 + 0.075, sz], '#2f3a4a');
-  part(new THREE.CylinderGeometry(0.07, 0.055, 0.12, 16), [sx + 0.3, sh + 0.075, sz], '#b4583e');
-  const leaf = new THREE.SphereGeometry(0.09, 10, 8).scale(1, 1.4, 0.4);
-  for (let i = 0; i < 6; i++) part(leaf, [sx + 0.3 + Math.cos(i) * 0.06, sh + 0.22 + (i % 3) * 0.04, sz + Math.sin(i) * 0.06], '#2f6b3a', { rot: [0.3 * Math.sin(i * 2), i, 0.4 * Math.cos(i)], opts: LEAF });
+  // the rest of it: three runs of an encyclopaedia, a clock, a vase, records and boxes at the bottom
+  for (const [dx, lv, turn] of [[0.33, 4, 0], [-0.36, 5, 0], [-0.04, 3, 0], [-0.37, 3, 0]]) F.place('books', g, { at: [sx + dx, levels[lv], sz + 0.02], rot: turn, fit: { h: 0.235 } });
+  F.place('vase', g, { at: [sx + 0.36, levels[5], sz], fit: { h: 0.3 } });
+  F.place('alarm', g, { at: [sx + 0.36, levels[3], sz + 0.04], rot: 0.35, fit: { h: 0.15 } });
+  for (let i = 0; i < 14; i++) box([0.005, 0.24, 0.3], [sx - 0.5 + i * 0.016 + (i % 4) * 0.002, levels[1] + 0.12, sz + 0.01], i % 3 ? '#1b1b1b' : '#3a2d2a'); // records, on edge
+  const card = (size, pos, color) => part(new RoundedBoxGeometry(...size, 2, 0.008), pos, color, { opts: { roughness: 0.92 } }); // a card box: square, its corners a little worn
+  card([0.34, 0.2, 0.26], [sx + 0.3, levels[1] + 0.1, sz], '#7a6448'); card([0.335, 0.02, 0.255], [sx + 0.3, levels[1] + 0.205, sz], '#6b563d');
+  card([0.3, 0.2, 0.26], [sx - 0.3, levels[2] + 0.1, sz], '#5c4a36');
+  card([0.42, 0.11, 0.25], [sx + 0.2, levels[2] + 0.055, sz], '#2f3a4a'); card([0.4, 0.07, 0.24], [sx + 0.19, levels[2] + 0.145, sz + 0.005], '#7c2a22');
+  card([0.46, 0.21, 0.28], [sx - 0.22, levels[0] + 0.105, sz], '#6d5a44');
+  card([0.36, 0.17, 0.27], [sx + 0.32, levels[0] + 0.085, sz], '#3d3530');
 
   // ── the fabric wall: one framed print per project ──
   art('frame').forEach((h, i) => {
     const col = i % 4, row = Math.floor(i / 4);
-    const z = 0.66 - col * 0.62, y = 1.98 - row * 0.66;
+    const z = 1.43 - col * 0.62, y = 2.0 - row * 0.66;
     const frame = named(h.name); frame.position.set(-2.985, y, z); frame.rotation.y = Math.PI / 2;
-    mesh('', new THREE.BoxGeometry(0.46, 0.56, 0.025), std('#121318', { roughness: 0.4 }), [0, 0, 0.012], frame);
+    mesh('', new THREE.BoxGeometry(0.46, 0.56, 0.025), std('#1c1512', { roughness: 0.45 }), [0, 0, 0.012], frame);
     const pic = mesh('', new THREE.PlaneGeometry(0.42, 0.52), new THREE.MeshStandardMaterial({ map: frameArt({ glyph: h.art.glyph, title: h.label, line: h.hint, color: h.art.color, theme }), roughness: 0.5 }), [0, 0, 0.026], frame);
     pic.castShadow = false;
   });
 
-  // ── a chair and a plant in the corner ──
-  rbox([0.5, 0.06, 0.48], [0.1, 0.48, -0.75], '#22252d');
-  rbox([0.48, 0.5, 0.05], [0.1, 0.78, -0.5], '#22252d', { rot: [-0.12, 0, 0] });
-  part(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), [0.1, 0.24, -0.75], '#3a3d45');
-  part(new THREE.CylinderGeometry(0.25, 0.25, 0.03, 16), [0.1, 0.02, -0.75], '#3a3d45');
-  part(new THREE.CylinderGeometry(0.16, 0.12, 0.34, 16), [-2.6, 0.17, 0.9], '#c9c2b4');
-  for (let i = 0; i < 9; i++) part(new THREE.ConeGeometry(0.06, 0.7, 6), [-2.6 + Math.cos(i * 2.4) * 0.07, 0.62, 0.9 + Math.sin(i * 2.4) * 0.07], '#2f6b3a', { rot: [Math.sin(i * 2.4) * 0.35, 0, -Math.cos(i * 2.4) * 0.35], opts: LEAF });
+  // ── the rest of the furniture: photographed pieces, each at its real size ──
+  const dark = '#3a2a22', cloth = '#cfc6b4';
+  // the chair at the desk: an armchair, pulled out and turned a little
+  F.place('chair', g, { at: [-0.62, 0, -0.5], rot: Math.PI + 0.45, fit: { h: 1.0 }, standin: (s) => {
+    sbox(s, [0.56, 0.1, 0.52], [0, 0.38, 0.02], '#4d6b5a'); sbox(s, [0.5, 0.52, 0.08], [0, 0.72, -0.26], '#4d6b5a');
+    for (const kx of [-1, 1]) for (const kz of [-1, 1]) sbox(s, [0.045, 0.34, 0.045], [kx * 0.26, 0.17, kz * 0.24], dark);
+  } });
+  // the sofa under the prints, with two pillows at one end
+  const SOFA = { x: -2.6, z: 0.5, w: 1.75 };
+  F.place('sofa', g, { at: [SOFA.x, 0, SOFA.z], rot: Math.PI / 2, fit: { w: SOFA.w }, standin: (s) => {
+    sbox(s, [SOFA.w, 0.22, 0.6], [0, 0.31, 0.03], cloth); sbox(s, [SOFA.w, 0.5, 0.12], [0, 0.62, -0.3], cloth);
+    for (const kx of [-1, 1]) sbox(s, [0.1, 0.34, 0.6], [kx * (SOFA.w / 2 - 0.05), 0.5, 0.03], cloth);
+  } });
+  F.place('pillows', g, { at: [SOFA.x + 0.04, 0.4, SOFA.z + 0.46], rot: Math.PI / 2 - 0.1, fit: { w: 0.66 } });
+  // beside it: a tall table with a fern in a clay pot, a ukulele against the wall, a painting above
+  F.place('sideTable', g, { at: [-2.7, 0, 1.76], fit: { h: 0.7 }, standin: (s) => { sbox(s, [0.34, 0.03, 0.34], [0, 0.685, 0], dark); for (const kx of [-1, 1]) for (const kz of [-1, 1]) sbox(s, [0.03, 0.67, 0.03], [kx * 0.13, 0.335, kz * 0.13], dark); } });
+  F.place('pot', g, { at: [-2.7, 0.7, 1.76], fit: { h: 0.19 } });
+  F.place('fern', g, { at: [-2.7, 0.84, 1.76], rot: 0.9, fit: { w: 0.82 }, shadow: false });
+  F.place('ukulele', g, { at: [-2.88, 0, 2.2], rot: [-0.19, Math.PI / 2, 0.06], fit: { h: 0.6 } });
+  F.place('painting', g, { at: [ROOM.x0 + 0.004, 1.72, 2.62], rot: Math.PI / 2, anchor: 'back', fit: { w: 0.9 } });
+  // the long-case clock in the corner by the door
+  F.place('clock', g, { at: [-2.6, 0, ROOM.z1 - 0.24], rot: Math.PI, fit: { h: 2.12 }, standin: (s) => { sbox(s, [0.5, 2.1, 0.32], [0, 1.05, 0], '#6b3f2a'); } });
+  // a big plant under the people's board, a suitcase and a box in the far corner, a box under the desk
+  F.place('plant', g, { at: [2.32, 0, -1.6], rot: 2.2, fit: { h: 0.98 }, standin: (s) => { mesh('', new THREE.CylinderGeometry(0.2, 0.15, 0.36, 16), std('#b4673e'), [0, 0.18, 0], s); } });
+  F.place('box', g, { at: [3.0, 0, 3.36], rot: 0.25, fit: { w: 0.42 } });
+  F.place('suitcase', g, { at: [2.42, 0, 3.6], rot: [0.14, Math.PI + 0.08, 0], fit: { w: 0.66 } });
+  F.place('box', g, { at: [1.02, 0, -1.62], rot: -0.2, fit: { w: 0.38 } });
+  // on the desk: a cup of pencils, pens laid out
+  F.place('pencilCup', g, { at: [0.94, top, -1.8], fit: { h: 0.1 } });
+  F.place('pens', g, { at: [0.5, top + 0.001, -1.15], rot: 0.3, turn: [-Math.PI / 2, 0, 0], fit: { w: 0.2 } });
+  // the lamp of the room hangs from the rose (its light is in loadRoom: dim in the evening, off by day)
+  F.place('chandelier', g, { at: [ROSE[0], ROOM.h - 0.07, ROSE[1]], name: 'chandelier', anchor: 'top', fit: { h: 0.82 }, shadow: false, tune: (m) => { if (/bulb/.test(m.name)) { m.emissive.set('#ffd9a0'); m.emissiveIntensity = 0; g.userData.hangGlow = m; } } });
+
+  // the soft shadow each thing leaves where it stands
+  g.add(contactShadows([
+    [DESK.x, DESK.z + 0.05, DESK.w + 0.5, DESK.d + 0.6, 0.34],
+    [-0.62, -0.5, 0.95, 0.95, 0.42, 0.014],
+    [SOFA.x + 0.05, SOFA.z, 1.05, SOFA.w + 0.35, 0.5], [-2.7, 1.76, 0.6, 0.6, 0.4], [-2.6, ROOM.z1 - 0.26, 0.95, 0.75, 0.5],
+    [CASE.x, CASE.z + 0.06, CASE.w + 0.3, CASE.d + 0.42, 0.5], [-2.2, -1.15, 0.72, 0.8, 0.45],
+    [2.32, -1.6, 0.7, 0.7, 0.45], [3.08, -0.45, 0.95, 2.1, 0.5], [3.0, 3.36, 0.75, 0.8, 0.42], [2.42, 3.62, 0.95, 0.5, 0.4], [1.02, -1.62, 0.6, 0.7, 0.3],
+  ]));
 
   // ── the other walls: marola-dev's sea, ouroboric-dev's loop, the slipbox ──
-  animated.push(buildSea(g, mesh, std, part), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
+  animated.push(buildSea(g, mesh, std, part, F), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
 
   // the leaves sway a little in the air of the room (the vertex shader; still under reduced motion)
   const sway = std('#2f6b3a', LEAF);
@@ -489,7 +554,7 @@ function placeholderRoom() {
   animated.push((t) => { if (!still) leafTime.value = t; });
 
   // the rain on the glass, when the rain is on: drops that cling and run down
-  const rainGlass = mesh('', new THREE.PlaneGeometry(WIN.w, WIN.h), new THREE.ShaderMaterial({
+  const rainGlass = mesh('', new THREE.PlaneGeometry(WIN.w - 0.1, WIN.h - 0.1), new THREE.ShaderMaterial({
     uniforms: { uTime: { value: 0 }, uAspect: { value: WIN.w / WIN.h } }, transparent: true, depthWrite: false, fog: false,
     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: `
@@ -507,7 +572,7 @@ function placeholderRoom() {
         float a = drops(vUv, 9.0, 0.12) + 0.6 * drops(vUv + 0.37, 17.0, 0.05) + 0.35 * drops(vUv + 0.71, 31.0, 0.0);
         gl_FragColor = vec4(vec3(0.82, 0.88, 0.95), clamp(a, 0.0, 1.0) * 0.32);
       }`,
-  }), [WIN.x, WIN.y, -1.99]);
+  }), [WIN.x, WIN.y, fz - 0.005]);
   rainGlass.castShadow = rainGlass.receiveShadow = false; rainGlass.renderOrder = 4; rainGlass.visible = false; rainGlass.name = 'rain_glass';
   animated.push((t) => { if (rainGlass.visible && !still) rainGlass.material.uniforms.uTime.value = t; });
 
@@ -516,7 +581,19 @@ function placeholderRoom() {
     const m = new THREE.Mesh(mergeGeometries(geos.map((x) => x.index ? x.toNonIndexed() : x)), mat);
     m.castShadow = m.receiveShadow = true; m.name = 'static'; g.add(m);
   }
-  return { root: g, animated };
+  // a box with one material a side is six draw calls; its sides of the same material become one
+  g.traverse((o) => {
+    if (!o.isMesh || !Array.isArray(o.material) || !o.geometry.index || o.geometry.groups.length < 3) return;
+    const geo = o.geometry.clone(), ix = geo.index.array, uniq = [...new Set(o.material)], out = new ix.constructor(ix.length);
+    let n = 0; geo.clearGroups();
+    uniq.forEach((m, k) => {
+      const start = n;
+      for (const gr of o.geometry.groups) if (o.material[gr.materialIndex] === m) { out.set(ix.subarray(gr.start, gr.start + gr.count), n); n += gr.count; }
+      geo.addGroup(start, n - start, k);
+    });
+    geo.setIndex(new THREE.BufferAttribute(out, 1)); o.geometry = geo; o.material = uniq;
+  });
+  return { root: g, animated, ready: F.ready };
 }
 
 // You: a pair of sneakers and the legs of a pair of jeans, standing under

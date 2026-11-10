@@ -65,6 +65,8 @@ await page.addInitScript(() => { const real = performance.now.bind(performance);
 await page.route('**/live/door', (r) => r.fulfill({ status: 204 }));
 await page.goto(`${url}?hifi&night&record`); // the same light on every run; no ambient occlusion
 await page.waitForSelector('#loading.done', { timeout: 120000 });
+// the furniture that is files: in software the room opens before the last piece has arrived, so wait for it
+await page.evaluate(async () => { await window.__room.room.ready; window.__room.step(1 / 30); });
 await page.click('#enter button');
 await page.addStyleTag({ content: '#enter{display:none!important}' }); // skip its fade
 rmSync(frames, { recursive: true, force: true }); mkdirSync(frames, { recursive: true });
@@ -196,7 +198,7 @@ await wall(async () => {                                                        
   await moveTo(...(await at('screen')), 0.5); await wait(1.2);                  // over the TV while it plays
   await moveTo(...(await at('fax', 0.22)), 0.5); await wait(0.5);               // the fax: the address
   await moveTo(...(await at('fax_linkedin')), 0.4); await wait(0.5);            // and its LinkedIn button
-  await moveTo(...(await at('lamp', 0.4)), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
+  await moveTo(...(await at('lamp_bulb')), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
   await moveTo(...(await box('#radio')), 0.5); await click(); await wait(0.3);  // piabrota RADIO on
   await moveTo(...(await box('#stations button[data-station="brasil"]')), 0.4); await click(); // the lofi brasil station
   await moveTo(...(await box('#rain')), 0.4); await click();                    // the rain, on
@@ -206,6 +208,8 @@ await wall(async () => {                                                        
   await moveTo(...(await box('#playlist')), 0.5); await wait(0.6);              // and its button at the top
   await page.keyboard.press('5'); await land();                                 // key 5: the board
   await moveTo(...(await at('photo_h0ffmann')), 0.5); await wait(1.0);          // the people
+  await moveTo(...(await at('credits')), 0.5); await wait(1.2);                 // the brass plate: whose idea a room like this is
+  await moveTo(...(await box('#credits')), 0.6); await wait(1.6);               // and the credits button: its card opens on hover
 });
 await wall(async () => {                                                        // the left wall: the projects
   await page.keyboard.press('3'); await land();
