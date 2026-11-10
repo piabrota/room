@@ -94,30 +94,39 @@ rig.go(gridHome ? 'grid' : config.startShot, true);
 const S = (t) => t * t * t * (t * (t * 6 - 15) + 10);
 const tweens = [];
 const tween = (obj, to, dur, done) => tweens.push({ obj, from: obj.position.clone(), to, t: 0, dur, done });
+// The placeholder room's tapes know the way themselves (src/vhs.js: the cassette leaves its sleeve,
+// which stays in the pile, and goes in by the VCR's slot); a tape of a room.glb is a plain mesh, and flies.
+let inDeck = null; // the tape in the VCR, or on its way there
 for (const def of config.tapes) {
   const mesh = room.find(`tape_${def.id}`); if (!mesh) continue;
   mesh.userData.home = mesh.position.clone();
   ui.add(mesh, {
     label: def.label, hint: def.text,
     onClick: () => {
-      if (tv.playing) eject();
+      if (inDeck?.def === def) { if (tv.playing?.def === def) eject(); return; } // its empty sleeve: the tape comes back
+      eject();
       audio.play(config.sfx.click);
-      const slot = room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2));
-      tween(mesh, slot, 0.7, async () => {
-        mesh.visible = false; redrawShadows();
+      inDeck = { def, mesh };
+      const arrived = async () => {
+        if (inDeck?.def !== def) return; // called back before it got there
+        mesh.visible = !!mesh.userData.load; redrawShadows();
         audio.play(config.sfx.insert);
         await tv.insert(def);
+        if (inDeck?.def !== def) { if (tv.playing?.def === def) tv.eject(); return; }
         room.tvLight.color.set(def.color); room.tvLight.intensity = 3;
-      });
+      };
+      if (mesh.userData.load) mesh.userData.load(room.vcr, arrived);
+      else tween(mesh, room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2)), 0.7, arrived);
       rig.go('desk');
     },
   });
 }
 function eject() {
-  const def = tv.playing?.def; if (!def) return;
+  const cur = inDeck; if (!cur) return; inDeck = null;
   tv.eject(); room.tvLight.intensity = 0;
-  const mesh = room.find(`tape_${def.id}`);
-  mesh.visible = true; tween(mesh, mesh.userData.home, 0.7, redrawShadows);
+  if (cur.mesh.userData.unload) cur.mesh.userData.unload(redrawShadows);
+  else { cur.mesh.visible = true; tween(cur.mesh, cur.mesh.userData.home, 0.7, redrawShadows); }
+  redrawShadows();
   audio.play(config.sfx.eject ?? config.sfx.insert);
 }
 ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), hint: () => (tv.playing ? tv.playing.def.label : 'pick a tape beside it'), onClick: eject });
