@@ -475,17 +475,18 @@ export const door = {
 export const cat = {
   name: 'Nash', hint: 'a black cat. he goes where he wants', color: '#0c0c0f', eyes: '#d9e84a',
   perches: [
-    { id: 'rug', at: [-0.2, 0.017, -0.15], face: 2.6 },
-    { id: 'rug2', at: [1.0, 0.017, 0.2], face: -2.2 },
+    { id: 'rug', at: [-0.75, 0.013, 0.25], face: 2.6 },
+    { id: 'rug2', at: [1.0, 0.013, 0.2], face: -2.2 },
     { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8 },
-    { id: 'chair', at: [0.1, 0.51, -0.78], face: 3.1 },
-    { id: 'desk', at: [0.72, 0.805, -1.15], face: 2.8 },
-    { id: 'deskLeft', at: [-0.75, 0.805, -1.05], face: 2.4 },
-    { id: 'monitor', at: [0.05, 1.405, -1.6], face: 3.14, via: 'desk' },
-    { id: 'sill', at: [1.3, 1.44, -1.87], face: 3.0, via: 'desk' },
+    { id: 'sofa', at: [-2.5, 0.42, -0.35], face: 1.6 },
+    { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8 },
+    { id: 'deskLeft', at: [-0.72, 0.805, -1.2], face: 2.4 },
+    { id: 'tv', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk' },
+    { id: 'sill', at: [0.72, 1.015, -2.03], face: 2.9, via: 'desk' },
     { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2 },
-    { id: 'shelf', at: [-2.4, 1.915, -1.8], face: 3.14, via: 'deskLeft' },
+    { id: 'shelf', at: [-2.4, 1.9, -1.8], face: 3.14, via: 'deskLeft' },
   ],
+
 };
 
 // ── the screen guard (src/guard.js): the page goes black on PrintScreen and while the window is

@@ -267,7 +267,7 @@ function placeholderRoom() {
   // the fax: the address on the page it printed, and a LinkedIn button
   for (const h of art('fax')) {
     const fax = named(h.name); fax.position.set(-0.63, top, -1.52); fax.rotation.y = 0.35;
-    const faxPlastic = beige(11, '#cfc8ba');
+    const faxPlastic = new THREE.MeshStandardMaterial({ map: plasticArt('#cfc8ba', 11), bumpMap: noiseTex(256, 30, 11), bumpScale: 0.4, roughness: 0.62 });
     mesh('', new RoundedBoxGeometry(0.32, 0.09, 0.26, 2, 0.02), faxPlastic, [0, 0.045, 0], fax);
     mesh('', new RoundedBoxGeometry(0.3, 0.05, 0.12, 2, 0.015), faxPlastic, [0, 0.1, -0.06], fax);
     mesh('', new THREE.PlaneGeometry(0.1, 0.03), new THREE.MeshBasicMaterial({ color: '#9fb88a' }), [-0.06, 0.0905, 0.07], fax).rotation.x = -Math.PI / 2; // the display
