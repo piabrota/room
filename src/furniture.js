@@ -16,7 +16,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 // to it; with `stretch`, each number given scales its own axis (a cabinet made a little shorter).
 // `anchor` says which point of the model sits on the holder: 'floor' (the middle of its foot,
 // the default), 'back' (the middle of its back, for a picture on a wall), 'top' (the middle of
-// its top, for a lamp that hangs) or 'centre'.
+// its top, for a lamp that hangs), 'centre', or 'origin' (the model's own origin, as its author set it).
 export function createFurniture(models, { lite = false, anisotropy = 8, onChange = () => {} } = {}) {
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const pending = [];
@@ -39,7 +39,7 @@ export function createFurniture(models, { lite = false, anisotropy = 8, onChange
     if (stretch) wrap.scale.set(fit.w ? fit.w / dims.w : 1, fit.h ? fit.h / dims.h : 1, fit.d ? fit.d / dims.d : 1);
     else if (given.length) wrap.scale.setScalar(Math.min(...given.map((k) => fit[k] / dims[k])));
     box.getCenter(centre);
-    const at = { floor: [centre.x, box.min.y, centre.z], back: [centre.x, centre.y, box.min.z], top: [centre.x, box.max.y, centre.z], centre: [centre.x, centre.y, centre.z] }[anchor];
+    const at = { floor: [centre.x, box.min.y, centre.z], back: [centre.x, centre.y, box.min.z], top: [centre.x, box.max.y, centre.z], centre: [centre.x, centre.y, centre.z], origin: [0, 0, 0] }[anchor];
     model.position.sub(new THREE.Vector3(...at));
     model.traverse((o) => {
       if (!o.isMesh) return;
@@ -55,11 +55,12 @@ export function createFurniture(models, { lite = false, anisotropy = 8, onChange
   }
 
   return {
-    // A holder at `at`, turned by `rot` (radians about y, or [x, y, z]), named for hover when
+    // A holder at `at`, turned by `rot` (radians about y, or [x, y, z] for a thing that leans), named for hover when
     // `name` is given. `standin(group)` may add the boxes that stand for it until the file comes.
     place(key, parent, { at = [0, 0, 0], rot = 0, name = '', standin, onLoad, ...how } = {}) {
       const holder = new THREE.Group(); holder.name = name;
-      holder.position.set(...at); if (Array.isArray(rot)) holder.rotation.set(...rot); else holder.rotation.y = rot;
+      holder.position.set(...at);
+      if (Array.isArray(rot)) { holder.rotation.order = 'YXZ'; holder.rotation.set(...rot); } else holder.rotation.y = rot; // [lean back, turn, lean aside]: it leans in its own frame, then turns
       parent.add(holder);
       const placeholder = new THREE.Group(); placeholder.name = 'standin'; holder.add(placeholder);
       standin?.(placeholder);

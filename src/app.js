@@ -126,6 +126,13 @@ ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClic
 // ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
 // On the full look he reads the room first, to walk around things and leap clear of them (src/catnav.js);
 // on the lite look (phones) he keeps the cheap life, with nothing to compute.
+// The furniture that is files (src/furniture.js). The laptop's look waits for it, six seconds at
+// most, so the room opens furnished and Nash reads the real chairs; the phone's look opens at
+// once with the stand-ins and each piece takes its place as it arrives. A piece that comes late,
+// or never, leaves its stand-in (invariant 8).
+room.onChange = () => redrawShadows();
+if (quality.name === 'full') await Promise.race([room.ready, new Promise((done) => setTimeout(done, 6000))]);
+room.root.updateMatrixWorld(true);
 const catStill = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const nash = config.cat ? createCat(config.cat, { still: catStill, nav: quality.name === 'full' && !catStill ? buildNav(room.root, { radius: 0.2 }) : null }) : null;
 if (nash) room.root.add(nash.group);

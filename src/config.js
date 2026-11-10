@@ -38,7 +38,7 @@ export const roomModel = '/models/room.glb';
 // (src/shell.js): repaint it here. `ink` and `inkSoft` are the words painted on the walls.
 export const shell = {
   wall: '#e7dcc6', ceiling: '#f3eee3', trim: '#f1ebdf', reveal: '#ded3bf',
-  floor: '#b9a48e', wood: '#b9a394', brass: '#b08a4a', curtain: '#e9dfcb',
+  floor: '#b9a48e', wood: '#9c8676', brass: '#b08a4a', curtain: '#d9cdb6',
   ink: '#33261d', inkSoft: '#77634f',
   rug: { at: [0.1, -0.2], size: [2.6, 1.8], colors: ['#7c1d17', '#1d2b45', '#e6d7b8', '#c59a45', '#2a120f'] },
 };

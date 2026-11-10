@@ -7,6 +7,8 @@
 //   just peek --shot overview --day --lite        by day, in the phone's look
 //   just peek --shot desk --out /tmp/desk.jpg --size 1280x720 --hud --steps 60
 //   just peek --shot desk --eval "window.__room.room.lamp.intensity = 0"
+//   just peek --shot overview --calls             and what the room is made of, thing by thing
+//   just peek --all --day --out /tmp/shots        every shot in one visit, into a folder (--shots desk,shelf for some)
 //
 // It prints the draw calls and the triangles of the frame, so a heavy prop shows at once.
 import { join, resolve } from 'node:path';
@@ -48,11 +50,12 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.route('**/live/**', (r) => r.fulfill({ status: 204 }));
-await page.goto(`${url}?hifi&${flag('day') ? 'day' : 'night'}&${flag('lite') ? 'lite' : 'record'}${flag('ao') ? '&full' : ''}`);
+// `record` is the laptop's look without ambient occlusion, as `just record` films it; --ao keeps the occlusion a visitor sees
+await page.goto(`${url}?hifi&${flag('day') ? 'day' : 'night'}&${flag('lite') ? 'lite' : flag('ao') ? 'full' : 'record'}`);
 await page.waitForSelector('#loading.done');
 await page.addStyleTag({ content: `#enter{display:none!important}${flag('hud') ? '' : '#hud,#view,#tooltip{display:none!important}'}` });
 
-const info = await page.evaluate(async ({ shot, from, to, fov, steps, code }) => {
+const look = (o) => page.evaluate(async ({ list, shot, from, to, fov, steps, code }) => {
   const r = window.__room;
   if (r.room.ready) await r.room.ready; // the models, when the room loads them after its first frame
   r.rig.go(shot ?? Object.keys(r.rig.names)[0] ?? r.rig.names[0], true);
@@ -63,18 +66,36 @@ const info = await page.evaluate(async ({ shot, from, to, fov, steps, code }) =>
     if (fov) { r.camera.fov = fov; r.camera.updateProjectionMatrix(); }
     r.camera.updateMatrixWorld();
     r.renderer.shadowMap.needsUpdate = true;
-    r.renderer.info.autoReset = false; r.renderer.info.reset();
-    r.post.render(0, 1, false);
-  } else {
-    r.renderer.info.autoReset = false; r.renderer.info.reset();
-    r.step(1 / 30);
   }
+  // count the frame: every pass together, and the room's own pass (the largest single render)
+  const draw = r.renderer.render.bind(r.renderer); let room = 0;
+  r.renderer.render = (...a) => { const before = r.renderer.info.render.calls; draw(...a); room = Math.max(room, r.renderer.info.render.calls - before); };
+  r.renderer.info.autoReset = false; r.renderer.info.reset();
+  if (from) r.post.render(0, 1, false); else r.step(1 / 30);
+  r.renderer.render = draw; r.renderer.info.autoReset = true;
   const { calls, triangles } = r.renderer.info.render;
-  return { calls, triangles, textures: r.renderer.info.memory.textures, geometries: r.renderer.info.memory.geometries, quality: r.quality.name };
-}, { shot: opt('shot'), from: vec(opt('from')), to: vec(opt('to')), fov: Number(opt('fov', 0)), steps: Number(opt('steps', 20)), code: opt('eval') });
-await page.waitForTimeout(300);
-mkdirSync(dirname(out), { recursive: true });
-await page.screenshot({ path: out, type: out.endsWith('.png') ? 'png' : 'jpeg', ...(out.endsWith('.png') ? {} : { quality: 90 }) });
+  // --calls: what the room is made of, by the named thing each mesh belongs to (visible meshes × their materials)
+  const parts = {};
+  if (list) r.room.root.traverse((o) => {
+    if (!(o.isMesh || o.isPoints) || o.material?.visible === false) return;
+    for (let p = o; p; p = p.parent) if (!p.visible) return;
+    let top = o; while (top.parent && top.parent !== r.room.root) top = top.parent;
+    const key = top.name || o.name || '(unnamed)', n = Array.isArray(o.material) ? new Set(o.material).size : 1;
+    const e = parts[key] ??= { draws: 0, tris: 0 }; e.draws += n; e.tris += Math.round((o.geometry.index?.count ?? o.geometry.attributes.position.count) / 3);
+  });
+  return { calls, room, parts, triangles, textures: r.renderer.info.memory.textures, geometries: r.renderer.info.memory.geometries, quality: r.quality.name };
+}, { list: flag('calls'), from: vec(opt('from')), to: vec(opt('to')), fov: Number(opt('fov', 0)), steps: Number(opt('steps', 20)), code: opt('eval'), ...o });
+const shoot = async (file) => {
+  await page.waitForTimeout(300);
+  mkdirSync(dirname(file), { recursive: true });
+  await page.screenshot({ path: file, type: file.endsWith('.png') ? 'png' : 'jpeg', ...(file.endsWith('.png') ? {} : { quality: 90 }) });
+};
+const say = (file, info) => console.log(`✓ ${file} (${W}×${H}, ${info.quality}): ${info.room} draw calls in the room's pass, ${info.calls} in all passes, ${info.triangles} triangles, ${info.textures} textures, ${info.geometries} geometries`);
+let info;
+if (flag('all') || opt('shots')) { // every shot, or some, in one visit: --out is then a folder
+  const names = opt('shots')?.split(',') ?? await page.evaluate(() => { const n = window.__room.rig.names; return Array.isArray(n) ? n : Object.keys(n); });
+  for (const shot of names) { info = await look({ shot }); const file = join(out.replace(/\.(jpg|png)$/, ''), `${shot}.jpg`); await shoot(file); say(file, info); }
+} else { info = await look({ shot: opt('shot') }); await shoot(out); say(out, info); }
 await browser.close(); await server.close();
-console.log(`✓ ${out} (${W}×${H}, ${info.quality}): ${info.calls} draw calls in all passes, ${info.triangles} triangles, ${info.textures} textures, ${info.geometries} geometries`);
+if (flag('calls')) for (const [k, v] of Object.entries(info.parts).sort((a, b) => b[1].draws - a[1].draws)) console.log(`  ${String(v.draws).padStart(3)} draws ${String(v.tris).padStart(7)} tris  ${k}`);
 if (errors.length) { console.error('page errors:\n' + errors.join('\n')); process.exit(1); }
