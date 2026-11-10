@@ -370,7 +370,9 @@ just dev         # http://localhost:5173
 On macOS without Nix: `brew install node just ffmpeg`, then the same `just` recipes.
 `just check` runs the checks of [`AGENTS.md`](AGENTS.md) and a build; `just build` writes the
 site to `dist/`, ready for any static host. `just light` measures how bright each shot is by night
-and by day, and `just stills` and `just record` make the pictures a pull request carries. The
+and by day, and `just stills` and `just record` make the pictures a pull request carries.
+`just peek` renders one still from any shot, with no build, and counts its draw calls;
+`just models` fetches the furniture from Poly Haven and packs it for the laptop and for the phone. The
 skills in [`.claude/skills/`](.claude/skills/) teach Claude Code these rules in a fork too.
 
 ## Fork it, make it yours
@@ -393,10 +395,14 @@ is its own export, so you can replace one and keep the rest:
 | `sea`, `loop`, `slipbox` | the other three walls | your own collections, or remove them |
 | `reading`, `posts/` | the LOFI page: about, online, subscribe; the posts | your words, your profiles; your posts, one Markdown file each |
 | `door`, `cat`, `guard` | the door's code lock and its clues; Nash, the black cat, and where he sits; the screen guard | your puzzle, your cat (or none), `guard: { screenshots: false }` |
+| `shell`, `models` | the apartment's paint, wood, cloth and rug; the furniture and props that are files (`just models`) | your colours; other CC0 models, each with a row in `CREDITS.md` |
+| `stack`, `deck` | the piles of VHS sleeves and the video recorder's face | your piles, your brand on the deck |
+| `credits` | the credits button, its card, and the plate on the wall | keep the idea's line; list what your room takes from others |
 | `hotspots` | what can be clicked, and what it does | your labels, your words, your links |
 
-Until there is a model and recordings, the room is built from boxes and the sounds are
-synthesized, so a fork runs from its first commit.
+Until there is a model of the whole room and recordings, the room is built in code around the
+furniture's files, a piece that is missing is a plain box, and the sounds are synthesized, so a
+fork runs from its first commit.
 
 1. **Model.** Block the room out in Blender at real scale, name the meshes (`screen`, `vcr`,
    `lamp`, `tape_<id>`, hotspots) and the cameras (`shot_desk`, ...), bake the lighting, and

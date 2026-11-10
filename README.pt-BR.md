@@ -371,6 +371,8 @@ No macOS sem Nix: `brew install node just ffmpeg`, depois as mesmas receitas `ju
 `just check` roda as verificações do [`AGENTS.md`](AGENTS.md) e um build; `just build` escreve o
 site em `dist/`, pronto para qualquer hospedagem estática. `just light` mede o brilho de cada
 plano de noite e de dia, e `just stills` e `just record` fazem as imagens que um pull request leva.
+`just peek` faz uma imagem de qualquer plano, sem build, e conta as draw calls; `just models`
+baixa os móveis do Poly Haven e os empacota para o laptop e para o celular.
 As skills em [`.claude/skills/`](.claude/skills/) ensinam essas regras ao Claude Code num fork também.
 
 ## Faça um fork, faça o seu
@@ -393,9 +395,13 @@ Cada parte é um export próprio, então dá para trocar uma e manter o resto:
 | `sea`, `loop`, `slipbox` | as outras três paredes | suas coleções, ou tire-as |
 | `reading`, `posts/` | a página LOFI: sobre, online, assinar; os posts | suas palavras, seus perfis; seus posts, um arquivo Markdown cada |
 | `door`, `cat`, `guard` | a fechadura de código da porta e suas pistas; Nash, o gato preto, e onde ele senta; a guarda de tela | seu enigma, seu gato (ou nenhum), `guard: { screenshots: false }` |
+| `shell`, `models` | a tinta, a madeira, o pano e o tapete do apartamento; os móveis e objetos que são arquivos (`just models`) | suas cores; outros modelos CC0, cada um com uma linha no `CREDITS.md` |
+| `stack`, `deck` | as pilhas de capas de VHS e a frente do videocassete | suas pilhas, sua marca no aparelho |
+| `credits` | o botão de créditos, o seu cartão e a placa na parede | mantenha a linha da ideia; liste o que o seu quarto usa de outros |
 | `hotspots` | o que pode ser clicado, e o que faz | seus rótulos, suas palavras, seus links |
 
-Enquanto não houver modelo nem gravações, o quarto é montado com caixas e os sons são
+Enquanto não houver um modelo do quarto inteiro nem gravações, o quarto é montado em código em
+volta dos arquivos dos móveis, uma peça que falta vira uma caixa simples e os sons são
 sintetizados, então um fork roda desde o primeiro commit.
 
 1. **Modelo.** Monte o quarto no Blender em escala real, nomeie as malhas (`screen`, `vcr`,
