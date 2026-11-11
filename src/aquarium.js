@@ -240,11 +240,11 @@ export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}
   const spots = paths.map(() => new THREE.Vector3()), turn = paths.map(() => new THREE.Euler(0, 0, 0, 'YXZ'));
   // A splash frightens them (`scare`, from src/splash.js): each fish darts away from where the water
   // fell and down, its head turned the way it flees, in a seventh of a second, and drifts back to
-  // its round in a few more. `flee` moves `pos` and returns how frightened the fish still is.
+  // its round over some ten more. `flee` moves `pos` and returns how frightened the fish still is.
   const fright = { x: 0, z: 0, t: -1e9 };
   function flee(tt, reach) {
-    const a = tt - fright.t; if (a <= 0 || a > 9) return 0;
-    const k = THREE.MathUtils.smoothstep(a, 0, 0.14) * Math.exp(-Math.max(0, a - 0.14) / 1.5);
+    const a = tt - fright.t; if (a <= 0 || a > 14) return 0;
+    const k = THREE.MathUtils.smoothstep(a, 0, 0.14) * Math.exp(-Math.max(0, a - 0.14) / 3);
     let dx = pos.x - fright.x, dz = pos.z - fright.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d;
     const near = Math.exp(-d / 0.45) * reach;                     // the nearer, the further it darts
     pos.x += dx * near * k * 0.5; pos.z += dz * near * k; pos.y -= 0.035 * near / reach * k;

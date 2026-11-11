@@ -120,8 +120,9 @@ const WATER_GLSL = /* glsl */`
   }
   // the room behind, seen through water with this normal (in the camera's axes): size is the lens's radius, in metres
   vec3 behind(vec3 nView, vec3 at, float size) {
-    vec2 uv = gl_FragCoord.xy * uInvSize - nView.xy * size * 1.6 * uLens / max(0.05, length(cameraPosition - at));
-    return texture2D(uScene, clamp(uv, 0.003, 0.997)).rgb;
+    vec2 off = nView.xy * size * 1.6 * uLens / max(0.05, length(cameraPosition - at));
+    off *= min(1.0, 0.12 / max(length(off), 1e-4));            // from close by it would look out of the picture: no further than an eighth of it
+    return texture2D(uScene, clamp(gl_FragCoord.xy * uInvSize - off, 0.003, 0.997)).rgb;
   }
   // body: how much of what is behind it the water hides or bends where you look straight through
   // tight: how small the lamps' glints are. size: the radius of the lens it is, in metres
@@ -296,7 +297,7 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
         gl_Position = projectionMatrix * viewMatrix * vec4(vW, 1.0);
       }`,
     fragmentShader: /* glsl */`
-      uniform float uAge, uSurf; varying vec3 vN, vW; varying float vSkin;
+      uniform float uAge, uSurf; uniform vec3 uAt; varying vec3 vN, vW; varying float vSkin;
       ${WATER_GLSL}
       ${RIPPLE_GLSL}
       void main() {
@@ -307,7 +308,8 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
         float rough = (1.0 - smoothstep(0.04, 0.26, uAge)) * smoothstep(0.0, 0.2, uAge * 22.0 - vSkin);
         vec3 n = normalize(vN + rough * 0.3 * (vec3(soft(vW.xy * 150.0), soft(vW.yz * 150.0), soft(vW.zx * 150.0)) - 0.5));
         if (dot(n, v) < 0.0) n = reflect(n, v);
-        gl_FragColor = water(n, v, vW, 0.96, 140.0, ${f(R)});
+        float under = 1.0 - smoothstep(${f(-R * 0.6)}, ${f(R * 1.2)}, uAt.y - uSurf);     // as it goes under it is the tank's water, less and less a lens of its own
+        gl_FragColor = water(n, v, vW, 0.96, 140.0, ${f(R)} * (1.0 - 0.85 * under));
       }`,
   }));
   blob.frustumCulled = false; blob.visible = false; blob.renderOrder = 5; blob.raycast = () => {}; blob.onBeforeRender = lens; group.add(blob);
@@ -718,14 +720,14 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
     }
     wets = wet;
 
-    // a new balloon, filled on the string; the rag of the old one shrivels as it comes
+    // a new balloon, filled on the string; the rag of the old one has shrivelled away just before it comes
+    if (state === 'gone' && rag.visible) rag.scale.setScalar(THREE.MathUtils.clamp((refill - a0) / 0.35, 0.001, 1));
     if (state === 'gone' && a0 >= refill) {
-      state = 'filling'; colorAt = (colorAt + 1) % colors.length; tint(colors[colorAt]); balloon.visible = true; balloon.scale.setScalar(still ? 1 : 0.06);
+      state = 'filling'; colorAt = (colorAt + 1) % colors.length; tint(colors[colorAt]); balloon.visible = true; balloon.scale.setScalar(still ? 1 : 0.06); rag.visible = false;
     }
     if (state === 'filling') {
       const k = still ? 1 : Math.min(1, (a0 - refill) / 1.5);
       balloon.scale.setScalar(0.06 + 0.94 * (1 - Math.pow(1 - k, 3)) + 0.035 * Math.sin(k * 21) * (1 - k) * k * 4); // it swells, and settles with a quiver
-      rag.scale.setScalar(Math.max(0.001, 1 - (a0 - refill) / 0.35)); if (a0 - refill > 0.35 || still) rag.visible = false;
       if (k >= 1) { balloon.scale.setScalar(1); state = 'ready'; }
     }
   }
@@ -740,10 +742,10 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
     renderer.getDrawingBufferSize(half); const w = Math.max(2, half.x >> 1), h = Math.max(2, half.y >> 1);
     if (!scenePic) { scenePic = new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType }); light.uScene.value = scenePic.texture; }
     else if (scenePic.width !== w || scenePic.height !== h) scenePic.setSize(w, h);
-    const shown = [blob.visible, sheet.visible, drops.visible], was = renderer.getRenderTarget();
-    blob.visible = sheet.visible = drops.visible = false;
+    const shown = [blob.visible, sheet.visible, drops.visible], was = renderer.getRenderTarget(), skin = state === 'burst' && balloon.visible;
+    blob.visible = sheet.visible = drops.visible = false; if (skin) balloon.visible = false; // nor the rubber that is leaving it: water does not show its own balloon
     renderer.setRenderTarget(scenePic); renderer.clear(); renderer.render(scene, camera); renderer.setRenderTarget(was);
-    [blob.visible, sheet.visible, drops.visible] = shown;
+    [blob.visible, sheet.visible, drops.visible] = shown; if (skin) balloon.visible = true;
   };
   handle.shaped = [blob, sheet, drops];       // shaped in their shaders: a pass that draws the room with its own material must leave them out
 

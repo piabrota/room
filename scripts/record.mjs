@@ -5,7 +5,7 @@
 //   docs/record/shot-<name>.jpg  one still per camera shot
 //   docs/record/room.mp4         the four walls by night, hovered and clicked
 //   docs/record/room.webp        the same, for the READMEs
-//   docs/record/shot-splash.jpg  the water balloon over the aquarium, 0.45 s after its burst
+//   docs/record/shot-splash.jpg  the water balloon over the aquarium, 0.5 s after its burst
 //
 // `--stills` makes only the stills and keeps the video that is there.
 // `--grid` makes only the ▲ grid's: shot-grid, shot-grid-sst, shot-grid-<view> for each of
@@ -154,9 +154,9 @@ for (const s of gridOnly ? ['grid'] : splashOnly ? [] : shots) {
     await view(views[0]);
   }
 }
-if (hasBalloon && !gridOnly && !splashOnly) { // the water balloon, 0.45 s after its burst: the crown over the tank
+if (hasBalloon && !gridOnly && !splashOnly) { // the water balloon, 0.5 s after its burst: the crown over the tank
   await page.evaluate(() => { window.__room.rig.go('sea', true); window.__room.step(1 / 30); });
-  await burst(); await skip(0.45); await still('splash');
+  await burst(); await skip(0.5); await still('splash');
   await skip(9);                                 // the water rests, and a new balloon hangs there for the video
 }
 await page.evaluate((x) => { window.__room.rig.go(x, true); window.__room.step(1 / 30); }, shots[0]);
