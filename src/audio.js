@@ -43,9 +43,11 @@ export function createAudio(camera) {
 
 function synth(ctx, kind) {
   const sr = ctx.sampleRate;
-  const len = { rain: 4, click: 0.05, thunk: 0.35, lofi: 8, meow: 0.75 }[kind] ?? 0.1;
+  const len = { rain: 4, click: 0.05, thunk: 0.35, lofi: 8, meow: 0.75, pop: 0.14, splash: 1.7 }[kind] ?? 0.1;
   // rain: drops on the glass, each a short falling blip, and no hiss under them
   const drops = kind === 'rain' ? Array.from({ length: 160 }, () => [Math.random() * len, 1800 + Math.random() * 2600, 0.04 + Math.random() * 0.1]) : [];
+  // splash: after the plunge, the drops that fall back, each a short rising blip
+  const plinks = kind === 'splash' ? Array.from({ length: 34 }, () => [0.12 + Math.random() ** 1.6 * 1.3, 1100 + Math.random() * 3200, 0.03 + Math.random() * 0.07]) : [];
   // lofi: two soft seventh chords, four seconds each, a kick on the beat and vinyl crackle
   const chords = [[174.6, 220, 261.6, 329.6], [164.8, 196, 246.9, 293.7]];
   const b = ctx.createBuffer(2, Math.floor(sr * len), sr), res = [];
@@ -55,6 +57,17 @@ function synth(ctx, kind) {
       const t = i / sr, n = Math.random() * 2 - 1;
       if (kind === 'rain') { let v = 0; for (const [t0, f, a] of drops) { const u = t - t0; if (u >= 0 && u < 0.03) v += Math.sin(2 * Math.PI * f * (1 - u * 8) * u) * Math.exp(-u * 180) * a; } d[i] = v; }
       else if (kind === 'click') d[i] = n * Math.exp(-t * 120);
+      else if (kind === 'pop') { // rubber that snaps: a crack of bright noise and a quick falling tone
+        const hp = n - lp; lp += (n - lp) * 0.35;
+        d[i] = (hp * 0.9 * Math.exp(-t * 70) + Math.sin(2 * Math.PI * (1400 - t * 6000) * t) * 0.5 * Math.exp(-t * 110)) * Math.min(1, t * 4000);
+      }
+      else if (kind === 'splash') { // water into water: a deep plunge, a wash of noise that darkens as it fades, then the drops
+        lp += (n - lp) * (0.04 + 0.5 * Math.exp(-t * 7));
+        let v = lp * 0.9 * (1 - Math.exp(-t * 300)) * Math.exp(-t * 4.2);
+        v += Math.sin(2 * Math.PI * (95 + 240 * t) * t) * 0.55 * Math.exp(-t * 11) * Math.min(1, t * 200); // the air it takes under, closing
+        for (const [t0, f, a] of plinks) { const u = t - t0; if (u >= 0 && u < 0.05) v += Math.sin(2 * Math.PI * f * (1 + u * 6) * u) * Math.exp(-u * 90) * a; }
+        d[i] = v;
+      }
       else if (kind === 'lofi') {
         const c = chords[Math.floor(t / 4) % 2], u = t % 4, beat = t % (60 / 72);
         let v = 0; for (const f of c) v += Math.sin(2 * Math.PI * f * t) * 0.05 + Math.sin(4 * Math.PI * f * t) * 0.012;

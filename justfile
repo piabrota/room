@@ -67,6 +67,10 @@ fish: _deps
 record-grid: build
     node scripts/record.mjs --grid
 
+# only the clip of the water balloon's burst over the aquarium, at real speed and four times slower, into docs/record/splash.mp4
+record-splash: build
+    node scripts/record.mjs --splash
+
 # what the room costs a phone and a laptop: bytes, time to show, pixels drawn, ms a frame (just mobile --device phone)
 mobile *args: build
     node scripts/mobile.mjs {{args}}

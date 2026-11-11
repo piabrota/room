@@ -5,10 +5,13 @@
 //   docs/record/shot-<name>.jpg  one still per camera shot
 //   docs/record/room.mp4         the four walls by night, hovered and clicked
 //   docs/record/room.webp        the same, for the READMEs
+//   docs/record/shot-splash.jpg  the water balloon over the aquarium, 0.5 s after its burst
 //
 // `--stills` makes only the stills and keeps the video that is there.
 // `--grid` makes only the ▲ grid's: shot-grid, shot-grid-sst, shot-grid-<view> for each of
 // `config.grid.presets`, and grid-views.mp4, a clip that clicks each view (`just record-grid`).
+// `--splash` makes only the water balloon's: splash.mp4, the burst over the aquarium at its real
+// speed from the sea shot, then again from close by, four times slower (`just record-splash`).
 //
 // The room is driven by hand, one fixed step of 1/30 s per frame
 // (window.__room.step), so the video shows the motion as a visitor sees
@@ -72,9 +75,10 @@ await page.addStyleTag({ content: '#enter{display:none!important}' }); // skip i
 rmSync(frames, { recursive: true, force: true }); mkdirSync(frames, { recursive: true });
 const stillsOnly = process.argv.includes('--stills');
 const gridOnly = process.argv.includes('--grid');   // only the ▲ grid's stills (the map, its sea, each view) and the clip of its views
+const splashOnly = process.argv.includes('--splash'); // only the clip of the water balloon's burst
 const { grid: gridConfig } = await import(join(root, 'src/config.js'));
 const views = gridConfig.presets.map((p) => p.id);
-if (!gridOnly) for (const f of existsSync(out) ? readdirSync(out) : []) if (f.startsWith('shot-')) rmSync(join(out, f));
+if (!gridOnly && !splashOnly) for (const f of existsSync(out) ? readdirSync(out) : []) if (f.startsWith('shot-')) rmSync(join(out, f));
 mkdirSync(out, { recursive: true });
 
 let n = 0, mx = W / 2, my = H / 2;
@@ -133,7 +137,11 @@ async function view(id) {
   await page.click(`#grid .views button[data-view="${id}"]`); await page.waitForTimeout(2500);
   for (let i = 0; i < 30; i++) await page.evaluate(() => window.__room.step(1 / 30));
 }
-for (const s of gridOnly ? ['grid'] : shots) {
+// the room moves on with nothing drawn: the seconds between two takes (a new balloon is filled)
+const skip = (seconds) => page.evaluate((k) => { const r = window.__room, render = r.post.render; r.post.render = () => {}; for (let i = 0; i < k; i++) r.step(1 / 60); r.post.render = render; r.step(1 / 60); }, Math.round(seconds * 60));
+const burst = () => page.evaluate(() => { const r = window.__room; r.ui.click(r.room.find('balloon'), null); });
+const hasBalloon = await page.evaluate(() => !!window.__room.room.find('balloon'));
+for (const s of gridOnly ? ['grid'] : splashOnly ? [] : shots) {
   await page.evaluate((x) => { window.__room.rig.go(x, true); window.__room.step(1 / 30); }, s);
   if (s === 'grid') { await gridReady(); for (let i = 0; i < 45; i++) await page.evaluate(() => window.__room.step(1 / 30)); } // the map opens; the flow draws its trails
   await still(s);
@@ -145,6 +153,11 @@ for (const s of gridOnly ? ['grid'] : shots) {
     for (const id of views.slice(1)) { await view(id); await still(`grid-${id}`); }
     await view(views[0]);
   }
+}
+if (hasBalloon && !gridOnly && !splashOnly) { // the water balloon, 0.5 s after its burst: the crown over the tank
+  await page.evaluate(() => { window.__room.rig.go('sea', true); window.__room.step(1 / 30); });
+  await burst(); await skip(0.5); await still('splash');
+  await skip(9);                                 // the water rests, and a new balloon hangs there for the video
 }
 await page.evaluate((x) => { window.__room.rig.go(x, true); window.__room.step(1 / 30); }, shots[0]);
 
@@ -178,6 +191,39 @@ if (gridOnly) {
   rmSync(frames, { recursive: true, force: true });
   await browser.close(); await server.close();
   console.log(`✓ ${(n / FPS).toFixed(1)} s of the grid views (${W}×${H}) in docs/record/grid-views.mp4`);
+  process.exit(errors.length ? 1 : 0);
+}
+
+// ── the clip of the water balloon: its burst at real speed, then from close by, four times slower (`--splash`) ──
+if (splashOnly) {
+  await page.addStyleTag({ content: '#rec-note{position:fixed;left:24px;bottom:22px;z-index:98;font:600 15px/1 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#fff;background:rgba(0,0,0,.55);padding:8px 12px;border-radius:6px}#hud,#view{display:none!important}' });
+  const note = (text) => page.evaluate((t) => { let e = document.getElementById('rec-note'); if (!e) { e = document.createElement('div'); e.id = 'rec-note'; document.body.append(e); } e.textContent = t; }, text);
+  await page.evaluate(() => { window.__room.rig.go('sea', true); window.__room.step(1 / 30); });
+  await note('real speed'); await wait(0.5);
+  await moveTo(...(await at('balloon', -0.17)), 0.7); await wait(0.7);
+  await click(); await wait(3.6);
+  await page.evaluate(() => { document.getElementById('rec-cursor').style.display = 'none'; document.getElementById('tooltip').style.display = 'none'; });
+  await skip(8);
+  // from close by: the room steps 1/120 s a frame, and each frame is drawn again from this camera
+  const close = async (count, dt, cam) => {
+    for (let i = 0; i < count; i++) {
+      await page.evaluate(({ dt, from, to, fov }) => {
+        const r = window.__room, render = r.post.render; r.post.render = () => {}; r.step(dt); r.post.render = render;
+        r.camera.position.set(...from); r.camera.lookAt(...to); r.camera.fov = fov; r.camera.updateProjectionMatrix(); r.camera.updateMatrixWorld();
+        r.post.render(0, 1, false);
+      }, { dt, ...cam });
+      await page.screenshot({ path: join(frames, `f${String(n++).padStart(4, '0')}.jpg`), type: 'jpeg', quality: 90 });
+    }
+  };
+  const cam = { from: [2.02, 1.62, -0.12], to: [3.04, 1.47, -0.45], fov: 44 };
+  await note('4× slower'); await close(20, 1 / 120, cam);
+  await burst(); await close(Math.round(1.5 * 4 * FPS), 1 / 120, cam);   // a second and a half of water, in six
+  await note('real speed'); await close(Math.round(2.5 * FPS), 1 / 30, cam); // and the rings, as they run
+  execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', join(frames, 'f%04d.jpg'),
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '24', '-preset', 'slow', '-movflags', '+faststart', join(out, 'splash.mp4')]);
+  rmSync(frames, { recursive: true, force: true });
+  await browser.close(); await server.close();
+  console.log(`✓ ${(n / FPS).toFixed(1)} s of the water balloon (${W}×${H}) in docs/record/splash.mp4`);
   process.exit(errors.length ? 1 : 0);
 }
 
@@ -224,7 +270,8 @@ await wall(async () => {                                                        
   await moveTo(...(await at('tank')), 0.6); await wait(0.8);
   await moveTo(...(await at('buoy_marola')), 0.6); await wait(0.8);
   await moveTo(...(await at('buoy_marola-research')), 0.6); await wait(0.8);
-});
+  if (hasBalloon) { await moveTo(...(await at('balloon', -0.17)), 0.6); await wait(0.6); await click(); await wait(3.2); } // the water balloon: burst, its water falls into the tank
+}, 9);
 await wall(async () => {                                                        // the front wall: the loop and the door
   await page.keyboard.press('9'); await land();
   await moveTo(...(await at('belt')), 0.6); await wait(0.8);

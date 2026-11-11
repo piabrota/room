@@ -63,6 +63,8 @@ export function createInteractions(camera, canvas, tooltip, { root, onHover = ()
     move(from, to) { const o = targets.get(from); if (!o || !to) return; targets.delete(from); targets.set(to, o); if (hovered === from) hovered = null; },
     remove(obj) { targets.delete(obj); },
     get hovered() { return hovered; },
+    // a click on an object without a pointer, for the scripts (`just peek --click`)
+    click(obj, hit) { targets.get(obj)?.onClick?.(hit); },
     // Called every frame; the ray runs again only when the pointer or the camera moved.
     update(cameraMoved) {
       if (lastEvent && lastEvent.pointerType !== 'mouse' && performance.now() > touchUntil) { lastEvent = null; dirty = true; }

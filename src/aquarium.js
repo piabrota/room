@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RIPPLE_GLSL } from './splash.js';
 
 // The aquarium on the marola wall: a rimless tank of 1.60 × 0.50 × 0.48 m on the sideboard, open at
 // the top so the buoys ride its surface, with a lamp bar across it. Inside: a bed of sand with the
@@ -29,7 +30,7 @@ function mulberry(a) {
   return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
-export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}, lite = false, loadFish = () => Promise.resolve(null), name = 'tank' }) {
+export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}, lite = false, loadFish = () => Promise.resolve(null), name = 'tank', lampX = 0.02, ripples = null }) {
   const r = mulberry(11);
   const group = new THREE.Group(); group.name = name; group.position.copy(at); parent.add(group); // its +x is the room's: the wall
   const waterY = H - 0.04;
@@ -67,7 +68,7 @@ export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}
   back.material.toneMapped = true;
 
   // ── the sand: higher at the back, with the ripples of the light moving on it ──
-  const sandGeo = new THREE.PlaneGeometry(D - 0.012, L - 0.012, lite ? 10 : 20, lite ? 32 : 64).rotateX(-Math.PI / 2);
+  const sandGeo = new THREE.PlaneGeometry(D - 0.012, L - 0.012, lite ? 10 : ripples ? 40 : 20, lite ? 32 : ripples ? 128 : 64).rotateX(-Math.PI / 2);
   const sp = sandGeo.attributes.position;
   for (let i = 0; i < sp.count; i++) {
     const x = sp.getX(i), z = sp.getZ(i);
@@ -79,14 +80,19 @@ export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}
   for (let i = 0; i < sc.width * sc.height * 0.35; i++) { const v = 90 + r() * 80; sctx.fillStyle = `rgb(${v},${v * 0.9 | 0},${v * 0.72 | 0})`; sctx.fillRect(r() * sc.width, r() * sc.height, 1.4, 1.4); }
   const sandTex = new THREE.CanvasTexture(sc); sandTex.colorSpace = THREE.SRGBColorSpace; sandTex.wrapS = sandTex.wrapT = THREE.RepeatWrapping; sandTex.repeat.set(2, 6);
   const sandMat = new THREE.MeshStandardMaterial({ map: sandTex, roughness: 1 });
+  // `ripples` (src/splash.js): the rings a splash leaves are lenses too. A crest gathers the lamp's light on
+  // the sand under it and a trough spreads it: 1 - d (n - 1)/n ∇²h, for water d deep (taken at the vertices)
   sandMat.onBeforeCompile = (s) => {
     s.uniforms.uTime = time;
-    s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vCaust;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCaust = (modelMatrix * vec4(transformed, 1.0)).xz;');
-    s.fragmentShader = s.fragmentShader.replace('#include <common>', `#include <common>\nuniform float uTime; varying vec2 vCaust;\n${GLSL_CAUSTIC}`)
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(0.45, 0.8, 0.95) * 0.18 * caustic(vCaust * 22.0, uTime);');
+    if (ripples) Object.assign(s.uniforms, ripples.uniforms);
+    s.vertexShader = s.vertexShader.replace('#include <common>', `#include <common>\nvarying vec2 vCaust; varying float vRing;\n${ripples ? RIPPLE_GLSL + 'float lens(vec2 p) { return rings(p) + crater(p); }' : ''}`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvCaust = (modelMatrix * vec4(transformed, 1.0)).xz; vRing = 0.0;
+        ${ripples ? `float e = 0.012, lap = (lens(vCaust + vec2(e, 0.0)) + lens(vCaust - vec2(e, 0.0)) + lens(vCaust + vec2(0.0, e)) + lens(vCaust - vec2(0.0, e)) - 4.0 * lens(vCaust)) / (e * e);
+        vRing = clamp(-${((waterY - SAND - 0.03) * 0.25).toFixed(3)} * lap, -0.85, 2.0);` : ''}`);
+    s.fragmentShader = s.fragmentShader.replace('#include <common>', `#include <common>\nuniform float uTime; varying vec2 vCaust; varying float vRing;\n${GLSL_CAUSTIC}`)
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(0.45, 0.8, 0.95) * (0.18 * caustic(vCaust * 22.0, uTime) * (1.0 + vRing) + 0.1 * max(0.0, vRing));');
   };
-  sandMat.customProgramCacheKey = () => 'aquarium-sand';
+  sandMat.customProgramCacheKey = () => (ripples ? 'aquarium-sand-rings' : 'aquarium-sand');
   add(sandGeo, sandMat);
 
   // ── stones: a few rounded rocks, pushed out of shape, half sunk in the sand ──
@@ -178,11 +184,11 @@ export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}
   // ── the lamp: a slim bar across the top on two feet, its light shining down into the water ──
   const lampMat = new THREE.MeshStandardMaterial({ color: '#1b1e22', roughness: 0.4, metalness: 0.6 });
   add(mergeGeometries([
-    new THREE.BoxGeometry(0.07, 0.014, L * 0.86).translate(0.02, H + 0.05, 0),
+    new THREE.BoxGeometry(0.07, 0.014, L * 0.86).translate(lampX, H + 0.05, 0),
     ...[-1, 1].map((s) => new THREE.BoxGeometry(D + 0.02, 0.008, 0.012).translate(0, H + 0.004, s * L * 0.4)),
-    ...[-1, 1].map((s) => new THREE.BoxGeometry(0.008, 0.05, 0.012).translate(0.02, H + 0.028, s * L * 0.4)),
+    ...[-1, 1].map((s) => new THREE.BoxGeometry(0.008, 0.05, 0.012).translate(lampX, H + 0.028, s * L * 0.4)),
   ]), lampMat);
-  const led = add(new THREE.BoxGeometry(0.05, 0.003, L * 0.84).translate(0.02, H + 0.0415, 0), new THREE.MeshStandardMaterial({ color: '#000000', emissive: '#d9f0ff', emissiveIntensity: 0.85 }));
+  const led = add(new THREE.BoxGeometry(0.05, 0.003, L * 0.84).translate(lampX, H + 0.0415, 0), new THREE.MeshStandardMaterial({ color: '#000000', emissive: '#d9f0ff', emissiveIntensity: 0.85 }));
   led.castShadow = false;
   // a spot that looks straight down, so it lights the water and the sand and not the wall above
   const light = new THREE.SpotLight('#cfeaff', 3.2, 1.4, 1.2, 0.8, 2); light.position.set(0, H + 0.03, 0);
@@ -232,12 +238,28 @@ export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}
   const m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), q = new THREE.Quaternion(), e = new THREE.Euler(0, 0, 0, 'YXZ'), scl = new THREE.Vector3();
   const lim = { x: D / 2 - 0.05, z: L / 2 - 0.08 };
   const spots = paths.map(() => new THREE.Vector3()), turn = paths.map(() => new THREE.Euler(0, 0, 0, 'YXZ'));
+  // A splash frightens them (`scare`, from src/splash.js): each fish darts away from where the water
+  // fell and down, its head turned the way it flees, in a seventh of a second, and drifts back to
+  // its round over some ten more. `flee` moves `pos` and returns how frightened the fish still is.
+  const fright = { x: 0, z: 0, t: -1e9 };
+  function flee(tt, reach) {
+    const a = tt - fright.t; if (a <= 0 || a > 14) return 0;
+    const k = THREE.MathUtils.smoothstep(a, 0, 0.14) * Math.exp(-Math.max(0, a - 0.14) / 3);
+    let dx = pos.x - fright.x, dz = pos.z - fright.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d;
+    const near = Math.exp(-d / 0.45) * reach;                     // the nearer, the further it darts
+    pos.x += dx * near * k * 0.5; pos.z += dz * near * k; pos.y -= 0.035 * near / reach * k;
+    e.set(0.5 * k * near / reach, Math.atan2(dx * 0.5, dz), 0);    // where it flees to, nose down
+    return k * Math.min(1, near / reach * 1.6);
+  }
+  const mixAngle = (a, b, k) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * k;
   function swim(i, f, tt) {
     const a = f.p + f.w * tt;
     pos.set(f.cx + f.ax * Math.sin(a), f.y + 0.015 * Math.sin(tt * 0.4 + f.bob), f.cz + f.az * Math.cos(a));
+    const fear = flee(tt, 0.2 + 0.05 * (i % 3)), fleeYaw = e.y, fleePitch = e.x;
     pos.x = THREE.MathUtils.clamp(pos.x, -lim.x, lim.x); pos.z = THREE.MathUtils.clamp(pos.z, -lim.z, lim.z);
     const vx = f.ax * Math.cos(a) * f.w, vz = -f.az * Math.sin(a) * f.w, vy = 0.006 * Math.cos(tt * 0.4 + f.bob);
     e.set(-Math.atan2(vy, Math.hypot(vx, vz)) * 0.8, Math.atan2(vx, vz), Math.sin(tt * 0.9 + f.bob) * 0.05);
+    if (fear > 0) { e.y = mixAngle(e.y, fleeYaw, fear); e.x += fleePitch * fear; }
     spots[i].copy(pos); turn[i].copy(e);
   }
   // two fish that meet pass one above the other: each pair closer than a body pushes apart in height
@@ -260,9 +282,11 @@ export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}
     const a = lead.p + lead.w * tt + oz * 1.6;
     const sway = 0.02 * Math.sin(tt * 0.7 + ph);
     pos.set(lead.cx + (lead.ax + ox) * Math.sin(a) + sway, lead.y + oy + 0.03 * Math.sin(tt * 0.3) + 0.008 * Math.sin(tt * 1.3 + ph), lead.cz + (lead.az + ox * 0.5) * Math.cos(a));
-    pos.x = THREE.MathUtils.clamp(pos.x, -lim.x, lim.x); pos.z = THREE.MathUtils.clamp(pos.z, -lim.z, lim.z);
+    const fear = flee(tt, 0.26), fleeYaw = e.y;
+    pos.x = THREE.MathUtils.clamp(pos.x, -lim.x, lim.x); pos.z = THREE.MathUtils.clamp(pos.z, -lim.z, lim.z); pos.y = Math.max(pos.y, SAND + 0.08);
     const vx = (lead.ax + ox) * Math.cos(a) * lead.w, vz = -(lead.az + ox * 0.5) * Math.sin(a) * lead.w;
     e.set(0, Math.atan2(vx, vz) + 0.15 * Math.sin(tt * 2.1 + ph), 0);
+    if (fear > 0) e.y = mixAngle(e.y, fleeYaw, fear);
     const s = 0.9 + 0.3 * ((ph * 7) % 1); scl.set(s, s, s);
     school.setMatrixAt(i, m4.compose(pos, q.setFromEuler(e), scl));
   }
@@ -274,7 +298,9 @@ export function buildAquarium(parent, { at, L = 1.6, D = 0.5, H = 0.48, cfg = {}
     if (fish) { paths.forEach((f, i) => swim(i, f, tt)); separate(); fish.instanceMatrix.needsUpdate = true; }
   }
   update(0);
-  return { group, update, waterY, toRoom: (v) => group.localToWorld(v) };
+  // (x, z) in the tank's own frame, at the room's time `tt`
+  const scare = (x, z, tt) => { fright.x = x; fright.z = z; fright.t = tt; };
+  return { group, update, waterY, rimY: H, scare, sandY: SAND + 0.05, lamp: [lampX, H + 0.04, 0], toRoom: (v) => group.localToWorld(v) };
 }
 
 // A fish's body swings from side to side, more towards the tail: a wave along it, in the vertex

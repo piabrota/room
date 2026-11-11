@@ -190,6 +190,18 @@ people and the works on the shelf are described in our own words from the org's 
 - [delaunator](https://github.com/mapbox/delaunator), ISC: the triangulation of `just grid` (a build tool; not shipped).
 - [glTF Transform](https://gltf-transform.dev), MIT, [meshoptimizer](https://github.com/zeux/meshoptimizer), MIT, and [sharp](https://sharp.pixelplumbing.com), Apache-2.0: the packing of `just models` (build tools; not shipped). three.js's own meshopt decoder reads the models in the browser.
 
+## The water balloon
+
+The splash of the water balloon over the aquarium (`src/splash.js`) is written for this room. Its
+way of working, a builder and a separate critic that scores each attempt from its own
+screenshots until it passes or three rounds are spent, comes from
+[a video by AI Search](https://www.youtube.com/watch?v=S7lpCyZSdJQ) (YouTube), whose physics test
+is a water balloon. No code, picture or sound of the video is
+used. The physics is textbook: Cauchy and Poisson's waves from a splash on deep water,
+Worthington's jet, Rayleigh and Plateau's breaking of a column of water, the drag of a sphere.
+`README.md`, "The water balloon", says what is computed and what is fitted. The two sounds, the
+burst and the splash, are synthesized in `src/audio.js`.
+
 ## Agent skills
 
 Three skills in `.claude/skills/` (`room-threejs-perf`, `room-assets`, `room-load`) are written for
