@@ -301,6 +301,9 @@ export const sfx = {
   eject:  { src: '/audio/eject.mp3',  fallback: 'thunk' },
   // Nash's meow: a real cat, public domain (CREDITS.md); the synthesized one is its fallback (src/audio.js)
   meow:   { src: '/audio/meow.mp3',   fallback: 'meow' },
+  // the water balloon (src/splash.js): the rubber's snap, and its water meeting the tank's; both synthesized until recorded
+  pop:    { src: '/audio/pop.mp3',    fallback: 'pop' },
+  splash: { src: '/audio/splash.mp3', fallback: 'splash' },
 };
 
 // Tapes: each one is a module in src/tapes with mount/frame/input/stop.
@@ -437,7 +440,12 @@ export const reads = {
 // The waves are computed live, a nod to ww3-gpu (WAVEWATCH III). `aquarium` is how many fish swim
 // in it (the big ones and the little school, fewer on the phone's look) and the colours of the
 // fish; `wall` the blues of the stripes painted across the whole right wall, from the deep at the
-// floor to the shallows under the cornice.
+// floor to the shallows under the cornice. `balloon` is the water balloon that hangs over the tank
+// (src/splash.js): a click bursts it and its water falls in. Its words, the colours the balloons
+// come in (the next one after each burst), its radius and how high over the water its bottom hangs
+// (metres), the seconds until a new one is filled, how many drops fly (fewer on the phone's look),
+// the shutter that smears a fast drop into a streak (seconds), and `speed`: 1 is the real speed
+// of falling water, 0.5 is slow motion.
 export const sea = {
   label: 'marola', hint: 'the water super app, and the sea it floats on', url: 'https://marola.dev',
   aquarium: {
@@ -446,6 +454,11 @@ export const sea = {
     schoolColors: { back: '#5fd0ff', belly: '#d9dde2', tail: '#e0473a' }, // the little ones: a blue stripe, a red tail
   },
   wall: { colors: ['#06243f', '#0b3a63', '#1265a8', '#1682D4', '#4aa3e3', '#8cc8f0'], paint: '#dfe6ea' },
+  balloon: {
+    label: 'water balloon', hint: 'burst it: a litre and a half falls into the tank',
+    colors: ['#BC2318', '#D29922', '#3FB950', '#1682D4'],
+    radius: 0.07, height: 0.5, across: 0.36, refill: 6, drops: 1500, liteDrops: 400, shutter: 0.0035, speed: 1,
+  },
   buoys: [
     { id: 'marola',          line: 'the water super app',                     url: 'https://github.com/marola-dev/marola' },
     { id: 'marola-app',      line: 'the backend, in Scala',                   url: 'https://github.com/marola-dev/marola-app' },
@@ -683,7 +696,7 @@ export const reading = {
 
 // Hoverable things. `name` matches a mesh name in your GLB (or the
 // placeholder room, which builds one for each `art`). `action` is one
-// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits'.
+// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits', 'splash'.
 // `group` titles the LOFI list.
 // ── ▲ grid: the Brazilian coast on a triangle mesh, its waves played back
 // on a map (src/grid.js, docs/SURVEY.md, section 6). The chart hangs on
@@ -785,6 +798,7 @@ export const hotspots = [
     name: `buoy_${b.id}`, label: b.id, hint: b.line, action: 'link', value: b.url, group: 'marola-dev',
     art: { kind: 'buoy', color: Object.values(theme.lanes)[i % 4] },
   })),
+  { name: 'balloon', label: sea.balloon.label, hint: sea.balloon.hint, action: 'splash' },
   { name: 'belt', label: loop.label, hint: loop.hint, action: 'link', value: loop.url, group: 'ouroboric-dev', art: { kind: 'belt' } },
   ...loop.crates.map((c) => ({
     name: `crate_${c.id}`, label: c.id, hint: c.line, action: 'link', value: c.url, group: 'ouroboric-dev',

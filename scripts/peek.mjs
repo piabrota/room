@@ -9,7 +9,10 @@
 //   just peek --shot desk --eval "window.__room.room.lamp.intensity = 0"
 //   just peek --shot overview --calls             and what the room is made of, thing by thing
 //   just peek --shot overview --lite --hud --phone --size 390x844   the HUD as a phone shows it
+//   just peek --shot sea --still                  as a visitor who asked for reduced motion sees it
 //   just peek --all --day --out /tmp/shots        every shot in one visit, into a folder (--shots desk,shelf for some)
+//   just peek --shot sea --click balloon --at 0.1,0.35,0.5,1   a click on a thing, then a still at each time after it (seconds),
+//                                                 as <out>-0.10.jpg …; with --from/--to, from that camera; the room steps 1/60 s
 //
 // It prints the draw calls and the triangles of the frame, so a heavy prop shows at once.
 import { join, resolve } from 'node:path';
@@ -46,7 +49,8 @@ const browser = await chromium.launch({
   args: gpu ? (process.platform === 'darwin' ? ['--use-angle=metal'] : []) : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
 });
 // --phone: a touch screen at a pixel ratio of 2, as a phone shows the HUD (with --size 390x844)
-const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: flag('phone') ? 2 : 1, isMobile: flag('phone'), hasTouch: flag('phone') });
+// --still: a visitor who asked for reduced motion (invariant 8)
+const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: flag('phone') ? 2 : 1, isMobile: flag('phone'), hasTouch: flag('phone'), reducedMotion: flag('still') ? 'reduce' : 'no-preference' });
 page.setDefaultTimeout(180000);
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
@@ -94,7 +98,25 @@ const shoot = async (file) => {
 };
 const say = (file, info) => console.log(`✓ ${file} (${W}×${H}, ${info.quality}): ${info.room} draw calls in the room's pass, ${info.calls} in all passes, ${info.triangles} triangles, ${info.textures} textures, ${info.geometries} geometries`);
 let info;
-if (flag('all') || opt('shots')) { // every shot, or some, in one visit: --out is then a folder
+if (opt('click')) { // a click on a named thing, then a still at each time after it, the room stepped by hand
+  info = await look({ shot: opt('shot') });
+  const cam = { from: vec(opt('from')), to: vec(opt('to')), fov: Number(opt('fov', 0)) };
+  const found = await page.evaluate((n) => { const r = window.__room, o = r.room.find(n); if (!o) return false; r.ui.click(o, null); return true; }, opt('click'));
+  if (!found) errors.push(`nothing in the room is named "${opt('click')}"`);
+  let t = 0;
+  for (const at of (opt('at', '0.5')).split(',').map(Number)) {
+    const n = Math.max(0, Math.round((at - t) * 60)); t += n / 60;
+    await page.evaluate(({ n, from, to, fov }) => {
+      const r = window.__room, render = r.post.render;
+      r.post.render = () => {};                       // only the last step of each wait is drawn
+      for (let i = 0; i < n - 1; i++) r.step(1 / 60);
+      r.post.render = render; if (n > 0) r.step(1 / 60);
+      if (from) { r.camera.position.set(...from); r.camera.lookAt(...to); if (fov) { r.camera.fov = fov; r.camera.updateProjectionMatrix(); } r.camera.updateMatrixWorld(); r.post.render(0, 1, false); }
+    }, { n, ...cam });
+    const file = out.replace(/\.(jpg|png)$/, (m) => `-${at.toFixed(2)}${m}`);
+    await shoot(file); console.log(`✓ ${file} (${at.toFixed(2)} s after the click)`);
+  }
+} else if (flag('all') || opt('shots')) { // every shot, or some, in one visit: --out is then a folder
   const names = opt('shots')?.split(',') ?? await page.evaluate(() => { const n = window.__room.rig.names; return Array.isArray(n) ? n : Object.keys(n); });
   for (const shot of names) { info = await look({ shot }); const file = join(out.replace(/\.(jpg|png)$/, ''), `${shot}.jpg`); await shoot(file); say(file, info); }
 } else { info = await look({ shot: opt('shot') }); await shoot(out); say(out, info); }

@@ -552,7 +552,7 @@ function placeholderRoom() {
   ]));
 
   // ── the other walls: marola-dev's sea, ouroboric-dev's loop, the slipbox ──
-  animated.push(buildSea(g, mesh, std, part, F, { lite }), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
+  animated.push(buildSea(g, mesh, std, part, F, { lite, still, hang: [ROSE[0], ROOM.h - 0.75, ROSE[1]] }), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
 
   // the leaves sway a little in the air of the room (the vertex shader; still under reduced motion)
   const sway = std('#2f6b3a', LEAF);

@@ -25,7 +25,7 @@ for (const [name, s] of shots) {
 if (!config.shots?.[config.startShot]) fail(4, `startShot "${config.startShot}" is not a shot`);
 
 // 5. Every hotspot has a label and a known action.
-const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits']);
+const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits', 'splash']);
 const names = new Set();
 for (const h of config.hotspots ?? []) {
   if (names.has(h.name)) fail(5, `hotspot name "${h.name}" is used twice`);
@@ -54,7 +54,7 @@ for (const t of config.tapes ?? []) {
 
 const radioTracks = (config.radio?.stations ?? []).flatMap((s) => s.tracks);
 // 7. Every sound has a synthesized fallback.
-const fallbacks = new Set(['rain', 'click', 'thunk', 'lofi', 'meow']);
+const fallbacks = new Set(['rain', 'click', 'thunk', 'lofi', 'meow', 'pop', 'splash']);
 for (const s of [...(config.ambience ?? []), ...Object.values(config.sfx ?? {}), ...radioTracks]) {
   if (!fallbacks.has(s.fallback)) fail(7, `sound ${s.src} needs a fallback, one of ${[...fallbacks].join(', ')}`);
 }
@@ -138,6 +138,15 @@ for (const f of walk(join(root, 'src'))) {
   if (/createElement\(\s*['"]iframe/.test(readFileSync(f, 'utf8')) && !Object.keys(frames).some((k) => f.endsWith(k))) fail(1, `${f.slice(root.length)} makes an iframe: only src/player.js (the playlist) and src/live.js (the live window) may`);
 }
 if (config.hotspots.some((h) => h.action === 'playlist') && !config.playlist?.embed) fail(5, 'a hotspot opens the playlist, but config.playlist has no embed');
+// 5, 7. The water balloon: its words and numbers are in config.sea.balloon, and its two sounds have fallbacks.
+if (config.hotspots.some((h) => h.action === 'splash')) {
+  const b = config.sea?.balloon;
+  if (!b?.label || !b?.hint) fail(3, 'a hotspot bursts the water balloon, but config.sea.balloon has no label and hint');
+  if (!(b?.colors?.length > 0) || !b.colors.every((c) => /^#[0-9a-f]{6}$/i.test(c))) fail(3, 'config.sea.balloon.colors needs at least one #rrggbb colour');
+  if (!(b?.radius > 0.02 && b.radius < 0.12) || !(b?.height > 0.1 && b.height < 0.7)) fail(3, 'config.sea.balloon: radius (0.02 to 0.12 m) and height over the water (0.1 to 0.7 m)');
+  if (!(b?.drops <= 2000) || !(b?.liteDrops <= 500)) fail(9, 'config.sea.balloon: at most 2000 drops, and 500 on the phone\'s look');
+  for (const k of ['pop', 'splash']) if (!config.sfx?.[k]) fail(7, `the water balloon plays config.sfx.${k}, which is missing`);
+}
 // the door's lock: a code of digits, one clue for each
 if (config.hotspots.some((h) => h.action === 'door')) {
   const l = config.door?.lock;

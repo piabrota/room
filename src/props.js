@@ -3,11 +3,13 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { hotspots, theme, shell, sea } from './config.js';
 import { ROOM } from './shell.js';
 import { buildAquarium } from './aquarium.js';
+import { buildSplash, createRipples, RIPPLE_GLSL } from './splash.js';
 import { recordArt, cardArt, crateArt, texture, FONT_TITLE, FONT_MONO } from './art.js';
 
 // The props of the two other walls and the floor, built from config:
 //   the sea    (right wall)  an aquarium (src/aquarium.js), one buoy per marola-dev repo on its
-//                            surface, the wall painted with blue stripes from corner to corner;
+//                            surface, the wall painted with blue stripes from corner to corner,
+//                            and a water balloon hung over the tank, to burst (src/splash.js);
 //   the loop   (front wall)  a wheel that turns forever, one crate per
 //                            ouroboric-dev repo, each kept upright;
 //   the slipbox (floor)      a crate of records: Pirsig in front, h0ffmann's repositories behind.
@@ -44,7 +46,7 @@ function label(text, sub, w = 1024, h = 256) {
   return texture(c);
 }
 
-export function buildSea(g, mesh, std, part, furniture, { lite = false } = {}) {
+export function buildSea(g, mesh, std, part, furniture, { lite = false, still = false, hang } = {}) {
   const tank = spot('tank'); if (!tank) return () => {};
   const X = 3.08, Z = -0.45, L = 1.6, D = 0.5, top = 0.72;
   // the cabinet, and the aquarium on it (src/aquarium.js)
@@ -54,34 +56,83 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false } = {}) {
   };
   if (furniture) furniture.place('cabinet', g, { at: [X, 0, Z], rot: -Math.PI / 2, fit: { w: L + 0.16, h: top + 0.03, d: D + 0.08 }, stretch: true, standin: stand });
   else { const s = new THREE.Group(); s.position.set(X, 0, Z); g.add(s); stand(s); }
-  const aq = buildAquarium(g, { at: new THREE.Vector3(X, top + 0.03, Z), L, D, cfg: sea.aquarium, lite, name: tank.name, loadFish: () => furniture?.load('fish') ?? Promise.resolve(null) });
+  const balloon = spot('balloon'); // with a balloon over it, the tank's lamp sits at the back, out of the water's way
+  // the rings a splash leaves on the surface, and the balloon that makes it (src/splash.js)
+  const ripples = createRipples();
+  const lampX = balloon ? 0.19 : 0.02;
+  const aq = buildAquarium(g, { at: new THREE.Vector3(X, top + 0.03, Z), L, D, cfg: sea.aquarium, lite, name: tank.name, lampX, ripples: balloon && !lite ? ripples : null, loadFish: () => furniture?.load('fish') ?? Promise.resolve(null) });
   const waterY = top + 0.03 + aq.waterY;
-  // the surface: the live waves, small in a tank, which the buoys ride
-  const uniforms = { uTime: { value: 0 }, uDeep: { value: new THREE.Color('#0d4a6b') }, uShallow: { value: new THREE.Color('#3d9cc9') }, uFoam: { value: new THREE.Color('#dff4ff') } };
+  const lampAt = [X + aq.lamp[0], top + 0.03 + aq.lamp[1], Z + aq.lamp[2]];
+  let now = 0;
+  const box = { x0: X - D / 2, x1: X + D / 2, z0: Z - L / 2, z1: Z + L / 2 };
+  const splash = balloon && sea.balloon ? buildSplash(g, {
+    cfg: sea.balloon, ripples, lite, still, name: balloon.name,
+    tank: {
+      ...box, waterY, rimY: top + 0.03 + aq.rimY, floorY: top + 0.03 + aq.sandY, cabY: top + 0.03,
+      cab: { x0: X - D / 2 - 0.04, x1: ROOM.x1, z0: Z - L / 2 - 0.08, z1: Z + L / 2 + 0.08 }, wall: ROOM.x1, lamp: lampAt, hang,
+      bar: { x0: X + lampX - 0.035, x1: X + lampX + 0.035, y: top + 0.03 + aq.rimY + 0.057, z0: Z - L * 0.43, z1: Z + L * 0.43 },
+    },
+  }) : null;
+  if (splash) { g.userData.splash = splash; splash.scare = (p) => aq.scare(p.x - X, p.z - Z, now); }
+  // the surface: the live waves, small in a tank, which the buoys ride, and the rings over them
+  const uniforms = { uTime: { value: 0 }, uDeep: { value: new THREE.Color('#0d4a6b') }, uShallow: { value: new THREE.Color('#3d9cc9') }, uFoam: { value: new THREE.Color('#dff4ff') },
+    uLampAt: { value: new THREE.Vector3(...lampAt) }, uLampHalf: { value: L * 0.42 }, ...ripples.uniforms };
+  // FINE (the laptop's look): the rings' slope is taken at every pixel, so a small drop's rings, finer than the mesh, still glint
   const water = new THREE.ShaderMaterial({
-    uniforms, transparent: true, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true,
+    uniforms, transparent: true, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true, defines: lite ? {} : { FINE: 1 },
     vertexShader: `
-      uniform float uTime; varying float vH; varying vec3 vN;
+      uniform float uTime; varying float vH; varying vec3 vN, vW;
+      ${RIPPLE_GLSL}
       float wave(vec2 p) { float h = 0.0; ${waveGLSL} return h * ${TANK.toFixed(2)}; }
+      #ifdef FINE
+        float slow(vec2 p) { return wave(p) + crater(p); }
+      #else
+        float slow(vec2 p) { return wave(p) + crater(p) + rings(p); }
+      #endif
       void main() {
         vec4 w = modelMatrix * vec4(position, 1.0);
-        vec2 p = w.xz; float h = wave(p);
-        float e = 0.01; vN = normalize(vec3(-(wave(p + vec2(e, 0.0)) - h) / e, 1.0, -(wave(p + vec2(0.0, e)) - h) / e));
-        vH = h; w.y += h;
+        vec2 p = w.xz; float h = slow(p);
+        float e = 0.01; vN = normalize(vec3(-(slow(p + vec2(e, 0.0)) - h) / e, 1.0, -(slow(p + vec2(0.0, e)) - h) / e));
+        #ifdef FINE
+          h += rings(p);
+        #endif
+        vH = h; w.y += h; vW = w.xyz;
         gl_Position = projectionMatrix * viewMatrix * w;
       }`,
     fragmentShader: `
-      uniform vec3 uDeep, uShallow, uFoam; varying float vH; varying vec3 vN;
+      uniform vec3 uDeep, uShallow, uFoam, uLampAt; uniform float uLampHalf; varying float vH; varying vec3 vN, vW;
+      ${RIPPLE_GLSL}
+      float vhash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float vnoise(vec2 p) { vec2 i = floor(p), u = fract(p); u = u * u * (3.0 - 2.0 * u);
+        return mix(mix(vhash(i), vhash(i + vec2(1.0, 0.0)), u.x), mix(vhash(i + vec2(0.0, 1.0)), vhash(i + vec2(1.0, 1.0)), u.x), u.y); }
       void main() {
+        vec3 n = normalize(vN);
+        #ifdef FINE
+          vec2 p = vW.xz; float e = 0.003, h0 = rings(p);
+          n = normalize(vec3(n.x / n.y - (rings(p + vec2(e, 0.0)) - h0) / e, 1.0, n.z / n.y - (rings(p + vec2(0.0, e)) - h0) / e));
+        #endif
         float k = smoothstep(-0.01, 0.012, vH);
-        vec3 c = mix(uDeep, uShallow, k) * (0.55 + 0.45 * vN.y);
-        c += vec3(0.5, 0.8, 1.0) * pow(1.0 - vN.y, 2.0) * 2.0; // the glints
-        gl_FragColor = vec4(c * 0.9, 0.5);
+        vec3 c = mix(uDeep, uShallow, k) * (0.55 + 0.45 * n.y);
+        c += vec3(0.5, 0.8, 1.0) * min(1.0, pow(1.0 - n.y, 2.0) * 2.0); // the glints
+        // where the balloon's water fell the tank's water is churned white for a second or two
+        float white = 0.0, since = uNow - uImpact.z;
+        if (uImpact.w > 0.0 && since > 0.0 && since < 4.0) {
+          float r = length(vW.xz - uImpact.xy), rb = uImpact.w * (1.0 + 1.3 * (1.0 - exp(-since / 0.09)));
+          float churn = 0.6 * vnoise(vW.xz * 48.0 + vec2(since * 1.3, -since)) + 0.4 * vnoise(vW.xz * 120.0 - since * 1.7);
+          white = smoothstep(0.38, 0.7, churn + 0.3 * exp(-since / 0.5)) * exp(-r * r / (1.5 * rb * rb)) * smoothstep(0.02, 0.15, since) * exp(-since / 1.1);
+          c = mix(c, uFoam * 0.72, white * 0.75);
+        }
+        // the lamp's bar, mirrored in the water: a streak that every wave breaks
+        vec3 v = normalize(cameraPosition - vW);
+        vec3 l = normalize(vec3(uLampAt.x, uLampAt.y, clamp(vW.z, uLampAt.z - uLampHalf, uLampAt.z + uLampHalf)) - vW);
+        float spec = pow(max(dot(reflect(-l, n), v), 0.0), 260.0);
+        gl_FragColor = vec4(c * 0.9 + vec3(0.85, 0.96, 1.0) * spec * 0.55, min(1.0, 0.5 + spec * 0.4 + white * 0.35));
       }`,
   });
-  const surface = mesh('', new THREE.PlaneGeometry(D - 0.016, L - 0.016, 16, 52), water, [X, waterY, Z], aq.group);
+  const surface = mesh('', new THREE.PlaneGeometry(D - 0.016, L - 0.016, lite ? 16 : 48, lite ? 52 : 156), water, [X, waterY, Z], aq.group);
   surface.position.set(0, aq.waterY, 0); surface.rotation.x = -Math.PI / 2; surface.castShadow = surface.receiveShadow = false; surface.renderOrder = 3;
   surface.raycast = () => {};
+  const high = (x, z, t) => TANK * waveHeight(x, z, t) + ripples.height(x, z); // the surface a buoy rides
 
   // the buoys: one per marola-dev repo, each one mesh (vertex colours), riding the surface
   const buoys = art('buoy').map((h, i, all) => {
@@ -100,7 +151,7 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false } = {}) {
     b.castShadow = false;
     const row = i % 2, k = Math.floor(i / 2), n = Math.ceil(all.length / 2);
     b.userData.home = new THREE.Vector3(X - 0.1 + row * 0.2, waterY, Z - L / 2 + 0.16 + (k + row * 0.5) * ((L - 0.3) / n));
-    b.userData.phase = i * 1.3;
+    b.userData.phase = i * 1.3; b.userData.off = new THREE.Vector2();
     return b;
   });
 
@@ -111,12 +162,18 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false } = {}) {
   buildWaveWall(g, { lite, clear: { z: Z - 0.05, y: 2.15, w: 1.7, h: 0.5 } });
 
   return (t) => {
-    uniforms.uTime.value = t; aq.update(t);
+    const dt = Math.min(0.1, Math.max(0, t - now));
+    now = t; uniforms.uTime.value = t; splash?.update(t); aq.update(t);
     for (const b of buoys) {
-      const p = b.userData.home, y = TANK * waveHeight(p.x, p.z, t);
-      const sx = TANK * (waveHeight(p.x + 0.02, p.z, t) - waveHeight(p.x, p.z, t)) / 0.02, sz = TANK * (waveHeight(p.x, p.z + 0.02, t) - waveHeight(p.x, p.z, t)) / 0.02;
+      // the water the crater pushes aside takes the buoy with it; then it drifts home, as if on a slack line
+      const home = b.userData.home, off = b.userData.off, run = ripples.flow(home.x + off.x, home.z + off.y);
+      if (run) { off.x += run[0] * dt; off.y += run[1] * dt; } else off.multiplyScalar(Math.exp(-dt * 0.3));
+      const px = THREE.MathUtils.clamp(home.x + off.x, box.x0 + 0.04, box.x1 - 0.04), pz = THREE.MathUtils.clamp(home.z + off.y, box.z0 + 0.04, box.z1 - 0.04);
+      off.set(px - home.x, pz - home.z);
+      const p = { x: px, y: home.y, z: pz }, y = high(p.x, p.z, t);
+      const sx = (high(p.x + 0.02, p.z, t) - y) / 0.02, sz = (high(p.x, p.z + 0.02, t) - y) / 0.02;
       b.position.set(p.x, p.y + y + 0.005, p.z);
-      b.rotation.set(sz * 0.6, b.userData.phase + t * 0.2, -sx * 0.6);
+      b.rotation.set(THREE.MathUtils.clamp(sz, -0.9, 0.9) * 0.6, b.userData.phase + t * 0.2, THREE.MathUtils.clamp(-sx, -0.9, 0.9) * 0.6);
     }
   };
 }

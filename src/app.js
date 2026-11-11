@@ -178,6 +178,13 @@ function openDoor(on) { doorState.to = on ? 1 : 0; audio.play(config.sfx.insert)
 try { if (new URLSearchParams(location.search).has('locked')) localStorage.removeItem(DOOR_KEY); else if (localStorage.getItem(DOOR_KEY) === 'open') { doorState.k = doorState.to = 1; room.setDoor?.(1); } } catch { /* no storage: the door starts shut */ }
 const doorOpen = () => doorState.to === 1;
 
+// ── the water balloon over the aquarium (src/splash.js): its snap, its splash, and Nash looks ──
+const splash = room.root.userData.splash;
+if (splash) {
+  splash.onPop = () => audio.play(config.sfx.pop, 0.7);
+  splash.onImpact = (at) => { audio.play(config.sfx.splash, 0.8); nash?.call(at); };
+}
+
 // ── hotspots from config ──
 const lampOn = room.lamp.intensity;
 for (const h of config.hotspots) {
@@ -185,7 +192,7 @@ for (const h of config.hotspots) {
   ui.add(room.find(h.name), {
     label: isDoor ? () => (doorOpen() ? config.door.openLabel : h.label) : h.label,
     hint: isDoor ? () => (doorOpen() ? config.door.openHint : h.hint) : h.hint,
-    onClick: () => {
+    onClick: (hit) => {
       audio.play(config.sfx.click);
       if (h.action === 'shot') rig.go(h.value);
       if (h.action === 'link') window.open(h.value, '_blank', 'noopener');
@@ -195,6 +202,7 @@ for (const h of config.hotspots) {
       if (h.action === 'playlist') player.open();
       if (h.action === 'credits') credits.open();
       if (h.action === 'cat') { audio.play(config.sfx.meow); nash?.call(camera.position); }
+      if (h.action === 'splash') splash?.burst(hit?.point);
       if (h.action === 'door') { if (doorOpen()) { openDoor(false); try { localStorage.removeItem(DOOR_KEY); } catch { /* fine */ } } else lock.open(); }
     },
   });
