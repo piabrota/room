@@ -108,12 +108,13 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just fish` | the aquarium's fish, Microsoft's Barramundi from the Khronos glTF sample assets (CC0), pinned to a commit, as `public/models/fish.glb` and `fish.lite.glb` (`scripts/fish.mjs`) |
 | `just mobile [--device phone\|laptop] [--url <site>] [--bytes]` | what the room costs a phone (390×844, ratio 3, touch, CPU 4× slower) and a laptop: the look (`lite` or `full`) and the files (`lite` or `full`), bytes before it shows (`--bytes` lists the biggest), time to show, pixels drawn, ms a frame (`scripts/mobile.mjs`); compare builds, in software here |
 | `just audio <file> <name>` | normalizes a sound into `public/audio/<name>.mp3` |
-| `just brasil` | renders the "lofi brasil" station into `public/audio/radio/` (`scripts/brasil.mjs`) |
+| `just lofi [names]` | renders the radio's lofi pieces, written in Csound (`music/`), into `public/audio/radio/` (`scripts/lofi.sh`); it needs csound and the FluidR3 GM soundfont at `ROOM_SF2`, both in `nix develop` |
 | `just listeners` | the radio's live listeners count on :8787, and the door's email gate (`POST /live/door`, kept in `DOOR_FILE`); `just dev` passes `/live/` to it |
 | `just compose [samples]` | makes the ambience, the VCR sounds and the piabrota tape from the field recordings in `samples/` (`scripts/compose.mjs`, `CREDITS.md`) |
 
-On Nix, `nix develop` (or `direnv allow`, with `.envrc`) gives Node 22, just and ffmpeg. On
-macOS without Nix, `brew install node just ffmpeg`.
+On Nix, `nix develop` (or `direnv allow`, with `.envrc`) gives Node 22, just, ffmpeg, and
+csound with the soundfont of `just lofi`. On macOS without Nix, `brew install node just ffmpeg`
+(and `csound`, with `ROOM_SF2` set to a copy of `FluidR3_GM.sf2`, for `just lofi` only).
 
 ## Files
 
@@ -163,7 +164,8 @@ macOS without Nix, `brew install node just ffmpeg`.
 | `scripts/models.mjs`, `scripts/models.json` | what `just models` makes, and the list it makes it from: each Poly Haven id, the parts to keep, how far to thin it, the size of its textures |
 | `scripts/blow_light.sh` | what `just blow-light` measures, frame by frame, with ffmpeg: the share of a frame burnt or glowing white |
 | `scripts/light.mjs` | what `just light` measures: how bright each shot is, and whether any burns to white |
-| `scripts/brasil.mjs` | what `just brasil` makes: the four bossa-lofi pieces of the "lofi brasil" station |
+| `music/lofi.orc`, `music/*.sco` | the radio's lofi, in Csound: the orchestra is the band (a piano, an upright bass, a flute, an electric piano and a kit, from the FluidR3 GM soundfont) and its worn tape; each score is a piece, and `kit.sco` has the drummer's patterns they share |
+| `scripts/lofi.sh` | what `just lofi` runs: csound on each score, then ffmpeg to -18 LUFS |
 | `scripts/listeners.mjs` | `just listeners`: the live listeners count and the door's emails, a small server with no dependency that runs beside the site (nix-os runs it on the host) |
 | `docs/SURVEY.md` | a survey of 6 November 2026: other rooms, frameworks, animation, shaders, a faster `just record`, the ▲ grid view (WW3 on triangles), the day's white-out; its pictures are in `docs/survey/` |
 | `.claude/skills/` | Claude skills for working here: `room-pr` (a pull request the owner's way), `room-light`, `room-content`, `room-shaders`, `ww3-grid` (the planned tenth view), `room-mobile` (the room on a phone: the two looks, the rules, `just mobile`), `room-phone-test` (checking it in emulation and on a real phone), `room-threejs-perf` (draw calls, blending, shadows, shader stalls), `room-assets` (a model or a photo in its two sizes, with its credit), `room-load` (what may load before the room shows). They follow this file; where they differ, this file wins |
@@ -190,9 +192,11 @@ shot, `Esc` for `startShot`, and a drag (mouse or finger) to look around from wh
   `config.sfx` with a `fallback`.
 - A new post: a Markdown file in `posts/`, named `YYYY-MM-DD-slug.md`, with `title`, `date` and
   `summary` in its front matter. LOFI lists it, newest first, and `feed.xml` carries it.
-- A new radio track: lofi under CC0 or CC BY only. `just audio track.mp3 radio/<name>`, add it
+- A new radio track is written for the room: a score in
+  `music/<name>.sco` for the band of `music/lofi.orc`, rendered by `just lofi <name>`. Add it
   to a station's `tracks` in `config.radio` with `fallback: 'lofi'`, and a row to `CREDITS.md`
-  (the check asks). A new station is one more entry in `config.radio.stations`.
+  (the check asks). A new station is one more entry in `config.radio.stations`; with one
+  station its row of buttons is hidden.
 - The room is made to be forked: a word, a list, a track or a picture that makes it someone's goes
   in `src/config.js`, never in the code.
 - A new model: export from Blender as glTF binary to `public/models/room.glb`, with the mesh

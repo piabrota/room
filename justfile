@@ -11,6 +11,7 @@ doctor:
     @node -e 'const [m] = process.versions.node.split("."); if (m < 20) { console.error("node " + process.version + ": need 20 or newer"); process.exit(1) } console.log("node " + process.version)'
     @npm --version | sed 's/^/npm /'
     @command -v ffmpeg >/dev/null && echo "ffmpeg ok" || echo "ffmpeg missing: only \`just audio\` needs it"
+    @command -v csound >/dev/null && echo "csound ok" || echo "csound missing: only \`just lofi\` needs it"
 
 # install the locked dependencies
 setup: doctor
@@ -87,9 +88,9 @@ audio src name lufs="-18":
 compose samples="samples" out="public/audio":
     node scripts/compose.mjs "{{samples}}" "{{out}}"
 
-# render the "lofi brasil" station of piabrota RADIO into public/audio/radio (scripts/brasil.mjs)
-brasil:
-    node scripts/brasil.mjs
+# render the lofi of piabrota RADIO from its Csound scores (music/*.sco) into public/audio/radio; needs csound and ROOM_SF2 (just lofi varanda)
+lofi *names:
+    scripts/lofi.sh {{names}}
 
 # the live listeners count of piabrota RADIO on :8787 (`just dev` passes /live/ to it)
 listeners:

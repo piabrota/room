@@ -288,6 +288,7 @@ for (const st of radio.stations) {
   const b = document.createElement('button'); b.textContent = st.label; b.dataset.station = st.id;
   b.onclick = () => radio.tune(st.id); stationsEl.append(b);
 }
+if (radio.stations.length < 2) stationsEl.style.display = 'none'; // one station: nothing to choose
 // the owner's playlist: Spotify's Embed player over the room, made on the
 // click and removed on close (AGENTS.md, invariants 1 and 7)
 const playlistBtn = document.getElementById('playlist');

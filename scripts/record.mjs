@@ -246,7 +246,7 @@ await wall(async () => {                                                        
   await moveTo(...(await at('fax_linkedin')), 0.4); await wait(0.5);            // and its LinkedIn button
   await moveTo(...(await at('lamp_bulb')), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on
   await moveTo(...(await box('#radio')), 0.5); await click(); await wait(0.3);  // piabrota RADIO on
-  await moveTo(...(await box('#stations button[data-station="brasil"]')), 0.4); await click(); // the lofi brasil station
+  await moveTo(...(await box('#radio-next')), 0.4); await click();               // the next track
   await moveTo(...(await box('#rain')), 0.4); await click();                    // the rain, on
   await page.keyboard.press('6'); await land();                                 // key 6: the window, Rio at night
   await moveTo(...(await at('window')), 0.6); await wait(1.0);
