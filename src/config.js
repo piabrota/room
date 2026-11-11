@@ -378,6 +378,17 @@ export const works = [
   { id: 'nashkell',      title: 'nashkell, the open book', doi: '10.5281/zenodo.23356739', color: '#D29922' },
 ];
 
+// ── the papers on aiXiv, by Matheus Hoffmann, beside the works with a DOI: two bound preprints,
+// white covers, each a link to its aiXiv page (the owner, 11 November 2026). Titles, authors and
+// numbers as their aiXiv pages give them (read 11 November 2026).
+export const papers = {
+  group: 'papers on aiXiv', on: 'aiXiv',
+  list: [
+    { id: 'ww3-gpu-paper', aixiv: '2611.01104', title: 'Wave models on GPUs: C++/Kokkos and Rust ports of WAVEWATCH III that must give the Fortran\'s bits', spine: 'Wave models on GPUs', by: 'Matheus Hoffmann, Pedro Veras Guimarães, Pedro Cruz', color: '#f1ede4', ink: '#2b6fb3' },
+    { id: 'proof',         aixiv: '2611.01105', title: 'A decision layer for contextual bandits, proved in Agda', spine: 'Bandits, proved in Agda', by: 'Matheus Hoffmann', color: '#f1ede4', ink: '#2f8f45' },
+  ],
+};
+
 // ── how I read: ten technical ebooks from the owner's library, most on functional programming
 // and the architecture of real systems, on the bookcase under the works with a DOI. Each is a
 // spine in its cover's colours (`color` the cover, `ink` its title), named by its language
@@ -717,7 +728,7 @@ export const grid = {
 export const hotspots = [
   { name: 'chart', label: grid.label, hint: grid.hint, action: 'shot', value: 'grid' },
   { name: 'window', label: 'Rio at night', hint: 'where piabrota is made', action: 'shot', value: 'window' },
-  { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI', action: 'shot', value: 'shelf' },
+  { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI, and the papers on aiXiv', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },
   { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
   { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'playlist', art: { kind: 'mixtape' } },
@@ -750,6 +761,10 @@ export const hotspots = [
   ...works.map((w) => ({
     name: `book_${w.id}`, label: w.title, hint: `doi ${w.doi}`, action: 'link', value: `https://doi.org/${w.doi}`, group: 'works with a DOI',
     art: { kind: 'book', color: w.color },
+  })),
+  ...papers.list.map((p) => ({
+    name: `paper_${p.id}`, label: p.title, hint: `aiXiv:${p.aixiv} · ${p.by}`, action: 'link', value: `https://aixiv.online/abs/${p.aixiv}`, group: papers.group,
+    art: { kind: 'paper', color: p.color, ink: p.ink, spine: p.spine, by: p.by },
   })),
   ...reads.books.map((b) => ({
     name: `read_${b.id}`, label: b.title, hint: `${b.by} · ${b.lang} · ${reads.on}`, action: 'link', value: b.url, group: reads.group,
