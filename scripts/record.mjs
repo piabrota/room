@@ -240,7 +240,7 @@ async function wall(fn, seconds = 5.5) { const from = n; await fn(); await wait(
 await wall(async () => {                                                        // the back wall
   await moveTo(...(await at('sign')), 0.8); await wait(0.6);                    // hover the sign
   await moveTo(...(await button('desk')), 0.6); await click(); await land();    // a shot button: the desk
-  await moveTo(...(await at('tape_cv')), 0.5); await click(); await wait(1.6);  // the CV tape into the VCR
+  await moveTo(...(await at('tape_csound')), 0.5); await click(); await wait(1.6); // the Csound tape into the VCR: a lofi piece and its code
   await moveTo(...(await at('screen')), 0.5); await wait(1.2);                  // over the TV while it plays
   await moveTo(...(await at('fax', 0.22)), 0.5); await wait(0.5);               // the fax: the address
   await moveTo(...(await at('fax_linkedin')), 0.4); await wait(0.5);            // and its LinkedIn button
@@ -263,6 +263,7 @@ await wall(async () => {                                                        
   await moveTo(...(await at('frame_nix-os')), 0.6); await wait(0.8);
   await moveTo(...(await at('frame_rax')), 0.6); await wait(0.8);
   await page.keyboard.press('4'); await land();                                 // key 4: the shelf of the works with a DOI
+  await moveTo(...(await at('paper_proof')), 0.6); await wait(1.0);             // a paper on aiXiv, beside the works with a DOI
   await moveTo(...(await at('board_tyler-durden-bot')), 0.6); await wait(1.4); // tyler-durden-bot's board above it, its red bulbs blinking
 }, 8);
 await wall(async () => {                                                        // the right wall: the sea

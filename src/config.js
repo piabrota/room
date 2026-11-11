@@ -291,13 +291,14 @@ export const tapes = [
   { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d', code: 'T-60' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
   { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950', code: 'E-240' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#2e9e4f', '#3FB950', '#d8ffe0'], sub: place.city }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
   { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347', code: 'T-90' }, sleeve: { style: 'sunburst', colors: ['#1a1208', '#d29922', '#ffe9b8', '#c2410c'], sub: 'play the screen' }, text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
+  { id: 'csound', label: 'LOFI IN CSOUND', color: '#1d2333', spine: { text: 'lofi in csound', face: 'terminal', paper: '#0b0d12', ink: '#ffb347', code: 'E-60' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#ffb347', '#7dd3a6', '#f3ead8'], sub: 'the code of the music' }, text: 'the radio\'s lofi pieces, each playing while its Csound score runs up the screen; a click for the next', lang: 'csound', hint: 'click: next piece', pieces: radio.stations.flatMap((s) => s.tracks), module: () => import('./tapes/csound.js') },
   { id: 'cv',        label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b', code: 'E-120' }, sleeve: { style: 'smalltype', face: 'typewriter', colors: ['#e4dfd2', '#22252d', ...Object.values(theme.lanes)], sub: 'track record' }, module: () => import('./tapes/cv.js') },
 ];
 // The stack beside the VCR: piles side by side, each from the bottom up, by
 // tape id; nothing is squared up. A tape named in no pile goes on the
 // shortest. A bare cassette belongs on top of its pile (the pile closes up
 // when it leaves). `gap` is the space between two piles, in metres.
-export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots']], gap: 0.03 };
+export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots', 'csound']], gap: 0.03 };
 // The VCR's face (src/vhs.js): a brand that does not exist, the words printed
 // on it, and the clock that nobody ever set. `lit` are the words behind the
 // display's glass (the first one is on), `keys` the six under it.
