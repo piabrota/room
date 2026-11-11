@@ -223,8 +223,9 @@ export const playlist = {
 };
 // every artist of the playlist, once, in the order they first play: named beside the player
 playlist.artists = [...new Set(playlist.tracks.flatMap((t) => t.artists))];
-// piabrota RADIO: five lofi pieces written for the room, a piano first,
-// with an upright bass, a flute and a boom-bap kit. They are written in
+// piabrota RADIO: ten lofi pieces written for the room, a piano first,
+// with an upright bass, a flute and a boom-bap kit, and on some a nylon
+// guitar or a vibraphone. They are written in
 // Csound, the scores in music/ (`just lofi` renders them, CREDITS.md). A
 // station plays its tracks one after another from a random start; with
 // one station, its row of buttons stays hidden. The radio plays through
@@ -245,6 +246,11 @@ export const radio = {
       { src: '/audio/radio/corredor.mp3', title: 'Flauta no corredor', artist: 'piabrota', fallback: 'lofi' },
       { src: '/audio/radio/fita.mp3', title: 'Última fita', artist: 'piabrota', fallback: 'lofi' },
       { src: '/audio/radio/metro.mp3', title: 'Depois do metrô', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/chuva.mp3', title: 'Chuva fina no Catete', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/cafe.mp3', title: 'Café coado', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/janela.mp3', title: 'Janela acesa', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/bilhete.mp3', title: 'Bilhete na geladeira', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/domingo.mp3', title: 'Domingo sem pressa', artist: 'piabrota', fallback: 'lofi' },
     ] },
   ],
 };

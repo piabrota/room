@@ -69,7 +69,8 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 32 | 11 Nov 08:48 | [#39](https://github.com/piabrota/room/pull/39) the radio's 40 lofi tracks are gone, and five new ones play in their place, composed by the thread itself (Claude Fable 5.2) in [Csound](https://csound.com), the language made for scores and orchestras: a piano first, with an upright bass, a flute and a boom-bap kit, through a worn tape. The scores are in `music/`, and `just lofi` renders them | 55 min |
 | 33 | 11 Nov 05:24 | [#40](https://github.com/piabrota/room/pull/40) a water balloon hangs over the aquarium: a click bursts it and its 1.4 litres fall into the tank, simulated in metres and seconds (the rubber that snaps back, the fall, the crater, a crown thrown up and left to gravity, drops with the air's drag, Worthington's jet, bubbles, Cauchy and Poisson's rings that come back from the glass, the tank's slow swing, the buoys that ride them, light rings on the sand, the fish frightened), its water drawn as a lens that bends a picture of the room; made by a builder and a separate critic that takes its own screenshots and scores them, the way of a video by AI Search, in three rounds that scored 6, 5.5 and 6 of 10, so it did not pass at 8; [The water balloon](#the-water-balloon) has the physics, and what is computed and what is fitted; `just record-splash`, and `just peek --click` | 4 h 25 min |
 | 34 | 11 Nov 15:30 | [#42](https://github.com/piabrota/room/pull/42) the room's playlist at the top of both READMEs, as a Spotify button: github.com strips an iframe, so the embed that was pasted showed nothing | 5 min |
-| 35 | 11 Nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) the two papers on aiXiv (2611.01104, "Wave models on GPUs", and 2611.01105, "A decision layer for contextual bandits, proved in Agda") on the bookcase beside the works with a DOI, bound preprints with white covers, each a link to its aiXiv page, and on the LOFI work page; a tape, "lofi in csound", that plays the radio's pieces one after another while each one's Csound score runs up the TV, the line at the reading head lit, a click for the next | 5 h 15 min |
+| 35 | 11 Nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) five more lofi pieces on the radio, ten in all, written in Csound like the first five: a nylon guitar and a vibraphone join the band (`music/lofi.orc`), and the pieces are a tune answered by vibes, a guitar that comps, a ballad, a round of fifths and a bright one in D | 45 min |
+| 36 | 11 Nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) the two papers on aiXiv (2611.01104, "Wave models on GPUs", and 2611.01105, "A decision layer for contextual bandits, proved in Agda") on the bookcase beside the works with a DOI, bound preprints with white covers, each a link to its aiXiv page, and on the LOFI work page; a tape, "lofi in csound", that plays the radio's pieces one after another while each one's Csound score runs up the TV, the line at the reading head lit, a click for the next | 5 h 15 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -411,6 +412,12 @@ user> 'add this to readme [the embed code of the playlist's player]'
 ```
 
 **35.**
+
+```text
+user> 'Also add more musics to builtin radio (off spotify)'
+```
+
+**36.**
 
 ```text
 user> 'add 2 published papers on aixiv to room.piabrota.art'

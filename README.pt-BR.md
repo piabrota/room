@@ -69,7 +69,8 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 32 | 11 nov 08:48 | [#39](https://github.com/piabrota/room/pull/39) as 40 faixas de lofi da rádio saíram, e cinco novas tocam no lugar, compostas pela própria thread (Claude Fable 5.2) em [Csound](https://csound.com), a linguagem feita para partituras e orquestras: o piano na frente, com baixo acústico, flauta e uma bateria boom bap, passando por uma fita gasta. As partituras estão em `music/`, e `just lofi` renderiza todas | 55 min |
 | 33 | 11 nov 05:24 | [#40](https://github.com/piabrota/room/pull/40) um balão d'água pendurado sobre o aquário: um clique estoura o balão e o 1,4 litro dele cai no tanque, simulado em metros e segundos (a borracha que se recolhe, a queda, a cratera, a coroa lançada para cima e deixada à gravidade, gotas com o arrasto do ar, o jato de Worthington, bolhas, os anéis de Cauchy e Poisson que voltam do vidro, o balanço lento do tanque, as boias que flutuam neles, anéis de luz na areia, os peixes assustados), com a água desenhada como uma lente que dobra uma imagem do quarto; feito por um construtor e um crítico separado que tira as próprias capturas de tela e dá nota, do jeito de um vídeo do canal AI Search, em três rodadas que tiveram 6, 5,5 e 6 de 10, e por isso não passou com 8; [O balão d'água](#o-balão-dágua) tem a física, e o que é calculado e o que é ajustado; `just record-splash` e `just peek --click` | 4 h 25 min |
 | 34 | 11 nov 15:30 | [#41](https://github.com/piabrota/room/pull/42) a playlist do quarto no topo dos dois READMEs, como um botão do Spotify: o github.com tira um iframe, então o embed colado não mostrava nada | 5 min |
-| 35 | 11 nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) os dois artigos no aiXiv (2611.01104, "Wave models on GPUs", e 2611.01105, "A decision layer for contextual bandits, proved in Agda") na estante ao lado das obras com DOI, preprints encadernados de capa branca, cada um com um link para a página dele no aiXiv, e na página de trabalho do LOFI; uma fita, "lofi in csound", que toca as peças do rádio uma depois da outra enquanto a partitura em Csound de cada uma sobe pela TV, com a linha da cabeça de leitura acesa, e um clique passa para a próxima | 5 h 15 min |
+| 35 | 11 nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) mais cinco peças de lofi na rádio, dez ao todo, escritas em Csound como as cinco primeiras: um violão de nylon e um vibrafone entram na banda (`music/lofi.orc`), e as peças são um tema respondido pelo vibrafone, um violão que acompanha, uma balada, um ciclo de quintas e uma mais clara em ré maior | 45 min |
+| 36 | 11 nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) os dois artigos no aiXiv (2611.01104, "Wave models on GPUs", e 2611.01105, "A decision layer for contextual bandits, proved in Agda") na estante ao lado das obras com DOI, preprints encadernados de capa branca, cada um com um link para a página dele no aiXiv, e na página de trabalho do LOFI; uma fita, "lofi in csound", que toca as peças do rádio uma depois da outra enquanto a partitura em Csound de cada uma sobe pela TV, com a linha da cabeça de leitura acesa, e um clique passa para a próxima | 5 h 15 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -411,6 +412,12 @@ user> 'add this to readme [the embed code of the playlist's player]'
 ```
 
 **35.**
+
+```text
+user> 'Also add more musics to builtin radio (off spotify)'
+```
+
+**36.**
 
 ```text
 user> 'add 2 published papers on aixiv to room.piabrota.art'
