@@ -62,6 +62,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 29 | 10 nov 00:03 | [#34](https://github.com/piabrota/room/pull/34) o quarto como um apartamento antigo, em tamanho real: paredes de reboco, sanca e florão no teto, rodapé alto, janela de madeira de duas folhas num vão fundo, cortinas, taco e um tapete desenhado; 24 móveis e objetos do Poly Haven (CC0) pelo `just models`, cada um com um arquivo mais leve para o celular; fitas VHS em capas de papelão, em duas pilhas, e um videocassete para onde elas voam, em tamanho real; a noite iluminada pelas suas lâmpadas; um botão de créditos, o seu cartão e uma placa de latão que dão o nome de Felix Rieseberg; `just peek` para olhar uma mudança e contar as draw calls | 3 h 55 min |
 | 30 | 10 nov 12:48 | [#36](https://github.com/piabrota/room/pull/36) o quarto abre mais rápido: nada espera mais pelos móveis (eles chegam depois do primeiro quadro, quatro arquivos por vez), os arquivos têm o tamanho do aparelho (os pequenos no celular, numa tela pequena ou numa conexão lenta), a malha do mapa da grade espera também; assim um laptop baixa 2,3 MB antes de o quarto aparecer, em vez de 9,5, e um celular 0,8 em vez de 2,6; a parede da marola pintada com listras azuis de canto a canto; a água flutuante virou um aquário, com areia, pedras, plantas, bolhas, um cardume de peixinhos e o Barramundi da Microsoft (CC0) nadando; no celular, os botões em duas fileiras que rolam sob o polegar e dicas para o dedo; três skills, `room-threejs-perf`, `room-assets` e `room-load` | 2 h 25 min |
 | 31 | 10 nov 20:07 | [#37](https://github.com/piabrota/room/pull/37) a playlist agora creditada a Leonardo AL aracyla, a quem ela pertence, ao lado do player e no `CREDITS.md`; as faixas e os artistas lidos de novo do player do Spotify, 60 faixas e 63 artistas; o que toca agora ao lado do player (título, artistas, tempo, barras que dançam) e as bobinas da fita cassete girando, lidos das mensagens que o player do Spotify manda, com as capas deixadas no player do Spotify; um botão da janela que põe Copacabana ao vivo (a webcam da Homes in Rio no Posto 6, YouTube, sem som) atrás do vidro, com a esquadria na frente, e a invariante 1 aberta para isso; "how I read", dez ebooks na estante embaixo das obras com DOI, cada um uma lombada nas cores da sua capa e um link para a sua página no Leanpub | 1 h 50 min |
+| 32 | 11 nov 08:48 | [#39](https://github.com/piabrota/room/pull/39) as 40 faixas de lofi da rádio saíram, e cinco novas tocam no lugar, compostas pela própria thread (Claude Fable 5.2) em [Csound](https://csound.com), a linguagem feita para partituras e orquestras: o piano na frente, com baixo acústico, flauta e uma bateria boom bap, passando por uma fita gasta. As partituras estão em `music/`, e `just lofi` renderiza todas | 55 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -374,6 +375,14 @@ user> 'https://www.youtube.com/watch?v=Bz9Hkrk1NcY'
 user> 'it should be after the window, for better realism'
 user> 'Leonardo AL'
 user> 'in the same PR, add this to the shelf in the website, with according colors and leanpub links'
+```
+
+**32.** Digitado em português.
+
+```text
+user> 'remove essas músicas builtins podres lofis. E adiciona algumas agora com Fable 5.2, quero
+lofi, com piano, inspirado em Nujabes, mas usando a linguagem de programação mais apropriada pra
+música'
 ```
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
