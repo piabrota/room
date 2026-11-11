@@ -64,6 +64,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 31 | 10 Nov 20:07 | [#37](https://github.com/piabrota/room/pull/37) the playlist credited to Leonardo AL aracyla, its owner now, beside the player and in `CREDITS.md`; its tracks and artists read again from Spotify's player, 60 tracks and 63 artists; what plays now beside the player (title, artists, time, bars that dance) and the mixtape's reels turning, read from the messages Spotify's player posts, the covers left in Spotify's player; a window button that puts Copacabana live (Homes in Rio's webcam at Posto 6, YouTube, muted) behind the glass, the frame in front of it, with invariant 1 widened for it; "how I read", ten ebooks on the bookcase under the works with a DOI, each a spine in its cover's colours and a link to its Leanpub page | 1 h 50 min |
 | 32 | 11 Nov 08:48 | [#39](https://github.com/piabrota/room/pull/39) the radio's 40 lofi tracks are gone, and five new ones play in their place, composed by the thread itself (Claude Fable 5.2) in [Csound](https://csound.com), the language made for scores and orchestras: a piano first, with an upright bass, a flute and a boom-bap kit, through a worn tape. The scores are in `music/`, and `just lofi` renders them | 55 min |
 | 33 | 11 Nov 05:24 | [#40](https://github.com/piabrota/room/pull/40) a water balloon hangs over the aquarium: a click bursts it and its 1.4 litres fall into the tank, simulated in metres and seconds (the rubber that snaps back, the fall, the crater, a crown thrown up and left to gravity, drops with the air's drag, Worthington's jet, bubbles, Cauchy and Poisson's rings that come back from the glass, the tank's slow swing, the buoys that ride them, light rings on the sand, the fish frightened), its water drawn as a lens that bends a picture of the room; made by a builder and a separate critic that takes its own screenshots and scores them, the way of a video by AI Search, in three rounds that scored 6, 5.5 and 6 of 10, so it did not pass at 8; [The water balloon](#the-water-balloon) has the physics, and what is computed and what is fitted; `just record-splash`, and `just peek --click` | 4 h 25 min |
+| 34 | 11 Nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) five more lofi pieces on the radio, ten in all, written in Csound like the first five: a nylon guitar and a vibraphone join the band (`music/lofi.orc`), and the pieces are a tune answered by vibes, a guitar that comps, a ballad, a round of fifths and a bright one in D | 45 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -397,6 +398,12 @@ user> 'add the details of the physics simulation in the README.md and the URL to
 
 The transcript of the video, pasted under the first prompt, is left out. "boon splash" was read as
 the splash of a water balloon, the test the video runs.
+
+**34.**
+
+```text
+user> 'Also add more musics to builtin radio (off spotify)'
+```
 
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).

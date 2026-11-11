@@ -3,12 +3,13 @@
 ; through a worn tape: a low-pass on the piano, wow and flutter, soft
 ; saturation, a room, the kick ducking the rest, and a little vinyl dust.
 ;
-; The pieces are the scores beside this file (`*.sco`); `just lofi`
-; renders each one with this orchestra. The instruments are the General
+; A nylon guitar and a vibraphone sit in on some pieces. The pieces are
+; the scores beside this file (`*.sco`); `just lofi` renders each one
+; with this orchestra. The instruments are the General
 ; MIDI samples of FluidR3 GM (Frank Wen, MIT), read with the sf opcodes;
 ; the path of the .sf2 file comes in as the macro SF (--omacro:SF=...).
 ;
-; A score talks to five players, in beats (the score's `t` line and the
+; A score talks to seven players, in beats (the score's `t` line and the
 ; `set` line give the same tempo):
 ;
 ;   i "pn" beat dur note vel          the piano, one note
@@ -17,6 +18,10 @@
 ;   i "ep" beat dur note vel          the electric piano
 ;   i "bs" beat dur note vel          the upright bass
 ;   i "fl" beat dur note vel          the flute
+;   i "gt" beat dur note vel          the nylon guitar, one note
+;   i "gc" beat dur vel n1 n2 n3 n4 n5   the guitar, a chord strummed from the bottom
+;   i "ga" beat step vel n1 ... n8    the guitar, up to eight notes one after another
+;   i "vb" beat dur note vel          the vibraphone
 ;   i "dr" beat 0   note vel          the kit (36 kick, 37 rim, 38 snare, 42 hat, 46 open hat, 51 ride)
 ;
 ; and to the desk:
@@ -41,6 +46,8 @@ giRhodes sfpreset 4, 0, gisf, 1
 giBass   sfpreset 32, 0, gisf, 2
 giFlute  sfpreset 73, 0, gisf, 3
 giKit    sfpreset 32, 128, gisf, 4
+giVibes  sfpreset 11, 0, gisf, 5
+giGuitar sfpreset 24, 0, gisf, 6
 
 gibeat  init 60 / 86
 giswing init 0.14
@@ -56,6 +63,10 @@ gaFlL init 0
 gaFlR init 0
 gaDrL init 0
 gaDrR init 0
+gaVbL init 0
+gaVbR init 0
+gaGtL init 0
+gaGtR init 0
 gaRvL init 0
 gaRvR init 0
 
@@ -113,6 +124,50 @@ instr ar
     endif
     indx += 1
   od
+endin
+
+instr gt
+  ihum random 0, 0.012
+  ivar random -5, 5
+  schedule "guitar", Late(p2) + ihum, p3, p4, p5 + ivar
+endin
+
+instr gc
+  ilate = Late(p2)
+  icount = 0
+  ilast = p9
+  indx = 5
+  while indx <= 9 do
+    inote = p(indx)
+    if inote > 0 then
+      ihum random 0, 0.006
+      ivar random -5, 5
+      schedule "guitar", ilate + icount * 0.022 + ihum, p3, inote, p4 + ivar
+      icount += 1
+    endif
+    indx += 1
+  od
+endin
+
+instr ga
+  ilast = p12
+  indx = 5
+  while indx <= 12 do
+    inote = p(indx)
+    iat = (indx - 5) * p3
+    if inote > 0 then
+      ihum random 0, 0.012
+      ivar random -6, 4
+      iacc = (indx == 5) ? 8 : 0
+      schedule "guitar", iat + Late(p2 + iat) + ihum, p3 * 2.2, inote, p4 + ivar + iacc
+    endif
+    indx += 1
+  od
+endin
+
+instr vb
+  ihum random 0.004, 0.02
+  schedule "vibes", Late(p2) + ihum, p3, p4, p5
 endin
 
 instr ep
@@ -183,6 +238,25 @@ instr flute
   gaFlR += a2 * aenv
 endin
 
+instr guitar
+  ivel = limit(p5, 1, 127)
+  iamp = (ivel / 127) ^ 1.4 * 0.00008
+  a1, a2 sfplay3 ivel, p4, iamp, cpsmidinn(p4), giGuitar, 1
+  aenv linsegr 1, p3, 1, 0.25, 0
+  gaGtL += a1 * aenv * 0.75 + a2 * aenv * 0.25
+  gaGtR += a2 * aenv * 0.45 + a1 * aenv * 0.15
+endin
+
+instr vibes
+  ivel = limit(p5, 1, 127)
+  iamp = (ivel / 127) ^ 1.2 * 0.000075
+  a1, a2 sfplay3 ivel, p4, iamp, cpsmidinn(p4), giVibes, 1
+  aenv linsegr 1, p3, 0.8, 0.6, 0
+  ktrem oscili 0.25, 4.6 ; the motor
+  gaVbL += a1 * aenv * (1 + ktrem) * 0.5
+  gaVbR += a2 * aenv * (1 - ktrem)
+endin
+
 instr kit
   ivel = limit(p5, 1, 127)
   iamp = (ivel / 127) ^ 1.4 * 0.00015
@@ -228,6 +302,13 @@ instr desk
   afL = afL + afeR * 0.22
   afR = afR + afeL * 0.22
 
+  agL butterlp gaGtL, 3800
+  agR butterlp gaGtR, 3800
+  agL butterhp agL, 100
+  agR butterhp agR, 100
+  avL butterlp gaVbL, 5200
+  avR butterlp gaVbR, 5200
+
   adL butterlp gaDrL, 7500
   adR butterlp gaDrR, 7500
   adL = tanh(adL * 2.2) / 2.2
@@ -241,14 +322,14 @@ instr desk
   avin = aclk + adst
 
   ; the room
-  gaRvL = apL * 0.22 + afL * 0.4 + aeL * 0.25 + adL * 0.06
-  gaRvR = apR * 0.22 + afR * 0.4 + aeR * 0.25 + adR * 0.06
+  gaRvL = apL * 0.22 + afL * 0.4 + aeL * 0.25 + adL * 0.06 + agL * 0.2 + avL * 0.4
+  gaRvR = apR * 0.22 + afR * 0.4 + aeR * 0.25 + adR * 0.06 + agR * 0.2 + avR * 0.4
   arL, arR reverbsc gaRvL, gaRvR, 0.78, 5500
 
   ; the kick pushes the piano, the electric piano and the room down
   kduck port 1 - 0.3 * gkduck, 0.006
-  aL = (apL + aeL + arL) * kduck + ab * 0.9 + afL + adL + avin
-  aR = (apR + aeR + arR) * kduck + ab * 0.9 + afR + adR + avin * 0.9
+  aL = (apL + aeL + agL + arL) * kduck + ab * 0.9 + afL + avL + adL + avin
+  aR = (apR + aeR + agR + arR) * kduck + ab * 0.9 + afR + avR + adR + avin * 0.9
 
   aL butterhp aL, 32
   aR butterhp aR, 32
@@ -259,5 +340,5 @@ instr desk
   outs tanh(aL * 1.2) * 0.8 * kfade, tanh(aR * 1.2) * 0.8 * kfade
 
   gkduck = 0
-  clear gaPnL, gaPnR, gaEpL, gaEpR, gaBs, gaFlL, gaFlR, gaDrL, gaDrR
+  clear gaPnL, gaPnR, gaEpL, gaEpR, gaBs, gaFlL, gaFlR, gaDrL, gaDrR, gaVbL, gaVbR, gaGtL, gaGtR
 endin

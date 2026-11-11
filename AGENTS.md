@@ -164,7 +164,7 @@ csound with the soundfont of `just lofi`. On macOS without Nix, `brew install no
 | `scripts/models.mjs`, `scripts/models.json` | what `just models` makes, and the list it makes it from: each Poly Haven id, the parts to keep, how far to thin it, the size of its textures |
 | `scripts/blow_light.sh` | what `just blow-light` measures, frame by frame, with ffmpeg: the share of a frame burnt or glowing white |
 | `scripts/light.mjs` | what `just light` measures: how bright each shot is, and whether any burns to white |
-| `music/lofi.orc`, `music/*.sco` | the radio's lofi, in Csound: the orchestra is the band (a piano, an upright bass, a flute, an electric piano and a kit, from the FluidR3 GM soundfont) and its worn tape; each score is a piece, and `kit.sco` has the drummer's patterns they share |
+| `music/lofi.orc`, `music/*.sco` | the radio's lofi, in Csound: the orchestra is the band (a piano, an upright bass, a flute, an electric piano, a nylon guitar, a vibraphone and a kit, from the FluidR3 GM soundfont) and its worn tape; each score is a piece, and `kit.sco` has the drummer's patterns they share |
 | `scripts/lofi.sh` | what `just lofi` runs: csound on each score, then ffmpeg to -18 LUFS |
 | `scripts/listeners.mjs` | `just listeners`: the live listeners count and the door's emails, a small server with no dependency that runs beside the site (nix-os runs it on the host) |
 | `docs/SURVEY.md` | a survey of 6 November 2026: other rooms, frameworks, animation, shaders, a faster `just record`, the ▲ grid view (WW3 on triangles), the day's white-out; its pictures are in `docs/survey/` |
