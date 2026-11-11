@@ -62,6 +62,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 29 | 10 nov 00:03 | [#34](https://github.com/piabrota/room/pull/34) o quarto como um apartamento antigo, em tamanho real: paredes de reboco, sanca e florão no teto, rodapé alto, janela de madeira de duas folhas num vão fundo, cortinas, taco e um tapete desenhado; 24 móveis e objetos do Poly Haven (CC0) pelo `just models`, cada um com um arquivo mais leve para o celular; fitas VHS em capas de papelão, em duas pilhas, e um videocassete para onde elas voam, em tamanho real; a noite iluminada pelas suas lâmpadas; um botão de créditos, o seu cartão e uma placa de latão que dão o nome de Felix Rieseberg; `just peek` para olhar uma mudança e contar as draw calls | 3 h 55 min |
 | 30 | 10 nov 12:48 | [#36](https://github.com/piabrota/room/pull/36) o quarto abre mais rápido: nada espera mais pelos móveis (eles chegam depois do primeiro quadro, quatro arquivos por vez), os arquivos têm o tamanho do aparelho (os pequenos no celular, numa tela pequena ou numa conexão lenta), a malha do mapa da grade espera também; assim um laptop baixa 2,3 MB antes de o quarto aparecer, em vez de 9,5, e um celular 0,8 em vez de 2,6; a parede da marola pintada com listras azuis de canto a canto; a água flutuante virou um aquário, com areia, pedras, plantas, bolhas, um cardume de peixinhos e o Barramundi da Microsoft (CC0) nadando; no celular, os botões em duas fileiras que rolam sob o polegar e dicas para o dedo; três skills, `room-threejs-perf`, `room-assets` e `room-load` | 2 h 25 min |
 | 31 | 10 nov 20:07 | [#37](https://github.com/piabrota/room/pull/37) a playlist agora creditada a Leonardo AL aracyla, a quem ela pertence, ao lado do player e no `CREDITS.md`; as faixas e os artistas lidos de novo do player do Spotify, 60 faixas e 63 artistas; o que toca agora ao lado do player (título, artistas, tempo, barras que dançam) e as bobinas da fita cassete girando, lidos das mensagens que o player do Spotify manda, com as capas deixadas no player do Spotify; um botão da janela que põe Copacabana ao vivo (a webcam da Homes in Rio no Posto 6, YouTube, sem som) atrás do vidro, com a esquadria na frente, e a invariante 1 aberta para isso; "how I read", dez ebooks na estante embaixo das obras com DOI, cada um uma lombada nas cores da sua capa e um link para a sua página no Leanpub | 1 h 50 min |
+| 32 | 11 nov 05:24 | [#39](https://github.com/piabrota/room/pull/39) um balão d'água pendurado sobre o aquário: um clique estoura o balão e o 1,4 litro dele cai no tanque, simulado em metros e segundos (a borracha que se recolhe, a queda, a cratera, a coroa lançada para cima e deixada à gravidade, gotas com o arrasto do ar, o jato de Worthington, bolhas, os anéis de Cauchy e Poisson que voltam do vidro, o balanço lento do tanque, as boias que flutuam neles, anéis de luz na areia, os peixes assustados), com a água desenhada como uma lente que dobra uma imagem do quarto; feito por um construtor e um crítico separado que tira as próprias capturas de tela e dá nota, do jeito de um vídeo do canal AI Search, em três rodadas que tiveram 6, 5,5 e 6 de 10, e por isso não passou com 8; [O balão d'água](#o-balão-dágua) tem a física, e o que é calculado e o que é ajustado; `just record-splash` e `just peek --click` | 4 h 25 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -376,6 +377,18 @@ user> 'Leonardo AL'
 user> 'in the same PR, add this to the shelf in the website, with according colors and leanpub links'
 ```
 
+**32.**
+
+```text
+user> 'https://www.youtube.com/watch?v=S7lpCyZSdJQ improve the room with Fable 5.2 high using this
+technique, use transcripts. It has harness instructions on how to make you draw water particles
+after a boon splash'
+user> 'add the details of the physics simulation in the README.md and the URL to the video link'
+```
+
+A transcrição do vídeo, colada embaixo do primeiro prompt, ficou de fora. "boon splash" foi lido
+como o respingo de um balão d'água, o teste que o vídeo faz.
+
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
 
@@ -384,6 +397,111 @@ Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md),
 | ![visão geral](docs/record/shot-overview.jpg) | ![janela](docs/record/shot-window.jpg) | ![mar](docs/record/shot-sea.jpg) |
 
 O vídeo do topo, de noite, as quatro paredes uma a uma, com o ponteiro e os cliques: [`docs/record/room.mp4`](docs/record/room.mp4).
+
+## O balão d'água
+
+Um balão d'água fica pendurado sobre o aquário, na parede do mar. Clique nele e ele estoura: a
+água cai no tanque e espirra. O respingo é simulado enquanto você olha, em metros e segundos, na
+velocidade da água que cai de verdade ([`src/splash.js`](src/splash.js)). O clipe
+[`docs/record/splash.mp4`](docs/record/splash.mp4) mostra em velocidade real, visto da parede do
+mar, e depois de perto, quatro vezes mais devagar (`just record-splash`).
+
+![o balão d'água recém-estourado: a coroa em volta da cratera, gotas no ar](docs/record/shot-splash.jpg)
+
+### De onde vem a técnica
+
+O jeito de trabalhar vem de [um vídeo do canal AI Search](https://www.youtube.com/watch?v=S7lpCyZSdJQ)
+(YouTube), no capítulo sobre física (19:52), em que o teste é um balão d'água furado por
+uma bala. Duas coisas vêm de lá: pedir que a simulação seja "as realistic and physically accurate
+as possible", e ter um crítico separado que julga cada tentativa. O construtor escreve a
+simulação; um crítico que não a construiu tira as próprias capturas de tela, de vários pontos de
+vista e distâncias, dá uma nota de 0 a 10 ao que vê e devolve uma lista de defeitos em ordem de
+gravidade; o construtor tenta de novo. Passa com 8 ou mais, e para depois de três rodadas.
+
+Aqui o ciclo rodou as três rodadas e não passou: os críticos deram 6, 5,5 e 6 de 10. Cada
+crítico era um agente novo, que não sabia nada de como o respingo é feito e tirou as próprias
+capturas (216 na primeira rodada, 163 na última).
+
+| Rodada | Física | Aparência | Geral | Os primeiros defeitos que o crítico achou | O que o construtor fez depois |
+|---|---|---|---|---|---|
+| 1 | 6 | 6 | 6 | as gotas eram cápsulas de vidro iguais; a coroa e o jato sumiam em vez de cair de volta; a coroa atravessava coisas sólidas; o respingo era fraco demais para a água que caiu | gotas de vários tamanhos, borradas por um obturador; a coroa cortada onde fica o vidro do tanque; anéis que voltam do vidro e um tanque que balança; manchas molhadas onde as gotas caem |
+| 2 | 6 | 5,5 | 5,5 | um fantasma do balão inteiro ficava no passe de oclusão de ambiente; a coroa caía mais depressa que a gravidade e a água dela sumia; a água era uma casca colorida, não uma lente | o balão, o trapo e o enchimento como malhas de verdade; a coroa lançada para cima e deixada à gravidade, e a lâmina rasgada segue como gotas; a água dobra uma imagem do quarto |
+| 3 | 6,5 | 6 | 6 | de perto, a água que afunda ficava preta por um quadro; a água do primeiro quadro mostrava o próprio balão; o trapo velho aparecia embaixo do balão novo | esses três estão corrigidos, e os peixes ficam longe por mais tempo; essas últimas correções não foram julgadas de novo |
+
+O que o último crítico ainda achou, na ordem dele: a coroa fica em pé demais, como um copo, e
+quebra em cacos e não em furos, fios e gotas; o tanque recebe 1,4 l com calma demais (a água não
+sobe pelo vidro, as boias quase não são empurradas); a água que cai é lisa demais e entra como um
+sólido; a cratera parece porcelana vista de baixo; há pouco ar e pouca espuma; o jato é certinho
+demais; as gotas grandes são anéis; a borracha mais se dissolve do que rasga. Ele achou certos a
+ordem, os tempos e os tamanhos, e o respingo convincente de onde o visitante fica (uns 7 de 10),
+menos de perto (uns 5).
+
+### O que é simulado
+
+Nada aqui resolve as equações de um fluido (nem Navier–Stokes, nem partículas que se empurram).
+É uma cadeia de modelos pequenos, cada um o mais simples que dá os tamanhos, as velocidades e a
+ordem certa dos acontecimentos. Uns são integrados a partir de forças; outros são curvas
+ajustadas ao que uma câmera rápida mostra. A tabela diz qual é qual.
+
+| Etapa | Modelo | Números | Tipo |
+|---|---|---|---|
+| O estouro | a borracha rasga a partir do ponto clicado e a borda do rasgo corre em volta do balão até o nó; um borrifo fino sai da pele da água por onde a borda passa. Sobra um trapo de borracha grossa no barbante, que chicoteia e para | 55 ms para a pele inteira | ajustado |
+| A queda | um corpo só, em queda livre, `y = y₀ − ½ g t²`; a forma relaxa de pera para bola e balança em três lobos lentos; a cauda solta algumas gotas | raio de 7 cm, cerca de 1,4 l; 0,50 m em 0,32 s; chega a 3,1 m/s | calculado (o caminho), ajustado (a forma) |
+| A cratera | uma bacia de fundo redondo se abre onde a água cai, `−2 r₀ (1 − (r/0,9 r_borda)²)^0,7`, e a borda corre para fora: `r_borda(t) = r₀ (1 + 1,1 (1 − e^(−t/0,12)))` | r₀ = 6,3 cm; 12,6 cm de fundo aos 0,13 s, fechada aos 0,32 s; a borda para em 13 cm | ajustado |
+| A coroa | uma lâmina d'água fica em pé sobre a borda. O topo é lançado para cima, mais forte aqui e menos ali, e daí em diante sobe e cai como qualquer coisa: `h(t) = v t − ½ g t²`. Ela se inclina para fora 0,2 h, se rasga em furos redondos e depois em fios quando chega perto do alto, e desce | v = 2,0 m/s × (0,72 a 1,28) ao redor do anel; por isso tem de 11 a 33 cm de altura e fica de 0,29 a 0,52 s no ar | calculado (o voo), ajustado (o lançamento, o rasgo) |
+| As gotas | no começo a borda lança gotas à frente dela; depois, onde a lâmina se rasga, o que ela era segue como gotas com a velocidade que a lâmina tinha ali, e a água da coroa chove de volta. Cada uma é um corpo sob a gravidade e o arrasto do ar: `a = −g ŷ − (3/8) C_d (ρ_ar/ρ_água) |v| v / r` | até 2000 ao mesmo tempo; raio de 0,5 a 5,5 mm, a maioria abaixo de 1 mm; C_d = 0,47; ρ_ar/ρ_água = 1,2/1000 | calculado |
+| O que a gota encontra | um vidro: fica nele e escorre. A água: some; uma com mais de 1,2 mm levanta gotinhas, e uma com mais de 2,6 mm deixa anéis. A barra da lâmpada, o aparador, a parede, o chão: uma mancha molhada que seca | a gota escorre a até 0,22 m/s; a mancha dura de 7 a 12 s | calculado (onde), ajustado (o que acontece depois) |
+| O jato | quando a cratera fecha, uma coluna sobe do meio (o jato de Worthington): `z(t) = 2,25 t − ½ g t²`. Ela afina (Rayleigh e Plateau), solta a ponta e cai de volta no montinho em que está de pé, que manda mais um anel | começa 0,30 s depois da queda; 26 cm de altura aos 0,23 s, no chão aos 0,46 s; a gota da ponta tem 8,5 mm de raio | calculado (a ponta), ajustado (a forma) |
+| O ar | um pouco de ar desce com a queda, a maior parte fica presa quando a cratera se fecha sobre si mesma, e mais um pouco onde a coroa desce. Bolhas finas, lançadas para baixo a até 1,2 m/s, freadas pela água até a velocidade de subida de cada uma, as maiores mais depressa; borbulham na superfície | bolhas de 0,4 a 3,4 mm sobem a 0,15 a 0,36 m/s e não passam da metade do tanque | calculado, com arrasto linear |
+| Os anéis | as ondas de Cauchy e Poisson em água funda. Um tempo τ depois de algo cair, a onda à distância r tem o número de onda `k = g τ² / 4 r²` e a fase `k r`: as ondas longas vão na frente, as curtas atrás. A altura é `A (k/k₀) e^(1 − k/k₀) cos(k r) √(0,05/(r + 0,05)) e^(−τ/T)` | o balão: A = 2 cm, k₀ = 46 rad/m (uma onda de 14 cm), T = 3,2 s. Uma gota: até 4 mm, 190 rad/m, 0,9 s. A volta do jato: 7 mm, 95 rad/m, 1,6 s | calculado (a dispersão), ajustado (as alturas) |
+| O vidro | os anéis voltam dos quatro vidros: quatro imagens espelhadas da queda, com 0,8 da altura | dez fontes de anéis ao todo: a queda, as quatro imagens, o jato, quatro gotas | calculado |
+| O tanque | o tanque inteiro balança nas duas ondas mais lentas que a queda consegue começar, `ω² = g k tanh(k d)`: meia onda na largura (k = π/0,5 m) e uma onda inteira no comprimento (k = 2π/1,6 m), em água de 0,36 m de fundo | períodos de 0,81 s e 1,08 s; 5 mm de altura; some em uns 4,5 s | calculado (os períodos), ajustado (a altura) |
+| As boias | flutuam na mesma soma de ondas, em JavaScript, e se inclinam com a inclinação dela. A água que a cratera empurra levanta uma ondulação que corre à frente dos anéis e ergue as boias, e as leva junto, `u(r) = ṙ_borda · r_borda / r`; depois elas voltam devagar | a ondulação tem 2 cm de altura e corre a 0,75 m/s; a borda começa a 0,6 m/s; uma boia a 12 cm da queda vai parar a uns 17 cm | calculado (a flutuação), ajustado (a ondulação) |
+| A areia | uma crista junta a luz da lâmpada na areia embaixo dela, um vale espalha: brilho `1 − d (n − 1)/n ∇²h` | d (n − 1)/n = 0,094 m | calculado, nos vértices da areia |
+| A espuma, os peixes | a água fica branca e revolta onde a queda foi, por um ou dois segundos; os peixes fogem e voltam | | ajustado |
+
+A queda a 3,1 m/s de uma bola de 14 cm tem número de Weber perto de 19 000 e número de Froude
+perto de 7: com esses números a coroa é grossa e irregular, se desfaz logo e lança muitas gotas
+pequenas, e é isso que os ajustes procuram.
+
+Tudo anda em passos fixos de 1/180 s (primeiro a velocidade, depois a posição), com um dado de
+semente fixa, pelo relógio do próprio quarto. Assim o mesmo clique dá o mesmo respingo, e o
+`just record` filma sempre o mesmo.
+
+### Como é desenhado
+
+Seis draw calls no máximo: o suporte, o barbante com o nó, e o balão ou o trapo dele, sempre; a
+água que cai, a coroa com o jato (duas superfícies de revolução moldadas num vertex shader) e um
+conjunto só de quadrados para cada gota, bolha, escorrido e mancha, enquanto duram.
+
+A água é desenhada como o que ela é, uma lente. Enquanto o respingo dura, uns dois segundos, um laptop
+desenha o quarto mais uma vez a cada quadro, na metade do tamanho e sem o respingo, e a água
+mostra essa imagem dobrada: um ponto da água com a normal n, vista nos eixos da câmera, mostra o
+que está `1,6 R n_xy` para o lado (nunca mais que um oitavo da imagem), sendo R o raio da lente ali (7 cm para a água que cai, o raio
+da própria coluna para o jato, 3,5 cm para a lâmina da coroa, o próprio raio para uma gota). Por
+isso uma bola d'água mostra a parede atrás dela de cabeça para baixo e menor, como uma de
+verdade, escura perto da borda, com os brilhos da lâmpada do tanque e da lâmpada do quarto. A
+gota é esticada ao longo da velocidade por um obturador de 3,5 ms e oscila entre achatada e
+comprida, mais depressa quanto menor; uma mais fina que um pixel é desenhada mais fraca, e quase
+só aparece pelo brilho. A superfície toma a inclinação dos anéis em cada pixel num laptop e nos
+vértices num celular.
+
+### O que ela não faz
+
+- O volume não se conserva de uma etapa para a outra: a coroa, o jato e as gotas não são
+  cortados dos 1,4 l que caíram.
+- As gotas não se encontram, e não molham as boias nem as plantas.
+- Os anéis usam ondas de água funda, sem tensão superficial; o tanque tem 0,36 m de fundo, então
+  ondas com mais de uns 0,7 m sairiam erradas, e a queda não faz nenhuma tão longa.
+- O som do estouro e do respingo é sintetizado, não gravado.
+- Um celular recebe um quarto das gotas e não tem a imagem dobrada do quarto: a água dele
+  espelha um quarto inventado. Com movimento reduzido, o clique só deixa a água descer:
+  o balão some, os anéis se espalham, nada voa.
+
+Para mudar, edite `sea.balloon` em [`src/config.js`](src/config.js): as palavras, as cores dos
+balões em sequência, `radius`, `height` (altura sobre a água), `across` (onde ele fica entre o
+vidro da frente e o de trás), `refill` (segundos até o próximo), `drops` e `liteDrops`, `shutter`
+(segundos) e `speed` (1 é tempo real; 0,25 é quatro vezes mais devagar).
 
 ## Rodar
 

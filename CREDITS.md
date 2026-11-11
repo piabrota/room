@@ -229,9 +229,9 @@ people and the works on the shelf are described in our own words from the org's 
 
 The splash of the water balloon over the aquarium (`src/splash.js`) is written for this room. Its
 way of working, a builder and a separate critic that scores each attempt from its own
-screenshots until it passes, comes from the video
-["Claude Fable 5.2 is on steroids"](https://www.youtube.com/watch?v=S7lpCyZSdJQ) by AI Search
-(YouTube), whose physics test is a water balloon. No code, picture or sound of the video is
+screenshots until it passes or three rounds are spent, comes from
+[a video by AI Search](https://www.youtube.com/watch?v=S7lpCyZSdJQ) (YouTube), whose physics test
+is a water balloon. No code, picture or sound of the video is
 used. The physics is textbook: Cauchy and Poisson's waves from a splash on deep water,
 Worthington's jet, Rayleigh and Plateau's breaking of a column of water, the drag of a sphere.
 `README.md`, "The water balloon", says what is computed and what is fitted. The two sounds, the

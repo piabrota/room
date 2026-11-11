@@ -62,6 +62,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 29 | 10 Nov 00:03 | [#34](https://github.com/piabrota/room/pull/34) the room as an old apartment, at real sizes: plaster walls, a cornice and a ceiling rose, tall skirting, a wooden window of two leaves in a deep reveal, curtains, parquet and a drawn rug; 24 pieces of furniture and props from Poly Haven (CC0) through `just models`, each with a lighter file for the phone; VHS cassettes in card sleeves, in two piles, and a video recorder they fly into, at their real sizes; the night lit by its lamps; a credits button, its card and a brass plate that name Felix Rieseberg; `just peek` to look at a change and count its draw calls | 3 h 55 min |
 | 30 | 10 Nov 12:48 | [#36](https://github.com/piabrota/room/pull/36) the room opens faster: nothing waits for the furniture any more (it comes after the first frame, four files at a time), the files are sized to the device (the small ones on a phone, a small screen or a slow line), the grid chart's mesh waits too, so a laptop downloads 2.3 MB before the room shows instead of 9.5 and a phone 0.8 instead of 2.6; the marola wall painted with blue stripes from corner to corner; the floating water is an aquarium, with sand, stones, plants, bubbles, a school of small fish and Microsoft's Barramundi (CC0) swimming; on a phone, the buttons in two rows that scroll under the thumb and hints for a finger; three skills, `room-threejs-perf`, `room-assets` and `room-load` | 2 h 25 min |
 | 31 | 10 Nov 20:07 | [#37](https://github.com/piabrota/room/pull/37) the playlist credited to Leonardo AL aracyla, its owner now, beside the player and in `CREDITS.md`; its tracks and artists read again from Spotify's player, 60 tracks and 63 artists; what plays now beside the player (title, artists, time, bars that dance) and the mixtape's reels turning, read from the messages Spotify's player posts, the covers left in Spotify's player; a window button that puts Copacabana live (Homes in Rio's webcam at Posto 6, YouTube, muted) behind the glass, the frame in front of it, with invariant 1 widened for it; "how I read", ten ebooks on the bookcase under the works with a DOI, each a spine in its cover's colours and a link to its Leanpub page | 1 h 50 min |
+| 32 | 11 Nov 05:24 | [#39](https://github.com/piabrota/room/pull/39) a water balloon hangs over the aquarium: a click bursts it and its 1.4 litres fall into the tank, simulated in metres and seconds (the rubber that snaps back, the fall, the crater, a crown thrown up and left to gravity, drops with the air's drag, Worthington's jet, bubbles, Cauchy and Poisson's rings that come back from the glass, the tank's slow swing, the buoys that ride them, light rings on the sand, the fish frightened), its water drawn as a lens that bends a picture of the room; made by a builder and a separate critic that takes its own screenshots and scores them, the way of a video by AI Search, in three rounds that scored 6, 5.5 and 6 of 10, so it did not pass at 8; [The water balloon](#the-water-balloon) has the physics, and what is computed and what is fitted; `just record-splash`, and `just peek --click` | 4 h 25 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -376,6 +377,18 @@ user> 'Leonardo AL'
 user> 'in the same PR, add this to the shelf in the website, with according colors and leanpub links'
 ```
 
+**32.**
+
+```text
+user> 'https://www.youtube.com/watch?v=S7lpCyZSdJQ improve the room with Fable 5.2 high using this
+technique, use transcripts. It has harness instructions on how to make you draw water particles
+after a boon splash'
+user> 'add the details of the physics simulation in the README.md and the URL to the video link'
+```
+
+The transcript of the video, pasted under the first prompt, is left out. "boon splash" was read as
+the splash of a water balloon, the test the video runs.
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -384,6 +397,110 @@ Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invaria
 | ![overview](docs/record/shot-overview.jpg) | ![window](docs/record/shot-window.jpg) | ![sea](docs/record/shot-sea.jpg) |
 
 The video at the top, by night, the four walls in turn, hovered and clicked: [`docs/record/room.mp4`](docs/record/room.mp4).
+
+## The water balloon
+
+A water balloon hangs over the aquarium on the sea wall. Click it and it bursts: its water falls
+into the tank and splashes. The splash is simulated while you watch, in metres and seconds, at
+the speed of real falling water ([`src/splash.js`](src/splash.js)). The clip
+[`docs/record/splash.mp4`](docs/record/splash.mp4) shows it at real speed from the sea shot, then
+from close by, four times slower (`just record-splash`).
+
+![the water balloon just burst: the crown round the crater, drops in the air](docs/record/shot-splash.jpg)
+
+### Where the technique comes from
+
+The way of working comes from [a video by AI Search](https://www.youtube.com/watch?v=S7lpCyZSdJQ)
+(YouTube), in its chapter on physics (19:52), where the test is a water balloon pierced by a
+bullet. Two things are taken from it: ask for the simulation to be "as realistic and physically
+accurate as possible", and have a separate critic judge every attempt. The builder writes the
+simulation; a critic that did not build it takes its own screenshots, from several viewpoints and
+zoom levels, scores what it sees from 0 to 10 and returns a ranked list of faults; the builder
+tries again. It passes at 8 or more, and stops after three rounds.
+
+Here the loop ran its three rounds and did not pass: the critics gave 6, 5.5 and 6 out of 10.
+Each critic was a fresh agent that was told nothing of how the splash is built and took its own
+stills (216 in the first round, 163 in the last).
+
+| Round | Physics | Look | Overall | The critic's first faults | What the builder did next |
+|---|---|---|---|---|---|
+| 1 | 6 | 6 | 6 | the drops were identical glass capsules; the crown and the jet faded out and did not fall back; the crown passed through solid things; the splash was far too gentle for the water that fell | drops of many sizes, smeared by a shutter; a crown cut where the tank's glass is; rings that come back from the glass and a tank that swings; wet spots where drops land |
+| 2 | 6 | 5.5 | 5.5 | a ghost of the whole balloon stayed in the ambient occlusion pass; the crown fell faster than gravity and its water vanished; the water was a tinted shell, not a lens | the balloon, its rag and the filling as real meshes; a crown thrown up and left to gravity, whose torn sheet goes on as drops; water that bends a picture of the room |
+| 3 | 6.5 | 6 | 6 | from close by the sinking water went black for a frame; the water of the first frame showed its own balloon; the old rag showed under the new balloon | those three are fixed, and the fish stay away for longer; these last fixes were not judged again |
+
+What the last critic still found, in its order: the crown stands too upright, like a glass, and
+breaks into shards and not into holes, threads and drops; the tank takes 1.4 l too calmly (no
+swell up the glass, the buoys hardly pushed aside); the falling water is too smooth and goes in
+like a solid; the crater looks like porcelain from below; there is too little air and foam; the
+jet is too neat; the big drops are rings; the rubber dissolves more than it tears. It found the
+order, the times and the sizes right, and the splash convincing from where a visitor stands
+(about 7 of 10), less so from close by (about 5).
+
+### What is simulated
+
+Nothing here solves the equations of a fluid (no Navier–Stokes, no particles that push each
+other). It is a chain of small models, each one the simplest that gives the right sizes, speeds
+and order of events. Some are integrated from forces; some are curves fitted to what a fast
+camera shows. The table says which.
+
+| Stage | Model | Numbers | Kind |
+|---|---|---|---|
+| The burst | the rubber tears from the point you clicked and its edge runs round the balloon to the knot; a fine spray leaves the water's skin where the edge passes. What is left is a rag of thick rubber on the string, which whips and comes to rest | 55 ms for the whole skin | fitted |
+| The fall | one body in free fall, `y = y₀ − ½ g t²`; its shape relaxes from a pear to a ball and wobbles in three slow lobes; its tail sheds a few drops | radius 7 cm, about 1.4 l; 0.50 m in 0.32 s; it lands at 3.1 m/s | computed (the path), fitted (the shape) |
+| The crater | a round-bottomed bowl opens where it lands, `−2 r₀ (1 − (r/0.9 r_rim)²)^0.7`, and its rim runs outwards: `r_rim(t) = r₀ (1 + 1.1 (1 − e^(−t/0.12)))` | r₀ = 6.3 cm; 12.6 cm deep after 0.13 s, closed after 0.32 s; the rim ends at 13 cm | fitted |
+| The crown | a sheet of water stands on the rim. Its edge is thrown up, harder here and less there, and from then on it rises and falls as anything does: `h(t) = v t − ½ g t²`. It leans out by 0.2 h, tears into round holes and then threads once it is near the top of its flight, and comes down | v = 2.0 m/s × (0.72 to 1.28) round the ring, so it is 11 to 33 cm high and 0.29 to 0.52 s in the air | computed (the flight), fitted (the throw, the tear) |
+| The drops | early, the rim throws drops ahead of itself; later, where the sheet tears, what it was goes on as drops with the speed the sheet had there, so the crown's water rains back. Each is a body under gravity and the air's drag: `a = −g ŷ − (3/8) C_d (ρ_air/ρ_water) |v| v / r` | up to 2000 at once; radius 0.5 to 5.5 mm, most under 1 mm; C_d = 0.47; ρ_air/ρ_water = 1.2/1000 | computed |
+| What a drop meets | a pane of glass: it stays on it and runs down. The water: it is gone; one over 1.2 mm throws up smaller drops, and one over 2.6 mm leaves rings. The lamp's bar, the sideboard, the wall, the floor: a wet spot that dries | a run slides at up to 0.22 m/s; a wet spot lasts 7 to 12 s | computed (where), fitted (what then) |
+| The jet | when the crater closes a column shoots up from its middle (Worthington's jet): `z(t) = 2.25 t − ½ g t²`. It necks (Rayleigh and Plateau), lets go of its tip, and falls back into the mound it stands on, which sends out one more ring | it starts 0.30 s after the fall; 26 cm high after 0.23 s, down after 0.46 s; the drop at its tip is 8.5 mm in radius | computed (the tip), fitted (the shape) |
+| The air | a little air is carried under by the fall, most is caught when the crater closes over itself, some where the crown comes down. Fine bubbles, thrown down at up to 1.2 m/s, slowed by the water to their own rise speed, bigger ones faster; they fizz at the surface | bubbles of 0.4 to 3.4 mm rise at 0.15 to 0.36 m/s and go no deeper than half the tank | computed, with a linear drag |
+| The rings | Cauchy and Poisson's waves on deep water. A time τ after something falls in, the wave at a distance r has the wavenumber `k = g τ² / 4 r²` and the phase `k r`: long waves lead, short ones trail. Its height is `A (k/k₀) e^(1 − k/k₀) cos(k r) √(0.05/(r + 0.05)) e^(−τ/T)` | the balloon: A = 2 cm, k₀ = 46 rad/m (a 14 cm wave), T = 3.2 s. A drop: up to 4 mm, 190 rad/m, 0.9 s. The jet's fall: 7 mm, 95 rad/m, 1.6 s | computed (the dispersion), fitted (the heights) |
+| The glass | the rings come back from the four panes: four mirror images of the fall, at 0.8 of its height | ten ring sources in all: the fall, its four images, the jet, four drops | computed |
+| The tank | the whole tank swings in its two slowest waves that the fall can start, `ω² = g k tanh(k d)`: half a wave across (k = π/0.5 m) and a whole wave along (k = 2π/1.6 m), in water 0.36 m deep | periods of 0.81 s and 1.08 s; 5 mm high; it dies in about 4.5 s | computed (the periods), fitted (the height) |
+| The buoys | they ride the same sum of waves, in JavaScript, and tilt with its slope. The water the crater pushes aside raises a swell that runs out ahead of the rings and lifts them, and takes them with it, `u(r) = ṙ_rim · r_rim / r`; then they drift home | the swell is 2 cm high and runs at 0.75 m/s; the rim starts at 0.6 m/s; a buoy 12 cm from the fall ends about 17 cm from it | computed (the ride), fitted (the swell) |
+| The sand | a crest gathers the lamp's light on the sand under it, a trough spreads it: brightness `1 − d (n − 1)/n ∇²h` | d (n − 1)/n = 0.094 m | computed, at the sand's vertices |
+| The foam, the fish | the water is churned white where the fall was, for a second or two; the fish dart away and drift back | | fitted |
+
+The fall at 3.1 m/s of a ball 14 cm across has a Weber number near 19 000 and a Froude number
+near 7: at such numbers a crown is thick and ragged, breaks up at once and throws a lot of small
+drops, and that is what the fits aim for.
+
+Everything moves in fixed steps of 1/180 s (velocity first, then position), with a seeded dice,
+from the room's own clock. So the same click gives the same splash, and `just record` films the
+same one every time.
+
+### How it is drawn
+
+Six draw calls at most: the bracket, the string with its knot, and the balloon or its rag,
+always; the falling water, the crown with the jet (two sheets of revolution shaped in a vertex
+shader), and one pool of quads for every drop, bubble, run and wet spot, while they last.
+
+Water is drawn as what it is, a lens. While the splash lasts, two seconds or so, a laptop draws the room
+once more each frame, at half size and without the splash, and the water shows that picture
+bent: a point of the water with the normal n, seen in the camera's axes, shows what is
+`1.6 R n_xy` to the side of it (never further than an eighth of the picture), R being the radius of the lens there (7 cm for the falling
+water, the column's own radius for the jet, 3.5 cm for the crown's sheet, its own radius for a
+drop). So a ball of water shows the wall behind it upside down and smaller, as a real one does,
+dark towards its edge, with the glints of the tank's lamp and of the room's lamp. A drop is
+stretched along its speed by a shutter of 3.5 ms and swings between flat and long, faster the
+smaller it is; one finer than a pixel is drawn fainter, and hardly shows but for its glint. The
+surface takes the slope of the rings at every pixel on a laptop and at the vertices on a phone.
+
+### What it does not do
+
+- Volume is not conserved from one stage to the next: the crown, the jet and the drops are not
+  cut from the 1.4 l that fell.
+- Drops do not meet each other, and they do not wet the buoys or the plants.
+- The rings use deep-water waves, with no surface tension; the tank is 0.36 m deep, so waves
+  longer than about 0.7 m would be wrong, and the fall makes none that long.
+- The sound of the burst and of the splash is synthesized, not recorded.
+- A phone gets a quarter of the drops and no bent picture of the room: its water mirrors a
+  made-up room. With reduced motion a click only lets the water down: the
+  balloon is gone, the rings spread, nothing flies.
+
+To change it, edit `sea.balloon` in [`src/config.js`](src/config.js): its words, the colours of
+the balloons in turn, `radius`, `height` over the water, `across` (where it hangs between the
+front glass and the back), `refill` (seconds until the next one), `drops` and `liteDrops`,
+`shutter` (seconds) and `speed` (1 is real time; 0.25 is four times slower).
 
 ## Run it
 
