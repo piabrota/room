@@ -223,11 +223,13 @@ export const playlist = {
 };
 // every artist of the playlist, once, in the order they first play: named beside the player
 playlist.artists = [...new Set(playlist.tracks.flatMap((t) => t.artists))];
-// piabrota RADIO: lofi under a free licence only (CC0 or CC BY,
-// CREDITS.md), in two stations. A station plays its tracks one after
-// another from a random start. The radio plays through the room's sound,
-// so the sound button mutes it too, and the rain steps back while it
-// plays. A missing file falls back to a synthesized lofi bed.
+// piabrota RADIO: five lofi pieces written for the room, a piano first,
+// with an upright bass, a flute and a boom-bap kit. They are written in
+// Csound, the scores in music/ (`just lofi` renders them, CREDITS.md). A
+// station plays its tracks one after another from a random start; with
+// one station, its row of buttons stays hidden. The radio plays through
+// the room's sound, so the sound button mutes it too, and the rain steps
+// back while it plays. A missing file falls back to a synthesized lofi bed.
 // `listeners` is where the live count of listeners comes from (a small
 // service beside the site, scripts/listeners.mjs); without it the count
 // stays hidden.
@@ -238,50 +240,11 @@ export const radio = {
   listeners: '/live/radio',
   stations: [
     { id: 'lofi', label: 'lofi', tracks: [
-      { src: '/audio/radio/ocean-memory.mp3', title: 'Ocean Memory', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/washed-up.mp3', title: 'Washed Up', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/ease-into-night.mp3', title: 'Ease into Night', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/moon-unit.mp3', title: 'Moon Unit', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/roof-tops.mp3', title: 'Roof Tops', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/tranquil-mindscape.mp3', title: 'Tranquil Mindscape', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/fractured.mp3', title: 'Fractured', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/bubbles.mp3', title: 'Bubbles', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/still-life.mp3', title: 'Still Life', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/when-time-called-me-darling.mp3', title: 'When Time Called Me Darling', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/calm-currents.mp3', title: 'Calm Currents', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/one-night-in-france.mp3', title: 'One Night In France', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/canon-event.mp3', title: 'Canon Event', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/birds.mp3', title: 'Birds', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/waiting-around.mp3', title: 'Waiting Around', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/doodles.mp3', title: 'Doodles', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/lucid.mp3', title: 'Lucid', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/ghost-town.mp3', title: 'Ghost Town', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/theta-frequency.mp3', title: 'Theta Frequency', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/tokyo-sunset.mp3', title: 'Tokyo Sunset', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/peaceful-drift.mp3', title: 'Peaceful Drift', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/reminders.mp3', title: 'Reminders', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/going-home.mp3', title: 'Going Home', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/shimmer.mp3', title: 'Shimmer', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/down-time.mp3', title: 'Down Time', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/warm-fuzz.mp3', title: 'Warm Fuzz', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/nine-to-death.mp3', title: 'Nine To Death', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/walking-away.mp3', title: 'Walking Away', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/forgotten-keep-sakes.mp3', title: 'Forgotten Keep Sakes', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/when-i-was-human.mp3', title: 'When I Was Human', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/one-good-day.mp3', title: 'One Good Day', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/color-of-a-soul.mp3', title: 'Color Of A Soul', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/before-everything.mp3', title: 'Before Everything', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/yet-again.mp3', title: 'Yet Again', artist: 'HoliznaCC0', fallback: 'lofi' },
-      { src: '/audio/radio/ode-to-forgetting.mp3', title: 'Ode To Forgetting', artist: 'HoliznaCC0', fallback: 'lofi' },
-    ] },
-    // lofi brasil: four bossa-lofi pieces written in code for the room
-    // (`just brasil`, scripts/brasil.mjs) and one by Popoi (CC BY 3.0)
-    { id: 'brasil', label: 'lofi brasil', tracks: [
-      { src: '/audio/radio/brasil-urca.mp3', title: 'Urca, depois da chuva', artist: 'piabrota', fallback: 'lofi' },
-      { src: '/audio/radio/brasil-botafogo.mp3', title: 'Botafogo às duas', artist: 'piabrota', fallback: 'lofi' },
-      { src: '/audio/radio/brasil-leme.mp3', title: 'Leme, maré baixa', artist: 'piabrota', fallback: 'lofi' },
-      { src: '/audio/radio/brasil-santa-teresa.mp3', title: 'Bonde em Santa Teresa', artist: 'piabrota', fallback: 'lofi' },
-      { src: '/audio/radio/brasil-cafezinho-com-leite.mp3', title: 'Cafezinho com Leite', artist: 'Popoi', fallback: 'lofi' },
+      { src: '/audio/radio/varanda.mp3', title: 'Varanda, duas da manhã', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/carta.mp3', title: 'Carta para o mar', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/corredor.mp3', title: 'Flauta no corredor', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/fita.mp3', title: 'Última fita', artist: 'piabrota', fallback: 'lofi' },
+      { src: '/audio/radio/metro.mp3', title: 'Depois do metrô', artist: 'piabrota', fallback: 'lofi' },
     ] },
   ],
 };
@@ -640,8 +603,7 @@ export const credits = {
     { what: 'the big fish in the aquarium (the Barramundi)', who: 'Microsoft, from the Khronos glTF sample assets', licence: 'CC0 1.0' },
     { what: 'Rio by day, behind the window', who: 'Arian Zwegers', licence: 'CC BY 2.0' },
     { what: 'Rio at night, behind the window', who: 'Wilfredor', licence: 'CC0 1.0' },
-    { what: 'the lofi on the radio', who: 'HoliznaCC0', licence: 'CC0 1.0' },
-    { what: '"Cafezinho com Leite", on lofi brasil', who: 'Popoi', licence: 'CC BY 3.0' },
+    { what: 'the instruments of the lofi on the radio', who: 'FluidR3 GM, by Frank Wen', licence: 'MIT' },
     { what: 'the music of the playlist', who: 'its artists and their labels, streamed by Spotify', licence: 'Spotify\'s terms' },
     { what: 'Copacabana live behind the window', who: 'the webcam of Homes in Rio, streamed by YouTube', licence: 'YouTube\'s terms' },
     { what: 'the typefaces', who: 'Sorkin Type, JetBrains, Font Diner, Vernon Adams, CodeMan38, Peter Hull, Astigmatic', licence: 'OFL-1.1, Apache-2.0' },
