@@ -1,6 +1,10 @@
 # room
-<iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/playlist/2hsuqvhCouatM8DtmKKl7U?utm_source=generator&si=864fc1bbd4844245" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
 English · [Português (Brasil)](README.pt-BR.md)
+
+The room's playlist, by Leonardo AL aracyla, plays in the room from the mixtape and the ♫ button:
+
+[![the room's playlist on Spotify](https://img.shields.io/badge/listen_on-Spotify-1DB954?style=for-the-badge&logo=spotify&logoColor=white)](https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U)
 
 A personal site that is a 3D room. Switch between camera shots, hover over things to see what
 they are, put a tape into the VCR to play it on the TV, and listen to the room. Built with
@@ -64,6 +68,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 31 | 10 Nov 20:07 | [#37](https://github.com/piabrota/room/pull/37) the playlist credited to Leonardo AL aracyla, its owner now, beside the player and in `CREDITS.md`; its tracks and artists read again from Spotify's player, 60 tracks and 63 artists; what plays now beside the player (title, artists, time, bars that dance) and the mixtape's reels turning, read from the messages Spotify's player posts, the covers left in Spotify's player; a window button that puts Copacabana live (Homes in Rio's webcam at Posto 6, YouTube, muted) behind the glass, the frame in front of it, with invariant 1 widened for it; "how I read", ten ebooks on the bookcase under the works with a DOI, each a spine in its cover's colours and a link to its Leanpub page | 1 h 50 min |
 | 32 | 11 Nov 08:48 | [#39](https://github.com/piabrota/room/pull/39) the radio's 40 lofi tracks are gone, and five new ones play in their place, composed by the thread itself (Claude Fable 5.2) in [Csound](https://csound.com), the language made for scores and orchestras: a piano first, with an upright bass, a flute and a boom-bap kit, through a worn tape. The scores are in `music/`, and `just lofi` renders them | 55 min |
 | 33 | 11 Nov 05:24 | [#40](https://github.com/piabrota/room/pull/40) a water balloon hangs over the aquarium: a click bursts it and its 1.4 litres fall into the tank, simulated in metres and seconds (the rubber that snaps back, the fall, the crater, a crown thrown up and left to gravity, drops with the air's drag, Worthington's jet, bubbles, Cauchy and Poisson's rings that come back from the glass, the tank's slow swing, the buoys that ride them, light rings on the sand, the fish frightened), its water drawn as a lens that bends a picture of the room; made by a builder and a separate critic that takes its own screenshots and scores them, the way of a video by AI Search, in three rounds that scored 6, 5.5 and 6 of 10, so it did not pass at 8; [The water balloon](#the-water-balloon) has the physics, and what is computed and what is fitted; `just record-splash`, and `just peek --click` | 4 h 25 min |
+| 34 | 11 Nov 15:30 | [#41](https://github.com/piabrota/room/pull/41) the room's playlist at the top of both READMEs, as a Spotify button: github.com strips an iframe, so the embed that was pasted showed nothing | 5 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -400,6 +405,12 @@ the splash of a water balloon, the test the video runs.
 
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
+
+**34.** The embed code of the playlist's player, as Spotify gives it, was pasted after "readme".
+
+```text
+user> 'add this to readme [the embed code of the playlist's player]'
+```
 
 | Overview | Window | Sea wall |
 |---|---|---|

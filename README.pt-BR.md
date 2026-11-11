@@ -2,6 +2,10 @@
 
 [English](README.md) · Português (Brasil)
 
+A playlist do quarto, de Leonardo AL aracyla, toca no quarto pela fita cassete e pelo botão ♫:
+
+[![a playlist do quarto no Spotify](https://img.shields.io/badge/ou%C3%A7a_no-Spotify-1DB954?style=for-the-badge&logo=spotify&logoColor=white)](https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U)
+
 Um site pessoal que é um quarto em 3D. Troque de plano de câmera, passe o mouse sobre as coisas
 para ver o que são, ponha uma fita no videocassete para vê-la na TV e escute o quarto. Feito com
 [three.js](https://threejs.org) e [Vite](https://vite.dev), em arquivos estáticos.
@@ -64,6 +68,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 31 | 10 nov 20:07 | [#37](https://github.com/piabrota/room/pull/37) a playlist agora creditada a Leonardo AL aracyla, a quem ela pertence, ao lado do player e no `CREDITS.md`; as faixas e os artistas lidos de novo do player do Spotify, 60 faixas e 63 artistas; o que toca agora ao lado do player (título, artistas, tempo, barras que dançam) e as bobinas da fita cassete girando, lidos das mensagens que o player do Spotify manda, com as capas deixadas no player do Spotify; um botão da janela que põe Copacabana ao vivo (a webcam da Homes in Rio no Posto 6, YouTube, sem som) atrás do vidro, com a esquadria na frente, e a invariante 1 aberta para isso; "how I read", dez ebooks na estante embaixo das obras com DOI, cada um uma lombada nas cores da sua capa e um link para a sua página no Leanpub | 1 h 50 min |
 | 32 | 11 nov 08:48 | [#39](https://github.com/piabrota/room/pull/39) as 40 faixas de lofi da rádio saíram, e cinco novas tocam no lugar, compostas pela própria thread (Claude Fable 5.2) em [Csound](https://csound.com), a linguagem feita para partituras e orquestras: o piano na frente, com baixo acústico, flauta e uma bateria boom bap, passando por uma fita gasta. As partituras estão em `music/`, e `just lofi` renderiza todas | 55 min |
 | 33 | 11 nov 05:24 | [#40](https://github.com/piabrota/room/pull/40) um balão d'água pendurado sobre o aquário: um clique estoura o balão e o 1,4 litro dele cai no tanque, simulado em metros e segundos (a borracha que se recolhe, a queda, a cratera, a coroa lançada para cima e deixada à gravidade, gotas com o arrasto do ar, o jato de Worthington, bolhas, os anéis de Cauchy e Poisson que voltam do vidro, o balanço lento do tanque, as boias que flutuam neles, anéis de luz na areia, os peixes assustados), com a água desenhada como uma lente que dobra uma imagem do quarto; feito por um construtor e um crítico separado que tira as próprias capturas de tela e dá nota, do jeito de um vídeo do canal AI Search, em três rodadas que tiveram 6, 5,5 e 6 de 10, e por isso não passou com 8; [O balão d'água](#o-balão-dágua) tem a física, e o que é calculado e o que é ajustado; `just record-splash` e `just peek --click` | 4 h 25 min |
+| 34 | 11 nov 15:30 | [#41](https://github.com/piabrota/room/pull/41) a playlist do quarto no topo dos dois READMEs, como um botão do Spotify: o github.com tira um iframe, então o embed colado não mostrava nada | 5 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -400,6 +405,12 @@ como o respingo de um balão d'água, o teste que o vídeo faz.
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
+
+**34.** O código do player da playlist, como o Spotify o dá, foi colado depois de "readme".
+
+```text
+user> 'add this to readme [the embed code of the playlist's player]'
+```
 
 | Visão geral | Janela | Parede do mar |
 |---|---|---|
