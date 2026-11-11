@@ -30,6 +30,10 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
   ao.blendIntensity = 0.85;
   ao.enabled = withAO && quality.ao; // `?record` turns it off: in software it is a third of the frame; a phone never has it
   composer.addPass(ao);
+  // what is shaped in its own vertex shader (the splash's water, src/splash.js) is left out of the occlusion:
+  // that pass draws the room with one material of its own, and would see the unshaped mesh
+  const unshaded = [], occlude = ao.render.bind(ao);
+  ao.render = (...a) => { const shown = unshaded.filter((o) => o.visible); for (const o of shown) o.visible = false; occlude(...a); for (const o of shown) o.visible = true; };
 
   const outline = new OutlinePass(new THREE.Vector2(size.x, size.y), scene, camera);
   Object.assign(outline, { edgeStrength: 4, edgeGlow: 0.6, edgeThickness: 1.5, pulsePeriod: 2.4, enabled: false });
@@ -73,6 +77,7 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
   // ── adaptive quality ──
   const levels = ratios(quality);
   let level = 0, acc = 0, frames = 0, warmup = 1.5;
+  const first = [];
   function setSize() {
     renderer.setPixelRatio(levels[level] ?? levels.at(-1));
     renderer.setSize(innerWidth, innerHeight, false);
@@ -99,9 +104,12 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
     setSize,
     setDay(on) { Object.assign(bloom, on ? BLOOM.day : BLOOM.night); },
     select(obj) { outline.selectedObjects = obj ? [obj] : []; outline.enabled = !!obj; },
+    skipAO(obj) { unshaded.push(obj); },
+    before(fn) { first.push(fn); }, // called before every frame is drawn: a picture a material needs of the room (the splash's lens)
     render(dt, t, measure = true) {
       grade.uniforms.time.value = t % 100;
       if (measure) watch(dt);
+      for (const fn of first) fn();
       composer.render(dt);
     },
   };

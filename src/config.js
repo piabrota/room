@@ -455,9 +455,9 @@ export const sea = {
   },
   wall: { colors: ['#06243f', '#0b3a63', '#1265a8', '#1682D4', '#4aa3e3', '#8cc8f0'], paint: '#dfe6ea' },
   balloon: {
-    label: 'water balloon', hint: 'burst it: a litre and a half falls into the tank',
+    label: 'water balloon', hint: 'burst it: 1.4 litres of water fall into the tank',
     colors: ['#BC2318', '#D29922', '#3FB950', '#1682D4'],
-    radius: 0.07, height: 0.5, across: 0.36, refill: 6, drops: 1500, liteDrops: 400, shutter: 0.0035, speed: 1,
+    radius: 0.07, height: 0.5, across: 0.36, refill: 6, drops: 2000, liteDrops: 500, shutter: 0.0035, speed: 1,
   },
   buoys: [
     { id: 'marola',          line: 'the water super app',                     url: 'https://github.com/marola-dev/marola' },

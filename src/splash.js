@@ -22,10 +22,12 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 //
 // Then the water rests, and a new balloon is filled on the string, in the next colour.
 //
-// Draw calls: the bracket (1) and the balloon with its knot and string (1) always; while it lasts,
-// the falling water (1), the crown and the jet (1), and one pool (1) of instanced quads for every
-// drop, bubble, cloud of fine air, run on the glass and wet spot it leaves.
-// The phone's look gets a third of the drops and takes the rings' slope at the vertices.
+// Draw calls: the bracket (1), the string with its knot (1) and the balloon, or the rag it leaves
+// (1), always; while it lasts, the falling water (1), the crown and the jet (1), and one pool (1) of
+// instanced quads for every drop, bubble, run on the glass and wet spot it leaves. On the laptop's
+// look the room is drawn once more, at half size, for each frame of the second the splash lasts:
+// the water bends that picture, as a lens does (`grab`).
+// The phone's look gets a quarter of the drops, no such picture, and the rings' slope at the vertices.
 // Everything moves from the room's clock, in fixed steps, with a seeded dice, so `just record`
 // films the same splash every time. Under reduced motion a click only lets the water down:
 // the balloon is gone, the rings spread, nothing flies.
@@ -34,18 +36,22 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const G = 9.81;
 export const RIPPLES = 10;        // ring sources the surface carries: the fall, its four mirrors, the jet's fall back, four drops
-const GROW = 1.3, GROW_T = 0.09;  // the crater's rim runs out from r0 to (1 + GROW) r0, most of it in GROW_T seconds
-const UP = 2.3, BRAKE = 6.4;      // the crown's rim: thrown up at UP m/s, braked by gravity and by the sheet's own pull, 2·BRAKE m/s²
-const LEAN = 0.3;                 // how far the rim leans out, of its height
-const JET0 = 0.17, JET_UP = 2.25; // the jet: when the crater has closed, and how fast its tip leaves
-const CROWN_T = UP / BRAKE, JET_T = 2 * JET_UP / G; // how long each is in the air
+const GROW = 1.1, GROW_T = 0.12;  // the crater's rim runs out from r0 to (1 + GROW) r0, most of it in GROW_T seconds
+const UP = 2.0;                   // the crown's rim is thrown up at about UP m/s (more here, less there) and falls as anything falls
+const LEAN = 0.2;                 // how far the rim leans out, of its height
+const DEEP = 2.0;                 // the crater's depth, in its first radius
+const JET0 = 0.3, JET_UP = 2.25;  // the jet: when the crater has closed, and how fast its tip leaves
+const JET_T = 2 * JET_UP / G;     // how long its tip is in the air
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const crownRadius = (a, r0) => r0 * (1 + GROW * (1 - Math.exp(-a / GROW_T)));
-const crownRise = (a) => Math.max(0, UP * a - BRAKE * a * a);
-// the rim is never a perfect ring: slow lobes, and the fingers it gathers into (the same sums in the crown's shader)
-const lobesAt = (th) => 1 + 0.2 * Math.sin(th * 3 + 0.7) + 0.14 * Math.sin(th * 5 + 2.1) + 0.1 * Math.sin(th * 8 + 4.4) + 0.06 * Math.sin(th * 13 + 1);
-const fingerAt = (th) => smooth(0.45, 0.95, 0.5 + 0.5 * Math.sin(th * 11 + 1.6 * Math.sin(th * 3 + 0.5) + 0.8 * Math.sin(th * 7)));
-const jetTip = (a) => Math.max(0, JET_UP * a - 0.5 * G * a * a) * (1 - 0.28 * smooth(0.2, 0.3, a)); // a: since the jet began
+// the rim is never a perfect ring: it is thrown harder here than there (the same sums in the crown's shader)
+const lobesAt = (th) => 1 + 0.2 * Math.sin(th * 3 + 0.7) + 0.14 * Math.sin(th * 5 + 2.1) + 0.1 * Math.sin(th * 8 + 4.4) + 0.06 * Math.sin(th * 13 + 1) + 0.04 * Math.sin(th * 21 + 3.3) + 0.03 * Math.sin(th * 34 + 0.2);
+const throwAt = (th) => 0.5 + 0.5 * lobesAt(th);                       // 0.72 to 1.28 of UP
+const rimRise = (a, th) => Math.max(0, UP * throwAt(th) * a - 0.5 * G * a * a);
+const rimTime = (th) => 2 * UP * throwAt(th) / G;                      // how long the rim is in the air there
+const CROWN_T = 2 * UP * 1.29 / G;                                     // and the longest of them
+const fingerAt = (th) => smooth(0.7, 0.98, 0.5 + 0.5 * Math.sin(th * 11 + 1.6 * Math.sin(th * 3 + 0.5) + 0.8 * Math.sin(th * 7)));
+const LOBES_GLSL = 'float lobesAt(float th) { return 1.0 + 0.2 * sin(th * 3.0 + 0.7) + 0.14 * sin(th * 5.0 + 2.1) + 0.1 * sin(th * 8.0 + 4.4) + 0.06 * sin(th * 13.0 + 1.0) + 0.04 * sin(th * 21.0 + 3.3) + 0.03 * sin(th * 34.0 + 0.2); }';
 const f = (n, d = 4) => n.toFixed(d);
 
 function dice(a) {
@@ -75,25 +81,36 @@ export const RIPPLE_GLSL = /* glsl */`
     return -uSlosh.y * exp(-tau / 4.5) * (uSlosh.z * cos(3.14159 * q.x) * sin(uSloshW.x * tau) + uSlosh.w * cos(6.28318 * q.y) * sin(uSloshW.y * tau));
   }
   float rings(vec2 p) { float h = slosh(p); for (int i = 0; i < ${RIPPLES}; i++) h += ring(p, uRip[i], uRipK[i]); return h; }
-  // where the water fell: the crater, the lip the crown stands on, the mound the jet stands on and sinks into
+  // where the water fell: the crater (a round-bottomed bowl), the lip the crown stands on, the swell
+  // the pushed water raises, which runs out ahead of the rings, and the mound the jet stands on and sinks into
   float crater(vec2 p) {
-    float a = uNow - uImpact.z; if (uImpact.w == 0.0 || a <= 0.0 || a > 1.2) return 0.0;
+    float a = uNow - uImpact.z; if (uImpact.w == 0.0 || a <= 0.0 || a > 1.4) return 0.0;
     float r = length(p - uImpact.xy);
     float r0 = uImpact.w, rb = r0 * (1.0 + ${f(GROW, 2)} * (1.0 - exp(-a / ${f(GROW_T, 2)})));
-    float hole = -2.0 * r0 * smoothstep(0.0, 0.07, a) * (1.0 - smoothstep(0.12, 0.21, a)) * exp(-r * r / (0.55 * rb * rb));
-    float lip = 0.03 * exp(-pow((r - rb) / 0.022, 2.0)) * smoothstep(0.0, 0.025, a) * (1.0 - smoothstep(0.1, 0.4, a));
-    float mound = 0.03 * exp(-r * r / (0.6 * r0 * r0)) * smoothstep(0.17, 0.25, a) * (1.0 - smoothstep(0.5, 0.95, a));
-    return hole + lip + mound;
+    float q = r / (0.9 * rb);
+    float hole = -${f(DEEP, 1)} * r0 * smoothstep(0.0, 0.13, a) * (1.0 - smoothstep(0.15, 0.32, a)) * pow(max(0.0, 1.0 - q * q), 0.7);
+    float lip = 0.03 * exp(-pow((r - rb) / 0.022, 2.0)) * smoothstep(0.0, 0.025, a) * (1.0 - smoothstep(0.15, 0.5, a));
+    float swell = 0.022 * exp(-pow((r - rb - 0.75 * a) / 0.06, 2.0)) * sqrt(rb / (r + 0.02)) * smoothstep(0.0, 0.06, a) * exp(-a / 0.45);
+    float mound = 0.035 * exp(-r * r / (0.9 * r0 * r0)) * smoothstep(0.26, 0.36, a) * (1.0 - smoothstep(0.7, 1.15, a));
+    return hole + lip + swell + mound;
   }`;
 
-// ── how water looks from the room: what it mirrors, what shows through it upside down, the lamps' glints ──
+// ── how water looks from the room ──
+// On the laptop's look it is a lens: `uScene` is the room as it was drawn without the splash, and the
+// water shows it bent (a ball of water turns it upside down), dark towards its edge, with the lamps'
+// glints. Without that picture (a phone, uGrab 0) it mirrors and gathers a made-up room (`around`).
 const WATER_GLSL = /* glsl */`
   uniform vec3 uGlow, uAir, uWall, uLampAt, uHangAt;
-  uniform float uLamp, uHang;
+  uniform float uLamp, uHang, uGrab;
+  uniform sampler2D uScene; uniform vec2 uInvSize, uLens;
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   float noise(vec2 p) { vec2 i = floor(p), u = fract(p); u = u * u * u * (u * (u * 6.0 - 15.0) + 10.0);
     return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y); }
   float soft(vec2 p) { return 0.6 * noise(p) + 0.4 * noise(p * mat2(1.6, 1.2, -1.2, 1.6) + 9.7); } // two layers, turned: no grid shows
+  float hash3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+  float noise3(vec3 p) { vec3 i = floor(p), u = fract(p); u = u * u * (3.0 - 2.0 * u);
+    return mix(mix(mix(hash3(i), hash3(i + vec3(1.0, 0.0, 0.0)), u.x), mix(hash3(i + vec3(0.0, 1.0, 0.0)), hash3(i + vec3(1.0, 1.0, 0.0)), u.x), u.y),
+               mix(mix(hash3(i + vec3(0.0, 0.0, 1.0)), hash3(i + vec3(1.0, 0.0, 1.0)), u.x), mix(hash3(i + vec3(0.0, 1.0, 1.0)), hash3(i + vec3(1.0, 1.0, 1.0)), u.x), u.y), u.z); }
   vec3 around(vec3 d) {
     float y = d.y + 0.3 * (soft(d.xz * 2.3 + d.y) - 0.5);       // no room has a straight horizon
     vec3 c = uAir * (0.6 + 0.4 * y);
@@ -101,19 +118,31 @@ const WATER_GLSL = /* glsl */`
     c += uGlow * smoothstep(0.3, -0.9, y);                     // the lit tank below
     return c;
   }
-  // body: how much of what is behind it the water hides where you look straight through (a sheet 0.1, a ball 0.5)
-  // tight: how small the lamps' glints are
-  vec4 water(vec3 n, vec3 v, vec3 at, float body, float tight) {
+  // the room behind, seen through water with this normal (in the camera's axes): size is the lens's radius, in metres
+  vec3 behind(vec3 nView, vec3 at, float size) {
+    vec2 uv = gl_FragCoord.xy * uInvSize - nView.xy * size * 1.6 * uLens / max(0.05, length(cameraPosition - at));
+    return texture2D(uScene, clamp(uv, 0.003, 0.997)).rgb;
+  }
+  // body: how much of what is behind it the water hides or bends where you look straight through
+  // tight: how small the lamps' glints are. size: the radius of the lens it is, in metres
+  vec4 water(vec3 n, vec3 v, vec3 at, float body, float tight, float size) {
     float nv = max(dot(n, v), 0.0);
     float F = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
-    vec3 bent = normalize(-v - 1.25 * (n - v * nv));           // water is a lens: the other side, upside down
     vec3 L = normalize(vec3(uLampAt.x, uLampAt.y, clamp(at.z, uLampAt.z - 0.65, uLampAt.z + 0.65)) - at);
     vec3 L2 = normalize(uHangAt - at);
     vec3 r = reflect(-v, n);
     float spec = uLamp * pow(max(dot(r, L), 0.0), tight) + uHang * pow(max(dot(r, L2), 0.0), tight * 1.2);
+    if (uGrab > 0.5) {
+      vec3 through = behind((viewMatrix * vec4(n, 0.0)).xyz, at, size) * vec3(0.9, 0.97, 1.0);
+      through *= mix(0.3, 1.0, smoothstep(0.0, 0.45, nv));     // towards its edge the light is bent away
+      vec3 c = mix(through, around(r), F * 0.8) + vec3(0.86, 0.95, 1.0) * spec * 2.0;
+      float a = clamp(max(body, F) + spec, 0.0, 1.0);
+      return vec4(c * a, a);
+    }
+    vec3 bent = normalize(-v - 1.25 * (n - v * nv));           // the other side, upside down
     float gather = uLamp * pow(max(dot(bent, L), 0.0), 10.0) + uHang * 0.5 * pow(max(dot(bent, L2), 0.0), 14.0); // light gathered on the far side
     vec3 c = mix(around(bent) * vec3(0.84, 0.95, 1.0), around(r), F) + vec3(0.86, 0.95, 1.0) * (spec * 2.2 + gather * 0.22);
-    float a = clamp(mix(body, 1.0, F) + spec + gather * 0.12, 0.0, 1.0);
+    float a = clamp(mix(body * 0.5, 1.0, F) + spec + gather * 0.12, 0.0, 1.0);
     return vec4(c * a, a);
   }`;
 
@@ -147,7 +176,7 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
   const colors = (cfg.colors?.length ? cfg.colors : ['#1682D4']).map((c) => new THREE.Color(c));
   const speed = cfg.speed ?? 1, refill = cfg.refill ?? 6;
   const at = new THREE.Vector3(tank.x0 + (tank.x1 - tank.x0) * (cfg.across ?? 0.36), tank.waterY + (cfg.height ?? 0.5) + 1.02 * R, (tank.z0 + tank.z1) / 2); // the balloon's middle
-  const TOP = -S - 0.012, CY = TOP - pearY(1) * R;            // in the balloon's own frame, the hook at 0: its top and its middle
+  const TOP = -S - 0.012, CY = TOP - pearY(1) * R;            // in the hook's frame: the balloon's top (its knot) and its middle
   const hook = new THREE.Vector3(at.x, at.y - CY, at.z);
   const group = new THREE.Group(); group.name = 'splash'; parent.add(group);
   const handle = { group, onImpact: null, onPop: null, scare: null }; // onPop, onImpact: the sounds (src/app.js); scare: the fish (src/props.js)
@@ -164,53 +193,67 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
   ]), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.1 }));
   bracket.position.copy(hook); bracket.castShadow = true; bracket.receiveShadow = true; group.add(bracket);
 
-  // ── the balloon: a pear of rubber, its knot and the string it hangs by, one mesh ──
-  const body = paint(pear(R, lite ? 20 : 32, lite ? 14 : 22).translate(0, CY, 0), '#ffffff', 0);
-  const geo = mergeGeometries([
-    body,
+  // ── what hangs from the hook and swings: the string with its knot, and on it the balloon or, once
+  // it has burst, the rag of rubber it leaves. Each is its own mesh with its own real shape, so every
+  // pass that draws the room (the shadows of the corners too) sees what is there ──
+  const swing = new THREE.Group(); swing.position.copy(hook); group.add(swing);
+  const rubberLook = { vertexColors: true, roughness: 0.22, metalness: 0, emissive: '#000000' };
+  const cordGeo = mergeGeometries([
     paint(new THREE.CylinderGeometry(0.0042, 0.0085, 0.014, 10).translate(0, TOP + 0.006, 0), '#ffffff', 2),
     paint(new THREE.TorusGeometry(0.0052, 0.0024, 6, 12).rotateX(Math.PI / 2).translate(0, TOP + 0.0135, 0), '#ffffff', 2),
     paint(new THREE.CylinderGeometry(0.0009, 0.0009, S, 5).translate(0, -S / 2, 0), '#e8e2d2', 1),
   ]);
-  const pop = { value: 0 }, popT = { value: 0 }, fill = { value: 1 }, tear = { value: new THREE.Vector3(-1, 0, 0) };
-  const rubber = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.22, metalness: 0, emissive: '#000000', side: THREE.DoubleSide });
+  const cord = new THREE.Mesh(cordGeo, new THREE.MeshStandardMaterial(rubberLook)); cord.castShadow = false; cord.raycast = () => {}; swing.add(cord);
+  // the balloon: a pear of rubber, hung by its top. A burst tears it from uTear (the click), and for
+  // that twentieth of a second its skin runs to the knot in the vertex shader; filling, it is scaled
+  const geo = paint(pear(R, lite ? 20 : 32, lite ? 14 : 22).translate(0, CY - TOP, 0), '#ffffff', 0);
+  const pop = { value: 0 }, tear = { value: new THREE.Vector3(-1, 0, 0) };
+  const rubber = new THREE.MeshStandardMaterial({ ...rubberLook, side: THREE.DoubleSide });
   rubber.onBeforeCompile = (s) => {
-    Object.assign(s.uniforms, { uPop: pop, uPopT: popT, uFill: fill, uTear: tear });
-    s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float hold; uniform float uPop, uPopT, uFill; uniform vec3 uTear;')
+    Object.assign(s.uniforms, { uPop: pop, uTear: tear });
+    s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nuniform float uPop; uniform vec3 uTear;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-        if (hold < 0.5) { // the rubber: torn from uTear, it snaps to the knot and hangs there, a rag; filled, it grows from the knot
-          vec3 top = vec3(0.0, ${f(TOP)}, 0.0);
-          float d = acos(clamp(dot(normalize(transformed - vec3(0.0, ${f(CY)}, 0.0)), uTear), -1.0, 1.0)) / 3.14159;
+        if (uPop > 0.0) {
+          float d = acos(clamp(dot(normalize(transformed - vec3(0.0, ${f(CY - TOP)}, 0.0)), uTear), -1.0, 1.0)) / 3.14159;
           float k = smoothstep(0.0, 0.25, uPop * 1.25 - d);
-          // the rag: a flat strip with an uneven hem, hung to one side, that whips and comes to rest
-          float len = top.y - transformed.y, whip = exp(-uPopT * 1.3);
-          float hem = 0.3 * (1.0 + 0.3 * sin(transformed.x * 130.0 + transformed.z * 90.0) + 0.2 * sin(transformed.z * 210.0));
-          vec3 rag = vec3(
-            transformed.x * 0.17 * (1.0 + 0.6 * sin(len * 95.0)) + len * 0.07 + 0.02 * whip * sin(len * 70.0 - uPopT * 17.0) * len / 0.15,
-            top.y - 0.002 - len * hem,
-            transformed.z * 0.03 + 0.008 * whip * sin(len * 55.0 - uPopT * 12.0));
-          transformed = top + (mix(transformed, rag, k) - top) * uFill;
+          transformed = mix(transformed, vec3(transformed.x * 0.12, transformed.y * 0.22, transformed.z * 0.12), k);
         }`);
   };
   rubber.customProgramCacheKey = () => 'splash-rubber';
-  const balloon = new THREE.Mesh(geo, rubber); balloon.name = name; balloon.position.copy(hook);
-  balloon.castShadow = false; balloon.receiveShadow = false; group.add(balloon);
+  const balloon = new THREE.Mesh(geo, rubber); balloon.name = name; balloon.position.set(0, TOP, 0);
+  balloon.castShadow = false; balloon.receiveShadow = false; swing.add(balloon);
+  const hit = THREE.Mesh.prototype.raycast;
+  balloon.raycast = function (...a) { if (state === 'ready') hit.apply(this, a); }; // nothing to click while it is gone
+  // the rag: two limp, wrinkled strips of thick rubber under the knot, a few centimetres long
+  const strip = (w, l, turn, seed) => {
+    const g = new THREE.PlaneGeometry(w, l, 4, 10).translate(0, -l / 2, 0), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), k = -y / l, wide = 0.45 + 0.55 * Math.sin(Math.min(1, k * 1.15) * Math.PI * 0.8), tw = turn + k * 1.9 + seed;
+      const px = x * wide + 0.0035 * k * Math.sin(k * 5 + seed), pz = 0.0022 * Math.sin(k * 17 + x * 300 + seed) * k + 0.002 * k * k * 6 * Math.cos(seed);
+      p.setXYZ(i, px * Math.cos(tw) + pz * Math.sin(tw), y * (1 + 0.12 * Math.sin(x * 400 + seed)), -px * Math.sin(tw) + pz * Math.cos(tw));
+    }
+    g.computeVertexNormals(); return g;
+  };
+  const rag = new THREE.Mesh(mergeGeometries([strip(0.015, 0.036, 0.2, 1.3), strip(0.011, 0.026, 1.5, 4.1), strip(0.008, 0.019, 2.9, 2.2)]),
+    new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.55, side: THREE.DoubleSide }));
+  rag.position.set(0, TOP + 0.002, 0); rag.visible = false; rag.castShadow = false; rag.raycast = () => {}; swing.add(rag);
   let colorAt = 0;
-  function tint(c) { // the body and the knot take the balloon's colour; the string keeps its own
-    const col = geo.attributes.color, hold = geo.attributes.hold;
-    for (let i = 0; i < col.count; i++) if (hold.getX(i) !== 1) col.setXYZ(i, c.r, c.g, c.b);
-    col.needsUpdate = true;
+  function tint(c) { // the balloon and the knot take the colour; the string keeps its own
+    for (const g of [geo, cordGeo]) {
+      const col = g.attributes.color, hold = g.attributes.hold;
+      for (let i = 0; i < col.count; i++) if (hold.getX(i) !== 1) col.setXYZ(i, c.r, c.g, c.b);
+      col.needsUpdate = true;
+    }
     for (const m of [balloon.material, balloon.userData.baseMat]) m?.emissive.copy(c).multiplyScalar(0.07); // a little light comes through the rubber
   }
   tint(colors[0]);
-  const hit = THREE.Mesh.prototype.raycast;
-  balloon.raycast = function (...a) { if (state === 'ready') hit.apply(this, a); }; // nothing to click while it is gone
 
   // ── the light the water takes: the tank's lamp and its glow below, the room's lamp, the air ──
   const light = {
     uGlow: { value: new THREE.Color() }, uAir: { value: new THREE.Color() }, uWall: { value: new THREE.Color() },
     uLampAt: { value: new THREE.Vector3(...tank.lamp) }, uHangAt: { value: new THREE.Vector3(...(tank.hang ?? [0, 2.4, 0.9])) },
     uLamp: { value: 1 }, uHang: { value: 1 },
+    uScene: { value: null }, uInvSize: { value: new THREE.Vector2(1, 1) }, uLens: { value: new THREE.Vector2(1, 1) }, uGrab: { value: 0 },
   };
   let wasDay = null;
   function setDay(day) {
@@ -221,6 +264,14 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
     light.uLamp.value = day ? 0.7 : 1; light.uHang.value = day ? 0 : 0.8;
   }
   setDay(false);
+  // what each of the water's meshes needs before it is drawn: the size of the picture it is drawn into
+  const size = new THREE.Vector2();
+  const lens = (renderer, scene, camera) => {
+    const t = renderer.getRenderTarget();
+    if (t) size.set(t.width, t.height); else renderer.getDrawingBufferSize(size);
+    light.uInvSize.value.set(1 / size.x, 1 / size.y);
+    light.uLens.value.set(camera.projectionMatrix.elements[0] / 2, camera.projectionMatrix.elements[5] / 2);
+  };
 
   // ── the falling water: the balloon's own shape, let go ──
   const fall = { uAt: { value: new THREE.Vector3() }, uAge: { value: 0 }, uTear: tear, uSurf: { value: tank.waterY }, ...light, ...ripples.uniforms };
@@ -256,10 +307,10 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
         float rough = (1.0 - smoothstep(0.04, 0.26, uAge)) * smoothstep(0.0, 0.2, uAge * 22.0 - vSkin);
         vec3 n = normalize(vN + rough * 0.3 * (vec3(soft(vW.xy * 150.0), soft(vW.yz * 150.0), soft(vW.zx * 150.0)) - 0.5));
         if (dot(n, v) < 0.0) n = reflect(n, v);
-        gl_FragColor = water(n, v, vW, 0.5, 140.0);
+        gl_FragColor = water(n, v, vW, 0.96, 140.0, ${f(R)});
       }`,
   }));
-  blob.frustumCulled = false; blob.visible = false; blob.renderOrder = 5; blob.raycast = () => {}; group.add(blob);
+  blob.frustumCulled = false; blob.visible = false; blob.renderOrder = 5; blob.raycast = () => {}; blob.onBeforeRender = lens; group.add(blob);
 
   // ── the crown and the jet: two sheets of revolution, shaped in the vertex shader from the time since the fall ──
   const sheetGeo = (() => {
@@ -269,39 +320,42 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
       for (let j = 0; j < nv; j++) for (let i = 0; i < nu; i++) { const a = j * (nu + 1) + i, b = a + 1, c = a + nu + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); return g;
     };
-    return mergeGeometries(lite ? [grid(60, 10, 0), grid(14, 16, 1)] : [grid(168, 22, 0), grid(28, 40, 1)]);
+    return mergeGeometries(lite ? [grid(60, 10, 0), grid(14, 16, 1)] : [grid(192, 24, 0), grid(28, 40, 1)]);
   })();
   const crown = { uAt: { value: new THREE.Vector3() }, uAge: { value: 0 }, uRim: { value: tank.rimY }, uTank: ripples.uniforms.uTank, ...light };
   const sheet = new THREE.Mesh(sheetGeo, new THREE.ShaderMaterial({
     uniforms: crown, transparent: true, premultipliedAlpha: true, depthWrite: false, side: THREE.DoubleSide,
     vertexShader: /* glsl */`
-      uniform vec3 uAt; uniform float uAge; varying vec3 vN, vW, vUp; varying vec3 vUv3;
+      uniform vec3 uAt; uniform float uAge; varying vec3 vN, vW, vUp; varying vec3 vUv3; varying float vPhase, vSize;
       const float TAU = 6.28318;
+      ${LOBES_GLSL}
       vec3 crownAt(float u, float v) {
         float a = uAge, th = u * TAU;
         float rb = ${f(R0)} * (1.0 + ${f(GROW, 2)} * (1.0 - exp(-a / ${f(GROW_T, 2)})));
-        float rise = max(0.0, ${f(UP, 2)} * a - ${f(BRAKE, 2)} * a * a);                    // the rim, thrown up and falling back
-        float lobes = 1.0 + 0.2 * sin(th * 3.0 + 0.7) + 0.14 * sin(th * 5.0 + 2.1) + 0.1 * sin(th * 8.0 + 4.4) + 0.06 * sin(th * 13.0 + 1.0);
-        float finger = smoothstep(0.45, 0.95, 0.5 + 0.5 * sin(th * 11.0 + 1.6 * sin(th * 3.0 + 0.5) + 0.8 * sin(th * 7.0))); // round-ended
-        float grow = smoothstep(0.03, 0.2, a);                                             // the rim gathers into fingers as it slows
-        float h = rise * lobes * (pow(v, 0.8) + 0.4 * finger * grow * pow(v, 5.0));
-        float rough = 0.007 * sin(th * 23.0 + v * 7.0 - a * 31.0) + 0.005 * sin(th * 37.0 - v * 11.0 + a * 17.0); // the sheet is never smooth
-        float r = rb + ${f(LEAN, 2)} * rise * lobes * v * (0.5 + 0.5 * v) + rough * v * smoothstep(0.02, 0.1, a) + 0.012 * finger * grow * v * v * v;
+        float fast = ${f(UP, 2)} * (0.5 + 0.5 * lobesAt(th));                                 // how hard the rim is thrown here
+        float rise = max(0.0, fast * a - ${f(G / 2)} * a * a);                               // up, and down again as anything falls
+        float phase = a * ${f(G / 2)} / fast;                                                // 0 as it leaves, 1 as it lands
+        float finger = smoothstep(0.7, 0.98, 0.5 + 0.5 * sin(th * 11.0 + 1.6 * sin(th * 3.0 + 0.5) + 0.8 * sin(th * 7.0)));
+        float h = rise * pow(v, 0.8) + 0.04 * finger * smoothstep(0.15, 0.6, phase) * pow(v, 6.0) * step(1e-4, rise); // the rim gathers into thin threads
+        float rough = 0.006 * sin(th * 23.0 + v * 7.0 - a * 31.0) + 0.004 * sin(th * 37.0 - v * 11.0 + a * 17.0) + 0.003 * sin(th * 61.0 + v * 5.0 + a * 9.0); // never smooth
+        float r = rb + ${f(LEAN, 2)} * rise * v * (0.5 + 0.5 * v) + rough * v * smoothstep(0.02, 0.1, a);
         return uAt + vec3(cos(th) * r, h, sin(th) * r);
       }
-      vec3 jetAt(float u, float w) {
-        float a = uAge - ${f(JET0, 2)}, th = u * TAU; if (a <= 0.0) return uAt - vec3(0.0, 0.03, 0.0);
-        float v = 1.0 - (1.0 - w) * (1.0 - w);                                             // more rows where its tip is
-        float tip = max(0.0, ${f(JET_UP, 2)} * a - ${f(G / 2)} * a * a) * (1.0 - 0.28 * smoothstep(0.2, 0.3, a)); // up 26 cm and back; shorter when its tip has let go
-        float rad = mix(0.034, 0.0065, pow(v, 0.6)) + 0.03 * exp(-v / 0.07) * smoothstep(0.0, 0.1, a); // a column on a wide foot
-        float neck = smoothstep(0.06, 0.2, a) * v * v;                                     // it necks before it breaks (Rayleigh, Plateau)
+      float jetRadius(float v, float a) {
+        float rad = mix(0.034, 0.0065, pow(v, 0.6));                                        // a column, thinner upwards
+        float neck = smoothstep(0.06, 0.2, a) * v * v;                                      // it necks before it breaks (Rayleigh, Plateau)
         rad *= 1.0 + neck * (0.3 * sin(v * 17.0 - a * 6.0) + 0.18 * sin(v * 29.0 + a * 4.0 + 1.3));
         rad += 0.008 * exp(-pow((v - 0.9) / 0.08, 2.0)) * (1.0 - smoothstep(0.19, 0.21, a)); // the drop at its tip, until it lets go
         float end = max(0.0, (v - 0.93) / 0.07);
-        rad *= sqrt(max(0.0, 1.0 - end * end)) * smoothstep(0.0, 0.04, a);                 // a round end
-        rad *= 1.0 - smoothstep(0.72, 0.98, a / ${f(JET_T, 3)});                              // it sinks into its mound
-        vec2 bend = (vec2(0.14, -0.08) * v * v * sin(a * 5.0 + 0.5) + 0.03 * v * vec2(sin(v * 9.0 + a * 14.0), cos(v * 7.0 - a * 11.0))) * tip; // never straight
-        return uAt + vec3(cos(th) * rad + bend.x, tip * v - 0.012, sin(th) * rad + bend.y);
+        return rad * sqrt(max(0.0, 1.0 - end * end)) * smoothstep(0.0, 0.04, a);            // a round end
+      }
+      vec3 jetAt(float u, float w) {
+        float a = uAge - ${f(JET0, 2)}, th = u * TAU; if (a <= 0.0) return uAt - vec3(0.0, 0.05, 0.0);
+        float v = 1.0 - (1.0 - w) * (1.0 - w);                                              // more rows where its tip is
+        float tip = max(0.0, ${f(JET_UP, 2)} * a - ${f(G / 2)} * a * a) * (1.0 - 0.28 * smoothstep(0.2, 0.3, a)); // up 26 cm and back; shorter when its tip has let go
+        float rad = jetRadius(v, a);
+        vec2 bend = (vec2(0.045, -0.025) * v * v * sin(a * 5.0 + 0.5) + 0.012 * v * vec2(sin(v * 9.0 + a * 14.0), cos(v * 7.0 - a * 11.0))) * tip; // never quite straight
+        return uAt + vec3(cos(th) * rad + bend.x, tip * v - 0.02, sin(th) * rad + bend.y);
       }
       vec3 at(float u, float v, float part) { return part < 0.5 ? crownAt(u, v) : jetAt(u, v); }
       void main() {
@@ -311,44 +365,49 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
         vN = normalize(cross(dv, du) + vec3(0.0, 1e-7, 0.0));                              // outwards, on both sheets
         vUp = normalize(dv + vec3(0.0, 1e-7, 0.0));
         vW = p; vUv3 = position;
+        if (position.z < 0.5) { vPhase = uAge * ${f(G / 2)} / (${f(UP, 2)} * (0.5 + 0.5 * lobesAt(position.x * TAU))); vSize = 0.035; }
+        else { float w = position.y; vPhase = 0.0; vSize = max(0.004, jetRadius(1.0 - (1.0 - w) * (1.0 - w), uAge - ${f(JET0, 2)})); }
         gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
       }`,
     fragmentShader: /* glsl */`
-      uniform float uAge, uRim; uniform vec4 uTank; varying vec3 vN, vW, vUp; varying vec3 vUv3;
+      uniform float uAge, uRim; uniform vec4 uTank; varying vec3 vN, vW, vUp; varying vec3 vUv3; varying float vPhase, vSize;
       ${WATER_GLSL}
       void main() {
         vec3 v = normalize(cameraPosition - vW), n = normalize(vN);
         vec2 q = (vW.xz - uTank.xy) / uTank.zw;
         if (vW.y < uRim + 0.004 && (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0)) discard; // the glass stands where it stands
         float body = 0.5, keep = 1.0, froth = 0.0, tight = 110.0;
-        if (vUv3.z < 0.5) { // the crown: thick and churned at its foot, a film above, a bead on its rim; it tears into holes and ligaments as it ages
+        if (vUv3.z < 0.5) { // the crown: thick and churned at its foot, a film above, a bead on every free edge; it tears into round holes, then threads
           float th = vUv3.x * 6.28318, w = vUv3.y;
           vec2 ring = vec2(cos(th), sin(th));
-          float holes = 0.65 * noise(ring * 7.0 + vec2(w * 3.5, -uAge * 8.0)) + 0.35 * noise(ring * 17.0 + vec2(-w * 8.0, uAge * 3.0));
-          float open = smoothstep(0.1, 0.34, uAge) * (0.25 + 0.75 * w) * (1.0 - 0.75 * smoothstep(0.9, 1.0, w)); // the bead on the rim lasts
+          float holes = 0.7 * noise3(vec3(ring * 4.2, w * 6.0 - uAge * 1.5)) + 0.3 * noise3(vec3(ring * 9.5, w * 13.0 + uAge * 2.0) + 5.3);
+          float open = smoothstep(0.45, 1.05, vPhase) * (0.3 + 0.7 * w) * (1.0 - 0.7 * smoothstep(0.9, 1.0, w)); // the bead on the rim lasts
           float gap = holes - open;
           if (gap < 0.0) discard;
-          float bead = max(smoothstep(0.86, 0.96, w), (1.0 - smoothstep(0.0, 0.07, gap)) * step(0.001, open)); // water gathers on every free edge
-          body = mix(mix(0.66, 0.2, smoothstep(0.0, 0.7, w)), 0.85, bead * 0.8);
-          keep = smoothstep(0.0, 0.012, uAge) * smoothstep(0.0, 0.02, gap + 0.02 * step(open, 0.001));
+          float bead = max(smoothstep(0.86, 0.96, w), (1.0 - smoothstep(0.0, 0.1, gap)) * step(0.001, open));
+          body = mix(mix(0.8, 0.5, smoothstep(0.0, 0.7, w)), 0.94, bead);
+          keep = smoothstep(0.0, 0.012, uAge) * smoothstep(0.0, 0.025, gap + 0.025 * step(open, 0.001));
           if (w > 0.86) { float s = clamp((w - 0.93) / 0.07, -1.0, 1.0); n = normalize(n * sqrt(1.0 - s * s) + normalize(vUp) * s); } // the bead is round
-          froth = smoothstep(0.5, 0.85, noise(ring * 19.0 + vec2(w * 6.0, -uAge * 26.0))) * (1.0 - smoothstep(0.0, 0.5, w)) * smoothstep(0.0, 0.04, uAge);
+          froth = smoothstep(0.45, 0.8, noise3(vec3(ring * 19.0, w * 6.0 - uAge * 26.0))) * (1.0 - smoothstep(0.0, 0.45, w)) * smoothstep(0.0, 0.04, uAge);
           tight = mix(60.0, 140.0, w);
+          // a sheet of water is never flat: it is thicker here, thinner there, and what shows through it swims
+          vec3 at3 = vec3(ring * 11.0, w * 15.0 - uAge * 5.0);
+          n = normalize(n + 0.45 * (vec3(noise3(at3), noise3(at3 + 7.3), noise3(at3 + 13.1)) - 0.5));
         } else {            // the jet: a closed column, so only the side that faces you
           if (dot(n, v) < 0.0) discard;
-          body = 0.55;
+          body = 0.95; tight = 120.0; keep = smoothstep(0.008, 0.04, vUv3.y);   // its foot is in the mound
         }
         if (dot(n, v) < 0.0) n = -n;
-        gl_FragColor = (water(n, v, vW, body, tight) + vec4(uGlow * 0.55 + uAir * 0.6 + 0.04, 1.0) * froth * 0.32) * keep;
+        gl_FragColor = (water(n, v, vW, body, tight, vSize) + vec4(uAir * 1.3 + uGlow * 0.22 + 0.03, 1.0) * froth * 0.3) * keep;
       }`,
   }));
-  sheet.frustumCulled = false; sheet.visible = false; sheet.renderOrder = 5; sheet.raycast = () => {}; group.add(sheet);
+  sheet.frustumCulled = false; sheet.visible = false; sheet.renderOrder = 5; sheet.raycast = () => {}; sheet.onBeforeRender = lens; group.add(sheet);
 
-  // ── the drops, the spray, the bubbles, the fine air, the runs on the glass and the wet spots: one pool of quads ──
-  const N = Math.max(40, lite ? (cfg.liteDrops ?? 400) : (cfg.drops ?? 1500));
+  // ── the drops, the spray, the bubbles, the runs on the glass and the wet spots: one pool of quads ──
+  const N = Math.max(40, lite ? (cfg.liteDrops ?? 500) : (cfg.drops ?? 2000));
   const P = { x: new Float32Array(N * 3), v: new Float32Array(N * 3), m: new Float32Array(N * 4), life: new Float32Array(N), age: new Float32Array(N), kind: new Uint8Array(N) };
-  // SMALL: a drop thrown up by a drop, which throws up nothing itself. CLOUD: air too fine to see one bubble of. WET: where a drop came to rest.
-  const DROP = 0, MIST = 1, BUBBLE = 2, RUN = 3, SMALL = 4, CLOUD = 5, WET = 6;
+  // SMALL: a drop thrown up by a drop, which throws up nothing itself. WET: where a drop came to rest.
+  const DROP = 0, MIST = 1, BUBBLE = 2, RUN = 3, SMALL = 4, WET = 6;
   let alive = 0, wets = 0;
   const quad = new THREE.InstancedBufferGeometry();
   quad.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], 3)); quad.setIndex([0, 1, 2, 0, 2, 3]);
@@ -377,11 +436,11 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
         vec4 c = viewMatrix * vec4(iPos, 1.0);
         vec3 vv = (viewMatrix * vec4(iVel, 0.0)).xyz;
         float px = -c.z * uPixel;                                  // a pixel, in metres, where the drop is
-        bool slow = (kind > 1.5 && kind < 2.5) || kind > 4.5;      // a bubble, a cloud: too slow to smear
+        bool slow = kind > 1.5 && kind < 2.5;                      // a bubble: too slow to smear
         float r = max(iMisc.x, px * 0.6);                          // never much thinner than a pixel: a finer drop is drawn fainter
         float sp = length(vv.xy);
         vec2 dir = sp > 1e-4 ? vv.xy / sp : vec2(0.0, 1.0);
-        float hl = slow ? 0.0 : sp * uShutter * 0.5;              // the streak an open shutter leaves
+        float hl = slow ? 0.0 : sp * uShutter * 0.5;               // the streak an open shutter leaves
         if (kind > 0.5 && kind < 1.5) hl *= 0.5;
         if (kind > 2.5 && kind < 3.5) hl = iMisc.x * 2.4;          // a run on the glass: the bead, and the wet line above it
         // a drop in the air is never a ball for long: it swings between flat and long, faster the smaller it is
@@ -397,11 +456,11 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
       void main() {
         float kind = vM.z;
         vec3 v = normalize(cameraPosition - vAt);
-        if (kind > 5.5) { // a wet spot: the wood a shade darker, and a sheen where the light skims it
+        if (kind > 5.5) { // a wet spot: what it lies on a shade darker, and a sheen where the light skims it
           float q = length(vP), wet = (1.0 - smoothstep(0.55, 1.0, q)) * vM.y;
           if (wet <= 0.003) discard;
-          float sheen = pow(1.0 - abs(dot(v, vFace)), 3.0);
-          gl_FragColor = vec4(around(reflect(-v, vFace)) * sheen * 0.4 * wet, wet * (0.2 + 0.25 * sheen));
+          float sheen = pow(1.0 - abs(dot(v, vFace)), 3.0), level = abs(vFace.y);
+          gl_FragColor = vec4(around(reflect(-v, vFace)) * sheen * 0.4 * wet, wet * (mix(0.2, 0.42, level) + 0.25 * sheen));
           return;
         }
         float along = vP.y - clamp(vP.y, -vHalf, vHalf), wide = 1.0;
@@ -413,35 +472,38 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
         vec2 n2 = d / vR; float nz = sqrt(max(0.0, 1.0 - dot(n2, n2)));
         vec3 nView = vec3(vec2(vDir.y, -vDir.x) * n2.x + vDir * n2.y, nz);
         // smeared by the shutter, a drop is brightest in its middle and fades to both ends; finer than a pixel, it is fainter
-        float streak = 1.0 - smoothstep(0.25, 1.0, abs(vP.y) / (vHalf + vR)) * smoothstep(0.6, 2.5, vHalf / vR);
+        float streak = 1.0 - smoothstep(0.2, 1.0, abs(vP.y) / (vHalf + vR)) * smoothstep(0.6, 2.5, vHalf / vR);
         float smear = smoothstep(0.4, 1.6, vHalf / vR);            // how much of a streak it is
         float show = edge * vM.y * mix(1.0, vM.x, 0.75) * mix(1.0, vR / (vR + vHalf), 0.5) * streak * mix(1.0, sqrt(max(0.0, 1.0 - q * q)), smear);
-        if (kind > 4.5) {                       // fine air under the water, or fine water in the air: a soft cloud
-          float m = pow(max(0.0, 1.0 - q * q), 1.5) * vM.y;
-          gl_FragColor = vec4(vec3(0.78, 0.94, 1.0) * (0.3 + 0.45 * uLamp) + uAir * 0.4, 1.0) * m;
-        } else if (kind > 1.5 && kind < 2.5) {  // a bubble under water: a ball of air, bright where the light skims it, a glint on top
+        if (kind > 1.5 && kind < 2.5) {         // a bubble under water: a ball of air, bright where the light skims it, a glint on top
           float rim = smoothstep(0.35, 1.0, q), top = pow(max(0.0, dot(normalize(vec3(nView.xy, nz)), normalize(vec3(0.25, 0.8, 0.55)))), 14.0);
-          float m = (0.12 + 0.6 * rim * rim) * edge * vM.y * mix(1.0, vM.x, 0.6);
+          float m = (0.14 + 0.6 * rim * rim) * edge * vM.y * mix(1.0, vM.x, 0.5);
           gl_FragColor = vec4(vec3(0.74, 0.93, 1.0) * (0.35 + 0.5 * uLamp) * m + vec3(top) * 0.8 * edge * vM.y, min(1.0, m + top * 0.6));
         } else if (kind > 0.5 && kind < 1.5) {  // the spray: too fine to have a shape
-          gl_FragColor = vec4(around(vec3(0.0, -1.0, 0.0)) * 0.6 + uAir, 1.0) * 0.22 * show * (1.0 - q * q);
+          gl_FragColor = vec4(around(vec3(0.0, -1.0, 0.0)) * 0.5 + uAir, 1.0) * 0.2 * show * (1.0 - q * q);
         } else {                                // a drop: a lens, clear in its middle, dark at its edge, with the lamps' glints
           float turn = vM.w * 37.0;             // no two hang the same way
-          vec3 n = normalize((nView + 0.3 * nz * vec3(cos(turn), sin(turn), 0.0)) * mat3(viewMatrix));
+          vec3 tilted = normalize(nView + 0.3 * nz * vec3(cos(turn), sin(turn), 0.0));
+          vec3 n = normalize(tilted * mat3(viewMatrix));
           float nv = max(dot(n, v), 0.0);
-          vec3 bent = normalize(-v - 1.25 * (n - v * nv));
           vec3 L = normalize(vec3(uLampAt.x, uLampAt.y, clamp(vAt.z, uLampAt.z - 0.65, uLampAt.z + 0.65)) - vAt), L2 = normalize(uHangAt - vAt);
           vec3 r = reflect(-v, n);
           float spec = uLamp * pow(max(dot(r, L), 0.0), 48.0) + uHang * pow(max(dot(r, L2), 0.0), 70.0);
+          float dim = smoothstep(0.45, 1.0, q) * (1.0 - smear);    // a still drop's edge is dark; a streak has no edge
+          float big = uGrab * smoothstep(1.2, 2.6, vR / max(vPx, 1e-5)) * (1.0 - 0.6 * smear); // big enough on the screen to be seen through
+          vec3 bent = normalize(-v - 1.25 * (n - v * nv));
           float gather = uLamp * pow(max(dot(bent, L), 0.0), 12.0) + uHang * 0.5 * pow(max(dot(bent, L2), 0.0), 16.0);
-          float dim = smoothstep(0.5, 1.0, q) * (1.0 - smear);     // a still drop's edge is dark; a streak has no edge
-          float m = 0.12 + 0.22 * dim;
-          vec3 c = around(bent) * vec3(0.84, 0.95, 1.0) * mix(1.0, 0.12, dim) * m + vec3(0.86, 0.95, 1.0) * (spec * 1.9 + gather * 0.3);
-          gl_FragColor = vec4(c, min(1.0, m + spec + gather * 0.2)) * show;
+          float m = 0.06 + 0.08 * dim;                             // a small one hardly shows but for its glint
+          vec3 c = around(bent) * vec3(0.84, 0.95, 1.0) * mix(1.0, 0.12, dim) * m + vec3(0.86, 0.95, 1.0) * (spec * 2.0 + gather * 0.25);
+          vec4 fine = vec4(c, min(1.0, m + spec + gather * 0.2));
+          vec4 lensed = fine;
+          if (big > 0.0) { vec3 through = behind(tilted, vAt, vR) * vec3(0.9, 0.97, 1.0) * mix(1.0, 0.6, dim); float m2 = 0.9 - 0.25 * dim; lensed = vec4(through * m2 + vec3(0.86, 0.95, 1.0) * spec * 2.0, m2); }
+          gl_FragColor = mix(fine, lensed, big) * show;
         }
       }`,
   }));
   drops.frustumCulled = false; drops.visible = false; drops.renderOrder = 6; drops.raycast = () => {}; group.add(drops);
+  drops.onBeforeRender = (renderer, scene, camera) => { lens(renderer, scene, camera); dropUniforms.uPixel.value = 2 / (camera.projectionMatrix.elements[5] * size.y); };
 
   function emit(kind, x, y, z, vx, vy, vz, radius, life, shows = 1) {
     if (alive >= N) return -1;
@@ -460,19 +522,26 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
   // a drop that lands on wood, on the wall or on the floor stays there a while, a wet spot (nx, ny, nz: that face)
   function land(i, x, y, z, nx, ny, nz) {
     const rad = P.m[i * 4];
-    if (rad < 0.0011 || wets >= N * 0.2) { kill(i); return; }
+    if (rad < 0.001 || wets >= N * 0.2) { kill(i); return; }
     P.x[i * 3] = x; P.x[i * 3 + 1] = y; P.x[i * 3 + 2] = z; P.v[i * 3] = nx; P.v[i * 3 + 1] = ny; P.v[i * 3 + 2] = nz;
-    P.kind[i] = WET; P.m[i * 4 + 2] = WET; P.m[i * 4] = Math.min(0.011, rad * 2.6) * (nx ? 0.7 : 1); P.m[i * 4 + 1] = 0; P.age[i] = 0; P.life[i] = 7 + rnd() * 5; wets++;
+    P.kind[i] = WET; P.m[i * 4 + 2] = WET; P.m[i * 4] = Math.min(0.014, rad * 3) * (nx ? 0.6 : 1); P.m[i * 4 + 1] = 0; P.age[i] = 0; P.life[i] = 7 + rnd() * 5; wets++;
   }
   // how big a drop is: most are under a millimetre, a few are five (its radius, in metres)
   const dropSize = () => 0.0005 * Math.exp(2.4 * Math.pow(rnd(), 2.2));
+  // air let go under the water at (x, y, z): fine bubbles, thrown no deeper than half the tank
+  function fizz(n, x, y, z, wide, deep, push) {
+    for (let i = 0; i < n; i++) {
+      const th = rnd() * 6.283, rr = Math.sqrt(rnd()) * wide, sw = rnd();
+      emit(BUBBLE, x + Math.cos(th) * rr, y - 0.008 - rnd() * deep, z + Math.sin(th) * rr, Math.cos(th) * rnd() * 0.4, -rnd() * push, Math.sin(th) * rnd() * 0.4, 0.0004 + 0.003 * sw * sw * sw * sw, 5);
+    }
+  }
 
   // ── the life of one burst ──
-  const share = N / 1500;                     // the pool's size sets how much of each there is
+  const share = N / 2000;                     // the pool's size sets how much of each there is
   let rnd = dice(7), bursts = 0;
   let state = 'ready', now = 0, last = null, acc = 0;
   let t0 = -1e9, tHit = -1e9, hitAt = null, fallen = false, jetted = false, landed = false, sunk = false, slot = 0;
-  let sprayAcc = 0, tailAcc = 0, crownAcc = 0, bubbleAcc = 0, cloudAcc = 0;
+  let sprayAcc = 0, tailAcc = 0, crownAcc = 0, bubbleAcc = 0;
   const dropY0 = at.y, bottom = 1.02 * R * 0.955;
   const fallTime = Math.sqrt(2 * Math.max(0.01, dropY0 - bottom - tank.waterY) / G);
   const inTank = (x, z) => x > tank.x0 && x < tank.x1 && z > tank.z0 && z < tank.z1;
@@ -482,41 +551,38 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
 
   function burst(hitPoint) {
     if (state !== 'ready') return false;
-    state = 'burst'; t0 = now; fallen = jetted = landed = sunk = false; sprayAcc = tailAcc = crownAcc = bubbleAcc = cloudAcc = 0; rnd = dice(7 + bursts++);
-    if (hitPoint) { tmp.copy(hitPoint); balloon.worldToLocal(tmp); tmp.y -= CY; if (tmp.lengthSq() > 1e-8) tear.value.copy(tmp.normalize()); }
+    state = 'burst'; t0 = now; fallen = jetted = landed = sunk = false; sprayAcc = tailAcc = crownAcc = bubbleAcc = 0; rnd = dice(7 + bursts++);
+    if (hitPoint) { tmp.copy(hitPoint); balloon.worldToLocal(tmp); tmp.y -= CY - TOP; if (tmp.lengthSq() > 1e-8) tear.value.copy(tmp.normalize()); }
     else tear.value.set(-0.94, -0.3, 0.17).normalize();
+    rag.material.color.copy(colors[colorAt]).multiplyScalar(0.55); // thick again, the rubber is darker
     handle.onPop?.();
     if (still) { // reduced motion: the water is let down, the rings spread, nothing flies
-      pop.value = 1; popT.value = 9; state = 'gone'; fallen = jetted = landed = sunk = true; tHit = now;
+      pop.value = 0; balloon.visible = false; rag.visible = true; rag.scale.setScalar(1); state = 'gone'; fallen = jetted = landed = sunk = true; tHit = now;
       ripples.impact(at.x, at.z, now, 0.5, tank, R0); hitAt = new THREE.Vector3(at.x, tank.waterY, at.z); handle.scare?.(hitAt); handle.onImpact?.(hitAt.clone());
       return true;
     }
     fall.uAt.value.copy(at); fall.uAge.value = 0; blob.visible = true;
-    for (let i = 0; i < 3; i++) emit(CLOUD, at.x, at.y, at.z, 0, 0, 0, R * (0.9 + 0.25 * i), 0.2 + 0.05 * i, 0.07); // a breath of fine spray round it
     return true;
   }
 
   function step(h) {
     now += h;
     const a0 = now - t0;                                            // since the burst
-    popT.value = Math.min(a0, 30);
     if (state === 'burst') {
       pop.value = Math.min(1, a0 / 0.055);
       // the spray the rubber tears off the water's skin as it snaps back: fine, and thrown where the tear's edge runs
-      if (a0 < 0.06) {
-        sprayAcc += 6000 * share * h;
-        const front = pop.value * 1.25, c = new THREE.Vector3(), tv = tear.value;
-        while (sprayAcc >= 1) {
-          sprayAcc--;
-          const u = rnd() * 2 - 1, th = rnd() * 6.283, rr = pearR(u) * R;
-          c.set(Math.cos(th) * rr, pearY(u) * R, Math.sin(th) * rr);
-          const l = c.length() || 1, d = Math.acos(THREE.MathUtils.clamp(c.dot(tv) / l, -1, 1)) / Math.PI;
-          if (Math.abs(d - front + 0.08) > 0.14) continue;          // only where the rubber is leaving just now
-          const s = 0.15 + rnd() * 0.7, away = 0.3 + rnd() * 0.9;   // off the skin, and along it after the rubber
-          emit(MIST, at.x + c.x, at.y + c.y, at.z + c.z, c.x / l * s - tv.x * away, c.y / l * s - tv.y * away + 0.2, c.z / l * s - tv.z * away, 0.0003 + rnd() * 0.0006, 0.18 + rnd() * 0.3);
-        }
+      sprayAcc += 6000 * share * h;
+      const front = pop.value * 1.25, c = tmp, tv = tear.value;
+      while (sprayAcc >= 1) {
+        sprayAcc--;
+        const u = rnd() * 2 - 1, th = rnd() * 6.283, rr = pearR(u) * R;
+        c.set(Math.cos(th) * rr, pearY(u) * R, Math.sin(th) * rr);
+        const l = c.length() || 1, d = Math.acos(THREE.MathUtils.clamp(c.dot(tv) / l, -1, 1)) / Math.PI;
+        if (Math.abs(d - front + 0.08) > 0.14) continue;          // only where the rubber is leaving just now
+        const s = 0.15 + rnd() * 0.7, away = 0.3 + rnd() * 0.9;   // off the skin, and along it after the rubber
+        emit(MIST, at.x + c.x, at.y + c.y, at.z + c.z, c.x / l * s - tv.x * away, c.y / l * s - tv.y * away + 0.2, c.z / l * s - tv.z * away, 0.0003 + rnd() * 0.0006, 0.18 + rnd() * 0.3);
       }
-      if (a0 >= 0.055) state = 'gone';
+      if (a0 >= 0.055) { state = 'gone'; pop.value = 0; balloon.visible = false; rag.visible = true; rag.scale.setScalar(1); } // the skin is at the knot: from here on it is the rag
     }
     if (blob.visible) {
       const y = dropY0 - 0.5 * G * a0 * a0;
@@ -524,9 +590,9 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
       // its tail breaks into a few drops that fall behind it
       if (a0 > 0.1 && a0 < fallTime) {
         tailAcc += 70 * share * h;
-        while (tailAcc >= 1) { tailAcc--; emit(DROP, at.x + (rnd() - 0.5) * 0.03, y + R * (1 + 1.5 * a0) * (0.7 + rnd() * 0.5), at.z + (rnd() - 0.5) * 0.03, (rnd() - 0.5) * 0.15, -G * a0 * (0.72 + rnd() * 0.2), (rnd() - 0.5) * 0.15, 0.0012 + rnd() * rnd() * 0.003, 3); }
+        while (tailAcc >= 1) { tailAcc--; emit(DROP, at.x + (rnd() - 0.5) * 0.03, y + R * (1 + 0.45 * a0) * (0.8 + rnd() * 0.4), at.z + (rnd() - 0.5) * 0.03, (rnd() - 0.5) * 0.15, -G * a0 * (0.72 + rnd() * 0.2), (rnd() - 0.5) * 0.15, 0.0012 + rnd() * rnd() * 0.003, 3); }
       }
-      if (a0 > fallTime + 0.07) blob.visible = false;
+      if (a0 > fallTime + 0.055) blob.visible = false;
     }
     if (!fallen && a0 >= fallTime && !still && t0 > -1e8) {
       fallen = true; tHit = now; hitAt = new THREE.Vector3(at.x, tank.waterY, at.z);
@@ -535,65 +601,60 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
       handle.scare?.(hitAt); handle.onImpact?.(hitAt.clone());
     }
     const a = now - tHit;                                           // since the water met the water
-    if (fallen && hitAt && !still && a < 1.2) {
+    if (fallen && hitAt && !still && a < 1.4) {
       crown.uAge.value = a;
-      const rb = crownRadius(a, R0), rise = crownRise(a), climb = UP - 2 * BRAKE * a; // the rim: where its foot is, how high it is, how fast it climbs
-      const spread = R0 * GROW / GROW_T * Math.exp(-a / GROW_T);     // how fast the foot runs out
+      const rb = crownRadius(a, R0), spread = R0 * GROW / GROW_T * Math.exp(-a / GROW_T); // the crown's foot: where it is, how fast it runs out
       // the first spray, fast and flat, in the first hundredths of a second
-      if (a < 0.03) for (let i = 0, n = Math.round(2600 * share * h); i < n; i++) {
-        const th = rnd() * 6.283, s = 2 + rnd() * 2.6, up = 0.5 + rnd() * 1.8, fine = rnd() < 0.6;
-        emit(fine ? MIST : SMALL, hitAt.x + Math.cos(th) * R0, hitAt.y + 0.005, hitAt.z + Math.sin(th) * R0, Math.cos(th) * s, up, Math.sin(th) * s, fine ? 0.0005 + rnd() * 0.0007 : 0.0007 + rnd() * 0.0012, 0.3 + rnd() * (fine ? 0.3 : 1.5));
+      if (a < 0.035) for (let i = 0, n = Math.round(4200 * share * h); i < n; i++) {
+        const th = rnd() * 6.283, s = 1.6 + rnd() * 3.2, up = 0.3 + rnd() * 1.6, fine = rnd() < 0.65;
+        emit(fine ? MIST : SMALL, hitAt.x + Math.cos(th) * R0, hitAt.y + 0.005, hitAt.z + Math.sin(th) * R0, Math.cos(th) * s, up, Math.sin(th) * s, fine ? 0.0004 + rnd() * 0.0007 : 0.0006 + rnd() * 0.0012, 0.3 + rnd() * (fine ? 0.35 : 1.5));
       }
-      // the drops the crown lets go. While it climbs, its rim throws them ahead of itself, most from the
-      // fingers; when it falls it comes apart, and the drops keep the speed of the sheet they were
-      if (a > 0.012 && a < CROWN_T - 0.01) {
-        crownAcc += share * h * (a < 0.18 ? 2300 * (1 - a / 0.24) : 1500);
+      // the drops the crown lets go. Early, its rim throws them ahead of itself, most from where it is
+      // thrown hardest; then the sheet tears, and every piece of it goes on as a drop with the speed
+      // the sheet had there, so the water of the crown rains back into the tank
+      if (a > 0.012 && a < CROWN_T) {
+        crownAcc += share * h * (a < 0.12 ? 2400 : 1900);
         while (crownAcc >= 1) {
           crownAcc--;
-          let th = rnd() * 6.283; if (fingerAt(th) < rnd() * 0.7) th = rnd() * 6.283; // twice as likely from a finger
-          const lob = lobesAt(th), fin = fingerAt(th) * smooth(0.03, 0.2, a), w = a < 0.18 ? 1 : 0.35 + 0.65 * Math.sqrt(rnd());
-          const r = rb + LEAN * rise * lob * w * (0.5 + 0.5 * w) + 0.012 * fin * w * w * w, y = hitAt.y + rise * lob * (Math.pow(w, 0.8) + 0.4 * fin * Math.pow(w, 5));
-          const thrown = a < 0.18 ? 1 : 0.15;
-          const off = spread + LEAN * climb * lob * w + thrown * (0.1 + rnd() * rnd() * 1.0), up = climb * lob * Math.pow(w, 0.8) + thrown * (0.15 + rnd() * 0.9), side = (rnd() - 0.5) * 0.35;
+          let th = rnd() * 6.283; if (throwAt(th) < 0.75 + rnd() * 0.5) th = rnd() * 6.283; // more from where the rim is thrown harder
+          const fast = UP * throwAt(th), phase = a / rimTime(th);
+          if (phase >= 1) continue;                               // there the rim is already down
+          const rise = rimRise(a, th), climb = fast - G * a, early = a < 0.12;
+          const w = early ? 1 : Math.pow(rnd(), 0.6), w8 = Math.pow(w, 0.8);
+          if (!early && rnd() > smooth(0.45, 1.05, phase) * (0.3 + 0.7 * w) + 0.12) continue; // only where it is tearing
+          const r = rb + LEAN * rise * w * (0.5 + 0.5 * w), y = hitAt.y + rise * w8 + (early ? 0.02 * fingerAt(th) : 0);
+          const thrown = early ? 1 : 0.12;
+          const off = spread + LEAN * climb * w + thrown * (0.1 + rnd() * rnd() * 1.0), up = climb * w8 + thrown * (0.15 + rnd() * 0.9), side = (rnd() - 0.5) * 0.3;
           emit(DROP, hitAt.x + Math.cos(th) * r, y, hitAt.z + Math.sin(th) * r, Math.cos(th) * off - Math.sin(th) * side, up, Math.sin(th) * off + Math.cos(th) * side, dropSize(), 3);
         }
       }
-      // the crown is down: a ring of small splashes where its rim met the water
+      // the crown is down: its last water runs down the glass it reached
       if (!landed && a >= CROWN_T) {
-        landed = true; sheet.visible = a < JET0 + JET_T;
-        for (let i = 0, n = Math.round(60 * share); i < n; i++) {
-          const th = rnd() * 6.283, r = rb + (rnd() - 0.3) * 0.03, s = (rnd() - 0.35) * 0.5;
-          emit(SMALL, hitAt.x + Math.cos(th) * r, hitAt.y + 0.004, hitAt.z + Math.sin(th) * r, Math.cos(th) * s, 0.25 + rnd() * 0.9, Math.sin(th) * s, 0.0006 + rnd() * 0.0012, 2);
+        landed = true;
+        for (let i = 0, n = Math.round(22 * share); i < n; i++) {
+          const front = rnd() < 0.7, z = hitAt.z + (rnd() - 0.5) * 0.5;
+          emit(RUN, (front ? tank.x0 : tank.x1) + (rnd() < 0.5 ? -0.006 : 0.006), tank.waterY + 0.005 + rnd() * (tank.rimY - tank.waterY), z, 0, -0.02 - rnd() * 0.06, 0, 0.0016 + rnd() * 0.0016, 3 + rnd() * 3);
         }
       }
-      // the air carried under: a plume of bubbles, down and then up again, and a cloud of air too fine to see one bubble of
-      if (a < 0.16) {
-        bubbleAcc += 1250 * share * h;
-        while (bubbleAcc >= 1) {
-          bubbleAcc--;
-          const th = rnd() * 6.283, rr = Math.sqrt(rnd()) * rb * 0.75, down = 0.5 + rnd() * 2.8, sw = rnd();
-          emit(BUBBLE, hitAt.x + Math.cos(th) * rr, hitAt.y - 0.015 - rnd() * 0.1 * smooth(0, 0.07, a), hitAt.z + Math.sin(th) * rr, Math.cos(th) * rnd() * 0.6, -down, Math.sin(th) * rnd() * 0.6, 0.0006 + 0.0042 * sw * sw * sw, 6);
-        }
-        cloudAcc += 90 * share * h;
-        while (cloudAcc >= 1) {
-          cloudAcc--;
-          const th = rnd() * 6.283, rr = rnd() * rb * 0.5;
-          emit(CLOUD, hitAt.x + Math.cos(th) * rr, hitAt.y - 0.03 - rnd() * 0.06, hitAt.z + Math.sin(th) * rr, Math.cos(th) * 0.25 * rnd(), -(0.5 + rnd() * 1.6), Math.sin(th) * 0.25 * rnd(), 0.025 + rnd() * 0.02, 1.5 + rnd() * 1.2, 0);
-        }
-      }
+      // the air: a little is carried under by the fall, most is caught when the crater closes over
+      // itself, and some where the crown comes down. Fine bubbles, which rise and fizz at the surface
+      if (a < 0.1) { bubbleAcc += 500 * share * h; while (bubbleAcc >= 1) { bubbleAcc--; fizz(1, hitAt.x, hitAt.y - 0.02, hitAt.z, rb * 0.6, 0.06, 1.2); } }
+      else if (a > 0.17 && a < 0.36) { bubbleAcc += 1700 * share * h; while (bubbleAcc >= 1) { bubbleAcc--; fizz(1, hitAt.x, hitAt.y - 0.01, hitAt.z, rb * 0.7 * (1 - smooth(0.17, 0.4, a) * 0.6), 0.09, 1.1); } }
+      else if (a > 0.36 && a < CROWN_T + 0.08) { bubbleAcc += 380 * share * h; while (bubbleAcc >= 1) { bubbleAcc--; const th = rnd() * 6.283; fizz(1, hitAt.x + Math.cos(th) * rb, hitAt.y, hitAt.z + Math.sin(th) * rb, 0.03, 0.03, 0.4); } }
       // the jet lets go of its tip: a big drop, a few behind it
       const aj = a - JET0;
       if (!jetted && aj >= 0.2) {
         jetted = true;
         const tip = JET_UP * aj - 0.5 * G * aj * aj, vy = JET_UP - G * aj;
-        const bx = 0.14 * Math.sin(aj * 5 + 0.5) * tip, bz = -0.08 * Math.sin(aj * 5 + 0.5) * tip; // where the bent jet's tip is
-        for (let i = 0; i < 4; i++) { const w = 0.93 - i * 0.16; emit(DROP, hitAt.x + bx * w * w + (rnd() - 0.5) * 0.006, hitAt.y + tip * w, hitAt.z + bz * w * w + (rnd() - 0.5) * 0.006, bx * 2 + (rnd() - 0.5) * 0.12, vy * (1 - i * 0.14) + 0.25 - i * 0.05, bz * 2 + (rnd() - 0.5) * 0.12, i ? 0.0035 + rnd() * 0.002 : 0.0085, 3); }
+        const bx = 0.045 * Math.sin(aj * 5 + 0.5) * tip, bz = -0.025 * Math.sin(aj * 5 + 0.5) * tip; // where the bent jet's tip is
+        for (let i = 0; i < 4; i++) { const w = 0.95 - i * 0.14; emit(DROP, hitAt.x + bx * w * w + (rnd() - 0.5) * 0.004, hitAt.y + tip * w, hitAt.z + bz * w * w + (rnd() - 0.5) * 0.004, bx * 2 + (rnd() - 0.5) * 0.1, vy * (1 - i * 0.12) + 0.3 - i * 0.06, bz * 2 + (rnd() - 0.5) * 0.1, i ? 0.0035 + rnd() * 0.002 : 0.0085, 3); }
       }
-      // the jet is down: it sinks into its mound, and the mound sends out one more ring
+      // the jet is down: it falls back into its mound, which sends out one more ring and a few drops
       if (!sunk && aj >= JET_T) {
         sunk = true; sheet.visible = false;
         ripples.second(hitAt.x, hitAt.z, now);
-        for (let i = 0, n = Math.round(14 * share); i < n; i++) { const th = rnd() * 6.283, s = 0.1 + rnd() * 0.4; emit(SMALL, hitAt.x + Math.cos(th) * 0.02, hitAt.y + 0.004, hitAt.z + Math.sin(th) * 0.02, Math.cos(th) * s, 0.3 + rnd() * 0.8, Math.sin(th) * s, 0.0007 + rnd() * 0.0012, 2); }
+        fizz(Math.round(40 * share), hitAt.x, hitAt.y, hitAt.z, 0.03, 0.05, 0.8);
+        for (let i = 0, n = Math.round(18 * share); i < n; i++) { const th = rnd() * 6.283, s = 0.1 + rnd() * 0.5; emit(SMALL, hitAt.x + Math.cos(th) * 0.02, hitAt.y + 0.004, hitAt.z + Math.sin(th) * 0.02, Math.cos(th) * s, 0.3 + rnd() * 0.9, Math.sin(th) * s, 0.0007 + rnd() * 0.0014, 2); }
       }
     }
 
@@ -606,15 +667,8 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
       if (kd === WET) { wet++; P.m[i * 4 + 1] = smooth(0, 0.06, P.age[i]) * (1 - smooth(P.life[i] * 0.55, P.life[i], P.age[i])); continue; } // it dries
       let x = P.x[ix], y = P.x[ix + 1], z = P.x[ix + 2], vx = P.v[ix], vy = P.v[ix + 1], vz = P.v[ix + 2];
       const rad = P.m[i * 4];
-      if (kd === CLOUD) {
-        if (y < tank.waterY) { // fine air: carried down with the plume, it spreads, rises slowly and clears
-          vx -= vx * 5 * h; vz -= vz * 5 * h; vy += (0.05 - vy) * 5 * h;
-          x += vx * h; y = Math.min(tank.waterY - rad * 0.4, Math.max(tank.floorY + rad * 0.5, y + vy * h)); z += vz * h;
-          P.m[i * 4] = rad + 0.035 * h;
-          P.m[i * 4 + 1] = 0.2 * smooth(0, 0.12, P.age[i]) * (1 - smooth(P.life[i] * 0.3, P.life[i], P.age[i]));
-        } else { P.m[i * 4] = rad + 0.25 * h; P.m[i * 4 + 1] = 0.07 * (1 - P.age[i] / P.life[i]); y -= 0.3 * h; }
-      } else if (kd === BUBBLE) {
-        const drag = 10, rise = 0.05 + rad * 80;                    // a bigger bubble rises faster
+      if (kd === BUBBLE) {
+        const drag = 10, rise = 0.12 + rad * 70;                    // a bigger bubble rises faster
         vx -= vx * drag * h; vz -= vz * drag * h; vy += ((rise - vy) * drag) * h;
         const w = P.m[i * 4 + 3] * 40;
         x += (vx + 0.03 * Math.sin(now * 9 + w)) * h; y += vy * h; z += (vz + 0.03 * Math.cos(now * 8 + w)) * h;
@@ -646,12 +700,10 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
           }
           // the lamp's bar over the water
           if (bar && vy < 0 && y > bar.y && ny <= bar.y && nx > bar.x0 && nx < bar.x1 && nz > bar.z0 && nz < bar.z1) { land(i, nx, bar.y + 0.0012, nz, 0, 1, 0); continue; }
-          // the tank's water: a ring, and a big drop throws up small ones
+          // the tank's water: a ring, and a drop that is not small throws up smaller ones
           if (inTank(nx, nz) && ny <= tank.waterY + ripples.height(nx, nz, now) && vy < 0) {
-            if (kd === DROP && rad > 0.0026) {
-              ripples.drop(slot++, nx, nz, now, Math.min(0.004, rad * 0.7));
-              for (let j = 0, n = rad > 0.005 ? 7 : 2; j < n; j++) { const th = rnd() * 6.283, s = 0.15 + rnd() * 0.45; emit(SMALL, nx, tank.waterY + 0.003, nz, Math.cos(th) * s, 0.5 + rnd() * (rad > 0.005 ? 1.3 : 0.7), Math.sin(th) * s, 0.0007 + rnd() * 0.0012, 2); }
-            }
+            if (kd === DROP && rad > 0.0026) ripples.drop(slot++, nx, nz, now, Math.min(0.004, rad * 0.7));
+            if (kd === DROP && rad > 0.0012) for (let j = 0, n = rad > 0.005 ? 7 : rad > 0.0026 ? 2 : rnd() < 0.5 ? 1 : 0; j < n; j++) { const th = rnd() * 6.283, s = 0.15 + rnd() * 0.45; emit(SMALL, nx, tank.waterY + 0.003, nz, Math.cos(th) * s, 0.4 + rnd() * (rad > 0.005 ? 1.4 : 0.7), Math.sin(th) * s, 0.0005 + rnd() * 0.0011, 2); }
             kill(i); continue;
           }
           // the cabinet's top, the wall, the floor: it lands and leaves a wet spot
@@ -666,35 +718,51 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
     }
     wets = wet;
 
-    // a new balloon, filled on the string
+    // a new balloon, filled on the string; the rag of the old one shrivels as it comes
     if (state === 'gone' && a0 >= refill) {
-      state = 'filling'; colorAt = (colorAt + 1) % colors.length; tint(colors[colorAt]); pop.value = 0; fill.value = still ? 1 : 0.1;
+      state = 'filling'; colorAt = (colorAt + 1) % colors.length; tint(colors[colorAt]); balloon.visible = true; balloon.scale.setScalar(still ? 1 : 0.06);
     }
     if (state === 'filling') {
       const k = still ? 1 : Math.min(1, (a0 - refill) / 1.5);
-      fill.value = 0.1 + 0.9 * (1 - Math.pow(1 - k, 3)) + 0.035 * Math.sin(k * 21) * (1 - k) * k * 4; // it swells, and settles with a quiver
-      if (k >= 1) { fill.value = 1; state = 'ready'; }
+      balloon.scale.setScalar(0.06 + 0.94 * (1 - Math.pow(1 - k, 3)) + 0.035 * Math.sin(k * 21) * (1 - k) * k * 4); // it swells, and settles with a quiver
+      rag.scale.setScalar(Math.max(0.001, 1 - (a0 - refill) / 0.35)); if (a0 - refill > 0.35 || still) rag.visible = false;
+      if (k >= 1) { balloon.scale.setScalar(1); state = 'ready'; }
     }
   }
 
-  const H = 1 / 180;
-  // a pixel's size in metres at one metre, for the pass that is drawing (its own height in pixels)
-  const size = new THREE.Vector2();
-  drops.onBeforeRender = (renderer, scene, camera) => {
-    const h = renderer.getRenderTarget()?.height ?? renderer.getDrawingBufferSize(size).y;
-    dropUniforms.uPixel.value = 2 / (camera.projectionMatrix.elements[5] * h);
+  // ── the room as it is without the splash, drawn small once a frame while the splash lasts: what the water bends ──
+  let scenePic = null;
+  const half = new THREE.Vector2();
+  handle.grab = (renderer, scene, camera) => {
+    const on = !lite && !still && (blob.visible || sheet.visible || (drops.visible && now - t0 < 2.2));
+    light.uGrab.value = on ? 1 : 0;
+    if (!on) return;
+    renderer.getDrawingBufferSize(half); const w = Math.max(2, half.x >> 1), h = Math.max(2, half.y >> 1);
+    if (!scenePic) { scenePic = new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType }); light.uScene.value = scenePic.texture; }
+    else if (scenePic.width !== w || scenePic.height !== h) scenePic.setSize(w, h);
+    const shown = [blob.visible, sheet.visible, drops.visible], was = renderer.getRenderTarget();
+    blob.visible = sheet.visible = drops.visible = false;
+    renderer.setRenderTarget(scenePic); renderer.clear(); renderer.render(scene, camera); renderer.setRenderTarget(was);
+    [blob.visible, sheet.visible, drops.visible] = shown;
   };
+  handle.shaped = [blob, sheet, drops];       // shaped in their shaders: a pass that draws the room with its own material must leave them out
+
+  const H = 1 / 180;
   handle.update = (t) => {
     const dt = last == null ? 0 : Math.min(0.1, Math.max(0, t - last)) * speed; last = t;
     acc += dt;
     while (acc >= H) { step(H); acc -= H; }
     ripples.uniforms.uNow.value = now;
     setDay(!!parent.userData.day);
-    // the string swings a little from its hook, more for a while after the burst (still under reduced motion)
+    // what hangs swings a little from the hook; the rag, light and loose, whips after the burst and comes to rest (still under reduced motion)
     if (!still) {
-      const loose = Math.exp(-Math.max(0, now - t0) / 1.4) * (now - t0 < 30 ? 1 : 0);
-      balloon.rotation.z = (0.012 + 0.09 * loose) * Math.sin(t * 2.6 + 0.4) * (state === 'ready' || state === 'filling' ? 1 : 1.6);
-      balloon.rotation.x = 0.008 * Math.sin(t * 2.1);
+      const a0 = Math.max(0, now - t0), loose = Math.exp(-a0 / 1.4) * (a0 < 30 ? 1 : 0);
+      swing.rotation.z = (0.012 + 0.07 * loose) * Math.sin(t * 2.6 + 0.4);
+      swing.rotation.x = 0.008 * Math.sin(t * 2.1);
+      if (rag.visible) {
+        rag.rotation.z = 1.1 * Math.exp(-a0 / 0.45) * Math.sin(a0 * 19) + 0.2 * Math.exp(-a0 / 1.6) * Math.sin(a0 * 8 + 1);
+        rag.rotation.x = 0.7 * Math.exp(-a0 / 0.5) * Math.sin(a0 * 15 + 1.2);
+      }
     }
     drops.visible = alive > 0; quad.instanceCount = alive;
     if (alive > 0) {
@@ -738,11 +806,12 @@ export function createRipples() {
       const sl = uniforms.uSlosh.value, tk = uniforms.uTank.value, sw = uniforms.uSloshW.value, tau = now - sl.x;
       if (sl.y !== 0 && tau > 0) h -= sl.y * Math.exp(-tau / 4.5) * (sl.z * Math.cos(Math.PI * (x - tk.x) / tk.z) * Math.sin(sw.x * tau) + sl.w * Math.cos(2 * Math.PI * (z - tk.y) / tk.w) * Math.sin(sw.y * tau));
       const m = uniforms.uImpact.value, a = now - m.z;
-      if (m.w !== 0 && a > 0 && a <= 1.2) {
-        const r = Math.hypot(x - m.x, z - m.y), r0 = m.w, rb = crownRadius(a, r0);
-        h += -2 * r0 * smooth(0, 0.07, a) * (1 - smooth(0.12, 0.21, a)) * Math.exp(-r * r / (0.55 * rb * rb))
-          + 0.03 * Math.exp(-(((r - rb) / 0.022) ** 2)) * smooth(0, 0.025, a) * (1 - smooth(0.1, 0.4, a))
-          + 0.03 * Math.exp(-r * r / (0.6 * r0 * r0)) * smooth(0.17, 0.25, a) * (1 - smooth(0.5, 0.95, a));
+      if (m.w !== 0 && a > 0 && a <= 1.4) {
+        const r = Math.hypot(x - m.x, z - m.y), r0 = m.w, rb = crownRadius(a, r0), q = r / (0.9 * rb);
+        h += -DEEP * r0 * smooth(0, 0.13, a) * (1 - smooth(0.15, 0.32, a)) * Math.pow(Math.max(0, 1 - q * q), 0.7)
+          + 0.03 * Math.exp(-(((r - rb) / 0.022) ** 2)) * smooth(0, 0.025, a) * (1 - smooth(0.15, 0.5, a))
+          + 0.022 * Math.exp(-(((r - rb - 0.75 * a) / 0.06) ** 2)) * Math.sqrt(rb / (r + 0.02)) * smooth(0, 0.06, a) * Math.exp(-a / 0.45)
+          + 0.035 * Math.exp(-r * r / (0.9 * r0 * r0)) * smooth(0.26, 0.36, a) * (1 - smooth(0.7, 1.15, a));
       }
       return h;
     },
@@ -750,7 +819,7 @@ export function createRipples() {
     // slower farther out (what leaves a ring has to cross a longer one), and with it what floats. In m/s.
     flow(x, z, now = uniforms.uNow.value) {
       const m = uniforms.uImpact.value, a = now - m.z;
-      if (m.w === 0 || a <= 0 || a > 0.8) return null;
+      if (m.w === 0 || a <= 0 || a > 1) return null;
       const dx = x - m.x, dz = z - m.y, r = Math.hypot(dx, dz) || 1e-4, rb = crownRadius(a, m.w);
       const u = m.w * GROW / GROW_T * Math.exp(-a / GROW_T) * (r < rb ? r / rb : rb / r);
       return [dx / r * u, dz / r * u];

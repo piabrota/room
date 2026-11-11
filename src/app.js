@@ -183,6 +183,8 @@ const splash = room.root.userData.splash;
 if (splash) {
   splash.onPop = () => audio.play(config.sfx.pop, 0.7);
   splash.onImpact = (at) => { audio.play(config.sfx.splash, 0.8); nash?.call(at); };
+  post.before(() => splash.grab(renderer, scene, camera)); // the room without the splash, for the water to bend
+  for (const o of splash.shaped) post.skipAO(o);
 }
 
 // ── hotspots from config ──

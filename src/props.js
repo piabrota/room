@@ -81,7 +81,7 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false, still = 
   const water = new THREE.ShaderMaterial({
     uniforms, transparent: true, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true, defines: lite ? {} : { FINE: 1 },
     vertexShader: `
-      uniform float uTime; varying float vH; varying vec3 vN, vW;
+      uniform float uTime; varying float vH, vPit; varying vec3 vN, vW;
       ${RIPPLE_GLSL}
       float wave(vec2 p) { float h = 0.0; ${waveGLSL} return h * ${TANK.toFixed(2)}; }
       #ifdef FINE
@@ -96,11 +96,11 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false, still = 
         #ifdef FINE
           h += rings(p);
         #endif
-        vH = h; w.y += h; vW = w.xyz;
+        vH = h; vPit = -min(0.0, crater(p)); w.y += h; vW = w.xyz;
         gl_Position = projectionMatrix * viewMatrix * w;
       }`,
     fragmentShader: `
-      uniform vec3 uDeep, uShallow, uFoam, uLampAt; uniform float uLampHalf; varying float vH; varying vec3 vN, vW;
+      uniform vec3 uDeep, uShallow, uFoam, uLampAt; uniform float uLampHalf; varying float vH, vPit; varying vec3 vN, vW;
       ${RIPPLE_GLSL}
       float vhash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float vnoise(vec2 p) { vec2 i = floor(p), u = fract(p); u = u * u * (3.0 - 2.0 * u);
@@ -111,22 +111,30 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false, still = 
           vec2 p = vW.xz; float e = 0.003, h0 = rings(p);
           n = normalize(vec3(n.x / n.y - (rings(p + vec2(e, 0.0)) - h0) / e, 1.0, n.z / n.y - (rings(p + vec2(0.0, e)) - h0) / e));
         #endif
+        float since = uNow - uImpact.z, splashed = step(1e-5, uImpact.w) * step(0.0, since);
+        // while the crown's water rains back, the surface round the fall is pocked by its drops
+        float rain = splashed * smoothstep(0.3, 0.45, since) * (1.0 - smoothstep(0.7, 1.3, since)) * exp(-dot(vW.xz - uImpact.xy, vW.xz - uImpact.xy) / 0.07);
+        if (rain > 0.01) n = normalize(n + rain * 0.2 * vec3(vnoise(vW.xz * 170.0 + since * 31.0) - 0.5, 0.0, vnoise(vW.zx * 170.0 - since * 27.0) - 0.5));
         float k = smoothstep(-0.01, 0.012, vH);
         vec3 c = mix(uDeep, uShallow, k) * (0.55 + 0.45 * n.y);
         c += vec3(0.5, 0.8, 1.0) * min(1.0, pow(1.0 - n.y, 2.0) * 2.0); // the glints
         // where the balloon's water fell the tank's water is churned white for a second or two
-        float white = 0.0, since = uNow - uImpact.z;
-        if (uImpact.w > 0.0 && since > 0.0 && since < 4.0) {
+        float white = 0.0;
+        if (splashed > 0.5 && since < 4.0) {
           float r = length(vW.xz - uImpact.xy), rb = uImpact.w * (1.0 + 1.3 * (1.0 - exp(-since / 0.09)));
           float churn = 0.6 * vnoise(vW.xz * 48.0 + vec2(since * 1.3, -since)) + 0.4 * vnoise(vW.xz * 120.0 - since * 1.7);
-          white = smoothstep(0.38, 0.7, churn + 0.3 * exp(-since / 0.5)) * exp(-r * r / (1.5 * rb * rb)) * smoothstep(0.02, 0.15, since) * exp(-since / 1.1);
+          white = smoothstep(0.38, 0.7, churn + 0.3 * exp(-since / 0.7)) * exp(-r * r / (1.5 * rb * rb)) * smoothstep(0.26, 0.5, since) * exp(-(since - 0.3) / 1.1);
           c = mix(c, uFoam * 0.72, white * 0.75);
         }
         // the lamp's bar, mirrored in the water: a streak that every wave breaks
         vec3 v = normalize(cameraPosition - vW);
         vec3 l = normalize(vec3(uLampAt.x, uLampAt.y, clamp(vW.z, uLampAt.z - uLampHalf, uLampAt.z + uLampHalf)) - vW);
         float spec = pow(max(dot(reflect(-l, n), v), 0.0), 260.0);
-        gl_FragColor = vec4(c * 0.9 + vec3(0.85, 0.96, 1.0) * spec * 0.55, min(1.0, 0.5 + spec * 0.4 + white * 0.35));
+        // the crater's wall: you look into deeper water, darker the deeper it is, with the lamp's glint on its slope;
+        // from under the surface it is a mirror
+        float pit = smoothstep(0.004, 0.05, vPit), under = step(cameraPosition.y, vW.y);
+        c = mix(c, mix(uDeep * (0.75 - 0.35 * smoothstep(0.02, 0.12, vPit)), vec3(0.62, 0.8, 0.86), under * 0.7), pit * 0.85);
+        gl_FragColor = vec4(c * 0.9 + vec3(0.85, 0.96, 1.0) * spec * 0.55, min(1.0, 0.5 + spec * 0.4 + white * 0.35 + pit * 0.42));
       }`,
   });
   const surface = mesh('', new THREE.PlaneGeometry(D - 0.016, L - 0.016, lite ? 16 : 48, lite ? 52 : 156), water, [X, waterY, Z], aq.group);
@@ -147,7 +155,11 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false, still = 
       for (let v = 0; v < n; v++) colors[j].toArray(col, v * 3);
       geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
     });
-    const b = mesh(h.name, mergeGeometries(geos.map((x) => x.toNonIndexed())), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.4, emissive: h.art.color, emissiveIntensity: 0.25 }), [0, 0, 0]);
+    const paintOf = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.4, emissive: h.art.color, emissiveIntensity: 0.25 });
+    // the tank's lamp is a hand above the water: a buoy that a wave lifts towards it is lit, never burnt white
+    paintOf.onBeforeCompile = (s) => { s.fragmentShader = s.fragmentShader.replace('#include <opaque_fragment>', 'outgoingLight = min(outgoingLight, vec3(0.85));\n#include <opaque_fragment>'); };
+    paintOf.customProgramCacheKey = () => 'buoy';
+    const b = mesh(h.name, mergeGeometries(geos.map((x) => x.toNonIndexed())), paintOf, [0, 0, 0]);
     b.castShadow = false;
     const row = i % 2, k = Math.floor(i / 2), n = Math.ceil(all.length / 2);
     b.userData.home = new THREE.Vector3(X - 0.1 + row * 0.2, waterY, Z - L / 2 + 0.16 + (k + row * 0.5) * ((L - 0.3) / n));
@@ -168,7 +180,8 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false, still = 
       // the water the crater pushes aside takes the buoy with it; then it drifts home, as if on a slack line
       const home = b.userData.home, off = b.userData.off, run = ripples.flow(home.x + off.x, home.z + off.y);
       if (run) { off.x += run[0] * dt; off.y += run[1] * dt; } else off.multiplyScalar(Math.exp(-dt * 0.3));
-      const px = THREE.MathUtils.clamp(home.x + off.x, box.x0 + 0.04, box.x1 - 0.04), pz = THREE.MathUtils.clamp(home.z + off.y, box.z0 + 0.04, box.z1 - 0.04);
+      const px = THREE.MathUtils.clamp(home.x + off.x, box.x0 + 0.04, box.x1 - 0.13), // not under the lamp's bar
+         pz = THREE.MathUtils.clamp(home.z + off.y, box.z0 + 0.04, box.z1 - 0.04);
       off.set(px - home.x, pz - home.z);
       const p = { x: px, y: home.y, z: pz }, y = high(p.x, p.z, t);
       const sx = (high(p.x + 0.02, p.z, t) - y) / 0.02, sz = (high(p.x, p.z + 0.02, t) - y) / 0.02;
