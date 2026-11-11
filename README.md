@@ -2,6 +2,10 @@
 
 English · [Português (Brasil)](README.pt-BR.md)
 
+The room's playlist, by Leonardo AL aracyla, plays in the room from the mixtape and the ♫ button:
+
+[![the room's playlist on Spotify](https://img.shields.io/badge/listen_on-Spotify-1DB954?style=for-the-badge&logo=spotify&logoColor=white)](https://open.spotify.com/playlist/2hsuqvhCouatM8DtmKKl7U)
+
 A personal site that is a 3D room. Switch between camera shots, hover over things to see what
 they are, put a tape into the VCR to play it on the TV, and listen to the room. Built with
 [three.js](https://threejs.org) and [Vite](https://vite.dev), as static files.
@@ -64,7 +68,8 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 31 | 10 Nov 20:07 | [#37](https://github.com/piabrota/room/pull/37) the playlist credited to Leonardo AL aracyla, its owner now, beside the player and in `CREDITS.md`; its tracks and artists read again from Spotify's player, 60 tracks and 63 artists; what plays now beside the player (title, artists, time, bars that dance) and the mixtape's reels turning, read from the messages Spotify's player posts, the covers left in Spotify's player; a window button that puts Copacabana live (Homes in Rio's webcam at Posto 6, YouTube, muted) behind the glass, the frame in front of it, with invariant 1 widened for it; "how I read", ten ebooks on the bookcase under the works with a DOI, each a spine in its cover's colours and a link to its Leanpub page | 1 h 50 min |
 | 32 | 11 Nov 08:48 | [#39](https://github.com/piabrota/room/pull/39) the radio's 40 lofi tracks are gone, and five new ones play in their place, composed by the thread itself (Claude Fable 5.2) in [Csound](https://csound.com), the language made for scores and orchestras: a piano first, with an upright bass, a flute and a boom-bap kit, through a worn tape. The scores are in `music/`, and `just lofi` renders them | 55 min |
 | 33 | 11 Nov 05:24 | [#40](https://github.com/piabrota/room/pull/40) a water balloon hangs over the aquarium: a click bursts it and its 1.4 litres fall into the tank, simulated in metres and seconds (the rubber that snaps back, the fall, the crater, a crown thrown up and left to gravity, drops with the air's drag, Worthington's jet, bubbles, Cauchy and Poisson's rings that come back from the glass, the tank's slow swing, the buoys that ride them, light rings on the sand, the fish frightened), its water drawn as a lens that bends a picture of the room; made by a builder and a separate critic that takes its own screenshots and scores them, the way of a video by AI Search, in three rounds that scored 6, 5.5 and 6 of 10, so it did not pass at 8; [The water balloon](#the-water-balloon) has the physics, and what is computed and what is fitted; `just record-splash`, and `just peek --click` | 4 h 25 min |
-| 34 | 11 Nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) the two papers on aiXiv (2611.01104, "Wave models on GPUs", and 2611.01105, "A decision layer for contextual bandits, proved in Agda") on the bookcase beside the works with a DOI, bound preprints with white covers, each a link to its aiXiv page, and on the LOFI work page; a tape, "lofi in csound", that plays the radio's pieces one after another while each one's Csound score runs up the TV, the line at the reading head lit, a click for the next | 5 h 15 min |
+| 34 | 11 Nov 15:30 | [#42](https://github.com/piabrota/room/pull/42) the room's playlist at the top of both READMEs, as a Spotify button: github.com strips an iframe, so the embed that was pasted showed nothing | 5 min |
+| 35 | 11 Nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) the two papers on aiXiv (2611.01104, "Wave models on GPUs", and 2611.01105, "A decision layer for contextual bandits, proved in Agda") on the bookcase beside the works with a DOI, bound preprints with white covers, each a link to its aiXiv page, and on the LOFI work page; a tape, "lofi in csound", that plays the radio's pieces one after another while each one's Csound score runs up the TV, the line at the reading head lit, a click for the next | 5 h 15 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -399,7 +404,13 @@ user> 'add the details of the physics simulation in the README.md and the URL to
 The transcript of the video, pasted under the first prompt, is left out. "boon splash" was read as
 the splash of a water balloon, the test the video runs.
 
-**34.**
+**34.** The embed code of the playlist's player, as Spotify gives it, was pasted after "readme".
+
+```text
+user> 'add this to readme [the embed code of the playlist's player]'
+```
+
+**35.**
 
 ```text
 user> 'add 2 published papers on aixiv to room.piabrota.art'
