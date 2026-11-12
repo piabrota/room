@@ -211,6 +211,15 @@ else {
   if (!config.hotspots.some((h) => h.action === 'credits')) fail(2, 'no hotspot has the action "credits": the plate in the room opens the credits card');
 }
 
+// 8. A square in a shader is written as a product. pow() of a negative base is undefined in GLSL: the software
+// renderer of `just record` answers it kindly, Direct3D and Metal answer "not a number", and the visitor sees black
+// (the water balloon's crater, 11 November 2026). `just peek --strict` finds the ones a pattern cannot.
+for (const f of walk(join(root, 'src')).filter((f) => f.endsWith('.js'))) {
+  readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+    if (/(?<![\w.])pow\([^;]*,\s*2\.0\s*\)/.test(line)) fail(8, `${f.slice(root.length)}:${i + 1}: pow(x, 2.0) is not a number on a real GPU when x is negative; write x * x`);
+  });
+}
+
 // AGENTS.md keeps exactly ten invariants.
 const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
 const count = (agents.split('## Invariants')[1]?.split('\n## ')[0].match(/^\d+\. \*\*/gm) ?? []).length;

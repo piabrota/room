@@ -71,6 +71,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 34 | 11 Nov 15:30 | [#42](https://github.com/piabrota/room/pull/42) the room's playlist at the top of both READMEs, as a Spotify button: github.com strips an iframe, so the embed that was pasted showed nothing | 5 min |
 | 35 | 11 Nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) five more lofi pieces on the radio, ten in all, written in Csound like the first five: a nylon guitar and a vibraphone join the band (`music/lofi.orc`), and the pieces are a tune answered by vibes, a guitar that comps, a ballad, a round of fifths and a bright one in D | 45 min |
 | 36 | 11 Nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) the two papers on aiXiv (2611.01104, "Wave models on GPUs", and 2611.01105, "A decision layer for contextual bandits, proved in Agda") on the bookcase beside the works with a DOI, bound preprints with white covers, each a link to its aiXiv page, and on the LOFI work page; a tape, "lofi in csound", that plays the radio's pieces one after another while each one's Csound score runs up the TV, the line at the reading head lit, a click for the next | 5 h 15 min |
+| 37 | 11 Nov 23:44 | [#45](https://github.com/piabrota/room/pull/45) the splash drew dark squares on the live site: the crater's, the swell's and the jet's shaders took `pow()` of a negative number, which the software renderer of the stills answers kindly and Direct3D and Metal answer with "not a number", so the water's surface, and whatever the bloom and the occlusion spread it over, goes black for the 1.4 s of the crater (shown here by forcing the software renderer to answer the same; not seen on a real GPU); the squares are products now, the Fresnel terms and an alpha are clamped; `just peek --strict` draws as such a GPU does and fails when a pixel is not a number (519 on the old splash, none now), `just check` refuses `pow(x, 2.0)`, and the `room-shaders` skill has the rule | 55 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -429,6 +430,15 @@ user> 'finish this work'
 The two papers were found on the owner's profile (h0ffmann/h0ffmann, its aiXiv badges) and read on
 their aiXiv pages. "cmusic code" was read as the Csound code of the radio's music.
 
+**37.**
+
+```text
+user> 'https://room.piabrota.art/ splash animation is causing dark quara frames in any point of
+observation of the splash itself. balloon respawn looks ok'
+```
+
+"dark quara frames" was read as dark squares in the frames of the splash.
+
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).
 
@@ -475,6 +485,14 @@ like a solid; the crater looks like porcelain from below; there is too little ai
 jet is too neat; the big drops are rings; the rubber dissolves more than it tears. It found the
 order, the times and the sizes right, and the splash convincing from where a visitor stands
 (about 7 of 10), less so from close by (about 5).
+
+One fault no critic could see, because critics and stills alike look at the room drawn in
+software: the crater's, the swell's and the jet's shaders took `pow()` of a negative number.
+GLSL leaves that undefined; the software renderer answers it kindly, and Direct3D and Metal
+answer "not a number", and the owner saw dark squares on the live site for as long as the splash
+lasted (11 November 2026). Forced to answer as they do, the software renderer breaks the water's
+surface in black; that is the proof here, since no real GPU was at hand. `just peek --strict` now draws as such a GPU does and fails
+when a pixel is not a number.
 
 ### What is simulated
 

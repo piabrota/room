@@ -67,6 +67,9 @@ export const RIPPLE_GLSL = /* glsl */`
   uniform vec4 uSlosh;             // the tank's own two slow waves: when they began, how high, the share across, the share along
   uniform vec2 uSloshW;            // and how fast each swings, rad/s
   uniform float uNow;
+  // a square is written as a product: pow() of a negative number is not a number on a real GPU (D3D, Metal),
+  // and one such value in the water's height blackens every pass after it
+  float squared(float x) { return x * x; }
   float ring(vec2 p, vec4 s, vec2 q) {
     float tau = uNow - s.z; if (s.w == 0.0 || tau <= 0.0) return 0.0;
     float r = length(p - s.xy) + 0.012;
@@ -89,8 +92,8 @@ export const RIPPLE_GLSL = /* glsl */`
     float r0 = uImpact.w, rb = r0 * (1.0 + ${f(GROW, 2)} * (1.0 - exp(-a / ${f(GROW_T, 2)})));
     float q = r / (0.9 * rb);
     float hole = -${f(DEEP, 1)} * r0 * smoothstep(0.0, 0.13, a) * (1.0 - smoothstep(0.15, 0.32, a)) * pow(max(0.0, 1.0 - q * q), 0.7);
-    float lip = 0.03 * exp(-pow((r - rb) / 0.022, 2.0)) * smoothstep(0.0, 0.025, a) * (1.0 - smoothstep(0.15, 0.5, a));
-    float swell = 0.022 * exp(-pow((r - rb - 0.75 * a) / 0.06, 2.0)) * sqrt(rb / (r + 0.02)) * smoothstep(0.0, 0.06, a) * exp(-a / 0.45);
+    float lip = 0.03 * exp(-squared((r - rb) / 0.022)) * smoothstep(0.0, 0.025, a) * (1.0 - smoothstep(0.15, 0.5, a));
+    float swell = 0.022 * exp(-squared((r - rb - 0.75 * a) / 0.06)) * sqrt(rb / (r + 0.02)) * smoothstep(0.0, 0.06, a) * exp(-a / 0.45);
     float mound = 0.035 * exp(-r * r / (0.9 * r0 * r0)) * smoothstep(0.26, 0.36, a) * (1.0 - smoothstep(0.7, 1.15, a));
     return hole + lip + swell + mound;
   }`;
@@ -115,7 +118,7 @@ const WATER_GLSL = /* glsl */`
     float y = d.y + 0.3 * (soft(d.xz * 2.3 + d.y) - 0.5);       // no room has a straight horizon
     vec3 c = uAir * (0.6 + 0.4 * y);
     c = mix(c, uWall, smoothstep(0.25, 0.9, d.x) * 0.7);       // the painted wall behind the tank
-    c += uGlow * smoothstep(0.3, -0.9, y);                     // the lit tank below
+    c += uGlow * (1.0 - smoothstep(-0.9, 0.3, y));                   // the lit tank below
     return c;
   }
   // the room behind, seen through water with this normal (in the camera's axes): size is the lens's radius, in metres
@@ -127,7 +130,7 @@ const WATER_GLSL = /* glsl */`
   // body: how much of what is behind it the water hides or bends where you look straight through
   // tight: how small the lamps' glints are. size: the radius of the lens it is, in metres
   vec4 water(vec3 n, vec3 v, vec3 at, float body, float tight, float size) {
-    float nv = max(dot(n, v), 0.0);
+    float nv = clamp(dot(n, v), 0.0, 1.0);                     // two unit vectors' dot can pass 1 by a rounding, and pow() of what is left is not a number
     float F = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
     vec3 L = normalize(vec3(uLampAt.x, uLampAt.y, clamp(at.z, uLampAt.z - 0.65, uLampAt.z + 0.65)) - at);
     vec3 L2 = normalize(uHangAt - at);
@@ -338,16 +341,17 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
         float rise = max(0.0, fast * a - ${f(G / 2)} * a * a);                               // up, and down again as anything falls
         float phase = a * ${f(G / 2)} / fast;                                                // 0 as it leaves, 1 as it lands
         float finger = smoothstep(0.7, 0.98, 0.5 + 0.5 * sin(th * 11.0 + 1.6 * sin(th * 3.0 + 0.5) + 0.8 * sin(th * 7.0)));
-        float h = rise * pow(v, 0.8) + 0.04 * finger * smoothstep(0.15, 0.6, phase) * pow(v, 6.0) * step(1e-4, rise); // the rim gathers into thin threads
+        float h = rise * pow(max(v, 0.0), 0.8) + 0.04 * finger * smoothstep(0.15, 0.6, phase) * pow(max(v, 0.0), 6.0) * step(1e-4, rise); // the rim gathers into thin threads
         float rough = 0.006 * sin(th * 23.0 + v * 7.0 - a * 31.0) + 0.004 * sin(th * 37.0 - v * 11.0 + a * 17.0) + 0.003 * sin(th * 61.0 + v * 5.0 + a * 9.0); // never smooth
         float r = rb + ${f(LEAN, 2)} * rise * v * (0.5 + 0.5 * v) + rough * v * smoothstep(0.02, 0.1, a);
         return uAt + vec3(cos(th) * r, h, sin(th) * r);
       }
       float jetRadius(float v, float a) {
-        float rad = mix(0.034, 0.0065, pow(v, 0.6));                                        // a column, thinner upwards
+        float rad = mix(0.034, 0.0065, pow(max(v, 0.0), 0.6));                                        // a column, thinner upwards
         float neck = smoothstep(0.06, 0.2, a) * v * v;                                      // it necks before it breaks (Rayleigh, Plateau)
         rad *= 1.0 + neck * (0.3 * sin(v * 17.0 - a * 6.0) + 0.18 * sin(v * 29.0 + a * 4.0 + 1.3));
-        rad += 0.008 * exp(-pow((v - 0.9) / 0.08, 2.0)) * (1.0 - smoothstep(0.19, 0.21, a)); // the drop at its tip, until it lets go
+        float tipAt = (v - 0.9) / 0.08;                                                       // squared as a product: pow() of a negative number is not a number on a real GPU
+        rad += 0.008 * exp(-tipAt * tipAt) * (1.0 - smoothstep(0.19, 0.21, a)); // the drop at its tip, until it lets go
         float end = max(0.0, (v - 0.93) / 0.07);
         return rad * sqrt(max(0.0, 1.0 - end * end)) * smoothstep(0.0, 0.04, a);            // a round end
       }
@@ -400,7 +404,7 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
           body = 0.95; tight = 120.0; keep = smoothstep(0.008, 0.04, vUv3.y);   // its foot is in the mound
         }
         if (dot(n, v) < 0.0) n = -n;
-        gl_FragColor = (water(n, v, vW, body, tight, vSize) + vec4(uAir * 1.3 + uGlow * 0.22 + 0.03, 1.0) * froth * 0.3) * keep;
+        gl_FragColor = clamp((water(n, v, vW, body, tight, vSize) + vec4(uAir * 1.3 + uGlow * 0.22 + 0.03, 1.0) * froth * 0.3) * keep, vec4(0.0), vec4(vec3(64.0), 1.0)); // an alpha over 1 would take light away from what is behind
       }`,
   }));
   sheet.frustumCulled = false; sheet.visible = false; sheet.renderOrder = 5; sheet.raycast = () => {}; sheet.onBeforeRender = lens; group.add(sheet);
@@ -461,12 +465,12 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
         if (kind > 5.5) { // a wet spot: what it lies on a shade darker, and a sheen where the light skims it
           float q = length(vP), wet = (1.0 - smoothstep(0.55, 1.0, q)) * vM.y;
           if (wet <= 0.003) discard;
-          float sheen = pow(1.0 - abs(dot(v, vFace)), 3.0), level = abs(vFace.y);
+          float sheen = pow(max(0.0, 1.0 - abs(dot(v, vFace))), 3.0), level = abs(vFace.y);
           gl_FragColor = vec4(around(reflect(-v, vFace)) * sheen * 0.4 * wet, wet * (mix(0.2, 0.42, level) + 0.25 * sheen));
           return;
         }
         float along = vP.y - clamp(vP.y, -vHalf, vHalf), wide = 1.0;
-        if (kind > 2.5 && kind < 3.5) wide = mix(0.3, 1.0, smoothstep(-vHalf, vHalf, vP.y)); // a run: its bead leads, its line thins behind
+        if (kind > 2.5 && kind < 3.5) wide = mix(0.3, 1.0, smoothstep(-vHalf, vHalf + 1e-6, vP.y)); // a run: its bead leads, its line thins behind
         vec2 d = vec2(vP.x / ((1.0 - vWob) * wide), along / (1.0 + vWob));
         float q = length(d) / vR;
         float edge = 1.0 - smoothstep(1.0 - vPx / vR, 1.0 + 0.5 * vPx / vR, q);
@@ -487,7 +491,7 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
           float turn = vM.w * 37.0;             // no two hang the same way
           vec3 tilted = normalize(nView + 0.3 * nz * vec3(cos(turn), sin(turn), 0.0));
           vec3 n = normalize(tilted * mat3(viewMatrix));
-          float nv = max(dot(n, v), 0.0);
+          float nv = clamp(dot(n, v), 0.0, 1.0);
           vec3 L = normalize(vec3(uLampAt.x, uLampAt.y, clamp(vAt.z, uLampAt.z - 0.65, uLampAt.z + 0.65)) - vAt), L2 = normalize(uHangAt - vAt);
           vec3 r = reflect(-v, n);
           float spec = uLamp * pow(max(dot(r, L), 0.0), 48.0) + uHang * pow(max(dot(r, L2), 0.0), 70.0);
@@ -500,7 +504,7 @@ export function buildSplash(parent, { cfg = {}, tank, ripples, lite = false, sti
           vec4 fine = vec4(c, min(1.0, m + spec + gather * 0.2));
           vec4 lensed = fine;
           if (big > 0.0) { vec3 through = behind(tilted, vAt, vR) * vec3(0.9, 0.97, 1.0) * mix(1.0, 0.6, dim); float m2 = 0.9 - 0.25 * dim; lensed = vec4(through * m2 + vec3(0.86, 0.95, 1.0) * spec * 2.0, m2); }
-          gl_FragColor = mix(fine, lensed, big) * show;
+          gl_FragColor = max(vec4(0.0), mix(fine, lensed, big) * show);
         }
       }`,
   }));

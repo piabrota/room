@@ -71,6 +71,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 34 | 11 nov 15:30 | [#41](https://github.com/piabrota/room/pull/42) a playlist do quarto no topo dos dois READMEs, como um botão do Spotify: o github.com tira um iframe, então o embed colado não mostrava nada | 5 min |
 | 35 | 11 nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) mais cinco peças de lofi na rádio, dez ao todo, escritas em Csound como as cinco primeiras: um violão de nylon e um vibrafone entram na banda (`music/lofi.orc`), e as peças são um tema respondido pelo vibrafone, um violão que acompanha, uma balada, um ciclo de quintas e uma mais clara em ré maior | 45 min |
 | 36 | 11 nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) os dois artigos no aiXiv (2611.01104, "Wave models on GPUs", e 2611.01105, "A decision layer for contextual bandits, proved in Agda") na estante ao lado das obras com DOI, preprints encadernados de capa branca, cada um com um link para a página dele no aiXiv, e na página de trabalho do LOFI; uma fita, "lofi in csound", que toca as peças do rádio uma depois da outra enquanto a partitura em Csound de cada uma sobe pela TV, com a linha da cabeça de leitura acesa, e um clique passa para a próxima | 5 h 15 min |
+| 37 | 11 nov 23:44 | [#45](https://github.com/piabrota/room/pull/45) o respingo desenhava quadrados escuros no site no ar: os shaders da cratera, da ondulação e do jato faziam `pow()` de um número negativo, que o renderizador por software das capturas responde com boa vontade e o Direct3D e o Metal respondem com "não é um número"; assim a superfície da água, e tudo por onde o bloom e a oclusão espalham esse valor, fica preta durante o 1,4 s da cratera (mostrado aqui forçando o renderizador por software a responder igual; não visto numa GPU de verdade); os quadrados agora são produtos, e os termos de Fresnel e um alfa têm limite; `just peek --strict` desenha como uma GPU dessas e falha quando um pixel não é um número (519 no respingo antigo, nenhum agora), `just check` recusa `pow(x, 2.0)`, e a skill `room-shaders` tem a regra | 55 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -429,6 +430,15 @@ user> 'finish this work'
 Os dois artigos foram achados no perfil do dono (h0ffmann/h0ffmann, nos selos do aiXiv) e lidos
 nas páginas deles no aiXiv. "cmusic code" foi lido como o código em Csound da música do rádio.
 
+**37.**
+
+```text
+user> 'https://room.piabrota.art/ splash animation is causing dark quara frames in any point of
+observation of the splash itself. balloon respawn looks ok'
+```
+
+"dark quara frames" foi lido como quadrados escuros nos quadros do respingo.
+
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
 
@@ -475,6 +485,15 @@ sólido; a cratera parece porcelana vista de baixo; há pouco ar e pouca espuma;
 demais; as gotas grandes são anéis; a borracha mais se dissolve do que rasga. Ele achou certos a
 ordem, os tempos e os tamanhos, e o respingo convincente de onde o visitante fica (uns 7 de 10),
 menos de perto (uns 5).
+
+Um defeito que nenhum crítico podia ver, porque os críticos e as capturas olham o quarto
+desenhado por software: os shaders da cratera, da ondulação e do jato faziam `pow()` de um número
+negativo. O GLSL deixa isso indefinido; o renderizador por software responde com boa vontade, e o
+Direct3D e o Metal respondem "não é um número", e o dono viu quadrados escuros no site no ar
+enquanto o respingo durava (11 de novembro de 2026). Forçado a responder como eles, o renderizador
+por software quebra a superfície da água em preto; essa é a prova aqui, porque não havia uma GPU
+de verdade à mão. O `just peek --strict` agora
+desenha como uma GPU dessas e falha quando um pixel não é um número.
 
 ### O que é simulado
 
