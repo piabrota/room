@@ -34,5 +34,16 @@ to copy from:
 6. Baking in Blender is the long-term answer for realism (invariant 9): bake a night and a day
    into the base colour, mix them with a `uDay` uniform, keep only `*_live` meshes lit.
 
+7. **`pow()` never takes a base that can be negative.** GLSL leaves it undefined. The software
+   renderer of `just peek` and `just record` answers it kindly, so the still looks right;
+   Direct3D and Metal answer "not a number", and one such pixel or vertex is black on the
+   visitor's screen and spreads through the bloom and the occlusion (the water balloon's crater,
+   11 November 2026). Write a square as a product (`x * x`, never `pow(x, 2.0)`; `just check`
+   refuses it), and clamp what goes into the others: `pow(max(x, 0.0), y)`, and
+   `clamp(dot(n, v), 0.0, 1.0)` before a Fresnel term, because the dot of two unit vectors can
+   pass 1 by a rounding. Keep the edges of `smoothstep` in order, and an alpha at most 1.
+   `just peek --strict` draws as such a GPU does and fails when a pixel is not a number: run it
+   on every new shader, at the moments it is on screen.
+
 After a visible change: `just light` for brightness, `just stills` to look, and the `room-pr`
 skill for the pull request.

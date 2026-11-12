@@ -70,6 +70,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 33 | 11 Nov 05:24 | [#40](https://github.com/piabrota/room/pull/40) a water balloon hangs over the aquarium: a click bursts it and its 1.4 litres fall into the tank, simulated in metres and seconds (the rubber that snaps back, the fall, the crater, a crown thrown up and left to gravity, drops with the air's drag, Worthington's jet, bubbles, Cauchy and Poisson's rings that come back from the glass, the tank's slow swing, the buoys that ride them, light rings on the sand, the fish frightened), its water drawn as a lens that bends a picture of the room; made by a builder and a separate critic that takes its own screenshots and scores them, the way of a video by AI Search, in three rounds that scored 6, 5.5 and 6 of 10, so it did not pass at 8; [The water balloon](#the-water-balloon) has the physics, and what is computed and what is fitted; `just record-splash`, and `just peek --click` | 4 h 25 min |
 | 34 | 11 Nov 15:30 | [#42](https://github.com/piabrota/room/pull/42) the room's playlist at the top of both READMEs, as a Spotify button: github.com strips an iframe, so the embed that was pasted showed nothing | 5 min |
 | 35 | 11 Nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) five more lofi pieces on the radio, ten in all, written in Csound like the first five: a nylon guitar and a vibraphone join the band (`music/lofi.orc`), and the pieces are a tune answered by vibes, a guitar that comps, a ballad, a round of fifths and a bright one in D | 45 min |
+| 36 | 11 Nov 23:44 | [#44](https://github.com/piabrota/room/pull/44) the splash drew dark squares on the live site: the crater's, the swell's and the jet's shaders took `pow()` of a negative number, which the software renderer of the stills answers kindly and Direct3D and Metal answer with "not a number", so the water's surface, and whatever the bloom and the occlusion spread it over, goes black for the 1.4 s of the crater (shown here by forcing the software renderer to answer the same; not seen on a real GPU); the squares are products now, the Fresnel terms and an alpha are clamped; `just peek --strict` draws as such a GPU does and fails when a pixel is not a number (519 on the old splash, none now), `just check` refuses `pow(x, 2.0)`, and the `room-shaders` skill has the rule | 55 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -419,6 +420,15 @@ user> 'add this to readme [the embed code of the playlist's player]'
 user> 'Also add more musics to builtin radio (off spotify)'
 ```
 
+**36.**
+
+```text
+user> 'https://room.piabrota.art/ splash animation is causing dark quara frames in any point of
+observation of the splash itself. balloon respawn looks ok'
+```
+
+"dark quara frames" was read as dark squares in the frames of the splash.
+
 | Overview | Window | Sea wall |
 |---|---|---|
 | ![overview](docs/record/shot-overview.jpg) | ![window](docs/record/shot-window.jpg) | ![sea](docs/record/shot-sea.jpg) |
@@ -462,6 +472,14 @@ like a solid; the crater looks like porcelain from below; there is too little ai
 jet is too neat; the big drops are rings; the rubber dissolves more than it tears. It found the
 order, the times and the sizes right, and the splash convincing from where a visitor stands
 (about 7 of 10), less so from close by (about 5).
+
+One fault no critic could see, because critics and stills alike look at the room drawn in
+software: the crater's, the swell's and the jet's shaders took `pow()` of a negative number.
+GLSL leaves that undefined; the software renderer answers it kindly, and Direct3D and Metal
+answer "not a number", and the owner saw dark squares on the live site for as long as the splash
+lasted (11 November 2026). Forced to answer as they do, the software renderer breaks the water's
+surface in black; that is the proof here, since no real GPU was at hand. `just peek --strict` now draws as such a GPU does and fails
+when a pixel is not a number.
 
 ### What is simulated
 
