@@ -641,6 +641,45 @@ export const cat = {
 // away, and the room's words cannot be selected. `false` turns it off for a fork that wants none.
 export const guard = { screenshots: true };
 
+// ── the universe simulator: a corner that remembers The Midnight Gospel ──
+// The animated series by Pendleton Ward and Duncan Trussell (Netflix, 2020): a man enters a
+// universe simulator and interviews the beings of dying worlds. This corner is an homage, in the
+// room's own shapes and words (src/simulator.js). Nothing of the series is here: no character,
+// no drawing, no lettering, no sound and no line of it (AGENTS.md, invariant 1); `homage` names it.
+// The machine stands on the floor by the front wall: a home-made console with a round glass port
+// in which a small world turns. A click tunes the next of `worlds`, each named after a thing of
+// this room: its `colors` are the dark, the main and the light of the planet, `ring` is 1 for a
+// ringed one, `moons` how many go round it (none on the phone's look). `tune` is the seconds a
+// change takes, `sfx` the sound of its switch (a key of `sfx`, above). `plate` is what is
+// printed on its enamel, `look` its colours. `mic` is the microphone on its top and the
+// headphones on its side; `board` the chart on the wall over it, which links to `homage.url`.
+export const simulator = {
+  label: 'universe simulator', hint: 'click: the next world',
+  homage: {
+    title: 'The Midnight Gospel', line: 'after The Midnight Gospel', by: 'Pendleton Ward and Duncan Trussell', year: 2020,
+    url: 'https://en.wikipedia.org/wiki/The_Midnight_Gospel',
+  },
+  tune: 0.9, sfx: 'insert',
+  worlds: [
+    { name: 'the sea',     line: 'all water: the wind raises its waves',         colors: ['#06243f', '#1682D4', '#8cc8f0'], ring: 0, moons: 1 },
+    { name: 'the loop',    line: 'a factory that goes round and improves',       colors: ['#4a2408', '#D29922', '#f3dfae'], ring: 1, moons: 0 },
+    { name: 'the fabric',  line: 'open software, woven in Rio de Janeiro',       colors: ['#4a0d09', '#BC2318', '#3FB950'], ring: 0, moons: 2 },
+    { name: 'the slipbox', line: 'one idea on each card, tied to the next',      colors: ['#123a22', '#3FB950', '#e6d7b8'], ring: 1, moons: 1 },
+    { name: 'Nash',        line: 'a black cat\'s world, under two yellow moons', colors: ['#08080c', '#2b2b38', '#d9e84a'], ring: 0, moons: 2 },
+  ],
+  plate: {
+    brand: 'BROTA', model: 'US-1', name: 'UNIVERSE SIMULATOR', made: 'made at home · Rio de Janeiro',
+    port: 'WORLD', knobs: ['TUNE', 'DRIFT', 'GAIN'], switches: ['PWR', 'SIM', 'AIR', 'REC'],
+  },
+  look: { enamel: '#1f5c5e', ink: '#efe6cf', stripe: '#D2691E', wood: '#7a4a2c', brass: '#b08a4a', knob: '#1c1a19', chrome: '#b9bcc0', cable: '#141416' },
+  mic: { label: 'the microphone', hint: 'and the headphones, to interview a world · tap it', sfx: 'insert', color: '#2a2c31', grille: '#aeb2b8', pad: '#BC2318' },
+  board: {
+    label: 'after The Midnight Gospel', hint: 'the series by Pendleton Ward and Duncan Trussell that this corner remembers',
+    title: 'WORLDS TO VISIT', note: 'a chart for the simulator',
+    colors: { sky: ['#17123a', '#3a1552', '#7a1f5c'], ink: '#f4ead2', line: '#f0b23e', frame: '#3a2416', star: '#ffe9a8' },
+  },
+};
+
 // ── you: a pair of feet under the camera, seen when you look down ──
 export const body = { shoes: '#e9e6df', soles: '#f7f5f0', jeans: '#2b3a55', laces: '#c9c3b6' };
 
@@ -684,6 +723,7 @@ export const credits = {
     { what: 'the wind on that map', who: 'NOAA (GFS), through Open-Meteo', licence: 'public domain, CC BY 4.0' },
     { what: 'the sea\'s temperature on that map', who: 'Met Office (OSTIA), E.U. Copernicus Marine Service', licence: 'the Copernicus Marine Service licence' },
     { what: 'the libraries', who: 'three.js, Vite, MapLibre GL JS', licence: 'MIT, MIT, BSD-3-Clause' },
+    { what: 'the universe simulator and its chart, an homage', who: 'after The Midnight Gospel, by Pendleton Ward and Duncan Trussell', licence: 'original work: nothing of the series is copied' },
   ],
   full: { line: 'Every file, source and licence is in', label: 'CREDITS.md', url: 'https://github.com/piabrota/room/blob/main/CREDITS.md' },
   // the plate on the wall: what its hover says, and what is engraved on it
@@ -720,7 +760,8 @@ export const reading = {
 
 // Hoverable things. `name` matches a mesh name in your GLB (or the
 // placeholder room, which builds one for each `art`). `action` is one
-// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits', 'splash'.
+// of: 'shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits', 'splash',
+// 'simulate' (the universe simulator tunes its next world, src/simulator.js).
 // `group` titles the LOFI list.
 // ── ▲ grid: the Brazilian coast on a triangle mesh, its waves played back
 // on a map (src/grid.js, docs/SURVEY.md, section 6). The chart hangs on
@@ -793,6 +834,9 @@ export const hotspots = [
   { name: 'letter_closed-source', label: closedSource.letter.label, hint: closedSource.letter.hint, action: 'link', value: closedSource.letter.url, group: 'closed source' },
   { name: 'note',   label: 'inspiration: Robert M. Pirsig', hint: 'Zen and the Art of Motorcycle Maintenance', action: 'link', value: 'https://en.wikipedia.org/wiki/Robert_M._Pirsig', group: 'inspiration', art: { kind: 'note', glyph: '無' } },
   { name: 'credits', label: credits.plate.label, hint: credits.plate.hint, action: 'credits', art: { kind: 'credits', top: credits.plate.top, name: credits.plate.name, bottom: credits.plate.bottom } },
+  { name: 'simulator', label: simulator.label, hint: simulator.hint, action: 'simulate' },
+  { name: 'simulator_mic', label: simulator.mic.label, hint: simulator.mic.hint, action: 'sfx', value: simulator.mic.sfx },
+  { name: 'simulator_board', label: simulator.board.label, hint: simulator.board.hint, action: 'link', value: simulator.homage.url, group: 'inspiration' },
   ...projects.map((p) => ({
     name: `frame_${p.id}`, label: p.id, hint: p.line, action: 'link', value: p.url, group: 'projects',
     art: { kind: 'frame', glyph: p.glyph, color: theme.lanes[p.lane] },

@@ -207,6 +207,17 @@ Worthington's jet, Rayleigh and Plateau's breaking of a column of water, the dra
 `README.md`, "The water balloon", says what is computed and what is fitted. The two sounds, the
 burst and the splash, are synthesized in `src/audio.js`.
 
+## The universe simulator
+
+The corner by the front wall (`src/simulator.js`, `config.simulator`) is an homage to
+[The Midnight Gospel](https://en.wikipedia.org/wiki/The_Midnight_Gospel), the animated series by
+Pendleton Ward and Duncan Trussell (Netflix, 2020), in which a man enters a universe simulator to
+interview the beings of dying worlds. The console with its glass port, the worlds that turn in it,
+the microphone, the headphones and the chart on the wall are original work, drawn in code for
+this room, and the worlds are named after the room's own things. Nothing of the series is copied:
+no character, drawing, design, lettering, frame, sound or line of it. The chart names the series
+and its makers, and its click opens that page of Wikipedia.
+
 ## Agent skills
 
 Three skills in `.claude/skills/` (`room-threejs-perf`, `room-assets`, `room-load`) are written for
