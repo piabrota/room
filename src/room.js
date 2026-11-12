@@ -10,6 +10,7 @@ import { buildSea, buildLoop, buildRecords } from './props.js';
 import { ROOM, WIN, SILL, buildShell, woodBox, contactShadows } from './shell.js';
 import { createFurniture } from './furniture.js';
 import { creditsPlate } from './credits.js';
+import { buildSimulator } from './simulator.js';
 import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, plasticArt, paperArt, folderArt } from './art.js';
 import { buildTapeStack, buildVCR, buildMixtape } from './vhs.js';
 
@@ -542,8 +543,8 @@ function placeholderRoom() {
   F.place('clock', g, { at: [-2.6, 0, ROOM.z1 - 0.24], rot: Math.PI, fit: { h: 2.12 }, standin: (s) => { sbox(s, [0.5, 2.1, 0.32], [0, 1.05, 0], '#6b3f2a'); } });
   // a big plant under the people's board, a suitcase and a box in the far corner, a box under the desk
   F.place('plant', g, { at: [2.32, 0, -1.6], rot: 2.2, fit: { h: 0.98 }, standin: (s) => { mesh('', new THREE.CylinderGeometry(0.2, 0.15, 0.36, 16), std('#b4673e'), [0, 0.18, 0], s); } });
-  F.place('box', g, { at: [3.0, 0, 3.36], rot: 0.25, fit: { w: 0.42 } });
-  F.place('suitcase', g, { at: [2.42, 0, 3.6], rot: [0.14, Math.PI + 0.08, 0], fit: { w: 0.66 } });
+  F.place('box', g, { at: [3.08, 0, 2.86], rot: 0.25, fit: { w: 0.42 } });
+  F.place('suitcase', g, { at: [3.03, 0, 3.6], rot: [0.14, Math.PI + 0.08, 0], fit: { w: 0.66 } });
   F.place('box', g, { at: [1.02, 0, -1.62], rot: -0.2, fit: { w: 0.38 } });
   // on the desk: a cup of pencils, pens laid out
   F.place('pencilCup', g, { at: [0.94, top, -1.8], fit: { h: 0.1 } });
@@ -557,11 +558,14 @@ function placeholderRoom() {
     [-0.62, -0.5, 0.95, 0.95, 0.42, 0.014],
     [SOFA.x + 0.05, SOFA.z, 1.05, SOFA.w + 0.35, 0.5], [-2.7, 1.76, 0.6, 0.6, 0.4], [-2.6, ROOM.z1 - 0.26, 0.95, 0.75, 0.5],
     [CASE.x, CASE.z + 0.06, CASE.w + 0.3, CASE.d + 0.42, 0.5], [-2.2, -1.15, 0.72, 0.8, 0.45],
-    [2.32, -1.6, 0.7, 0.7, 0.45], [3.08, -0.45, 0.95, 2.1, 0.5], [3.0, 3.36, 0.75, 0.8, 0.42], [2.42, 3.62, 0.95, 0.5, 0.4], [1.02, -1.62, 0.6, 0.7, 0.3],
+    [2.32, -1.6, 0.7, 0.7, 0.45], [3.08, -0.45, 0.95, 2.1, 0.5], [3.08, 2.86, 0.75, 0.8, 0.42], [3.03, 3.62, 0.95, 0.5, 0.4], [2.26, 3.5, 0.95, 0.85, 0.5], [1.02, -1.62, 0.6, 0.7, 0.3],
   ]));
 
   // ── the other walls: marola-dev's sea, ouroboric-dev's loop, the slipbox ──
   animated.push(buildSea(g, mesh, std, part, F, { lite, still, hang: [ROSE[0], ROOM.h - 0.75, ROSE[1]] }), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
+
+  // the universe simulator by the front wall, its microphone and the chart over it: an homage to The Midnight Gospel (src/simulator.js)
+  animated.push(buildSimulator(g, { at: [2.26, 0, ROOM.z1], lite, still, anisotropy }));
 
   // the leaves sway a little in the air of the room (the vertex shader; still under reduced motion)
   const sway = std('#2f6b3a', LEAF);

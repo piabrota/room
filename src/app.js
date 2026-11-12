@@ -210,6 +210,15 @@ for (const h of config.hotspots) {
   });
 }
 
+// ── the universe simulator (src/simulator.js): a click tunes its next world, and its card names the one in the port ──
+const simulator = room.root.userData.simulator;
+if (simulator) for (const h of config.hotspots.filter((x) => x.action === 'simulate')) {
+  ui.add(room.find(h.name), {
+    label: simulator.label, hint: simulator.hint,
+    onClick: () => { audio.play(config.sfx.click); audio.play(config.sfx[config.simulator.sfx], 0.5); simulator.next(); },
+  });
+}
+
 // ── enter gate: needed so the browser lets us play sound ──
 // Nothing plays on its own: the rain and the radio wait for their buttons.
 const words = config.ui;
