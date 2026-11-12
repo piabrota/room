@@ -71,6 +71,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 34 | 11 Nov 15:30 | [#42](https://github.com/piabrota/room/pull/42) the room's playlist at the top of both READMEs, as a Spotify button: github.com strips an iframe, so the embed that was pasted showed nothing | 5 min |
 | 35 | 11 Nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) five more lofi pieces on the radio, ten in all, written in Csound like the first five: a nylon guitar and a vibraphone join the band (`music/lofi.orc`), and the pieces are a tune answered by vibes, a guitar that comps, a ballad, a round of fifths and a bright one in D | 45 min |
 | 36 | 11 Nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) the two papers on aiXiv (2611.01104, "Wave models on GPUs", and 2611.01105, "A decision layer for contextual bandits, proved in Agda") on the bookcase beside the works with a DOI, bound preprints with white covers, each a link to its aiXiv page, and on the LOFI work page; a tape, "lofi in csound", that plays the radio's pieces one after another while each one's Csound score runs up the TV, the line at the reading head lit, a click for the next | 5 h 15 min |
+| 37 | 12 Nov 16:32 | [#PRN](https://github.com/piabrota/room/pull/PRN) LOFI hides the room's overlays too: on the ▲ grid map (grid.piabrota.art, or the grid shot), the LOFI button set `?lofi` but the map stayed over the page, since the LOFI styles hid the canvas and the buttons and not the map, the lock or the live window | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -428,6 +429,15 @@ user> 'finish this work'
 
 The two papers were found on the owner's profile (h0ffmann/h0ffmann, its aiXiv badges) and read on
 their aiXiv pages. "cmusic code" was read as the Csound code of the radio's music.
+
+**37.**
+
+```text
+user> 'https://grid.piabrota.art/?lofi broken in room'
+```
+
+"broken" was read as what a visitor sees: on the map, LOFI is lit and the address says `?lofi`,
+but the map still covers the page.
 
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).

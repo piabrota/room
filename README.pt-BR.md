@@ -71,6 +71,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 34 | 11 nov 15:30 | [#41](https://github.com/piabrota/room/pull/42) a playlist do quarto no topo dos dois READMEs, como um botão do Spotify: o github.com tira um iframe, então o embed colado não mostrava nada | 5 min |
 | 35 | 11 nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) mais cinco peças de lofi na rádio, dez ao todo, escritas em Csound como as cinco primeiras: um violão de nylon e um vibrafone entram na banda (`music/lofi.orc`), e as peças são um tema respondido pelo vibrafone, um violão que acompanha, uma balada, um ciclo de quintas e uma mais clara em ré maior | 45 min |
 | 36 | 11 nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) os dois artigos no aiXiv (2611.01104, "Wave models on GPUs", e 2611.01105, "A decision layer for contextual bandits, proved in Agda") na estante ao lado das obras com DOI, preprints encadernados de capa branca, cada um com um link para a página dele no aiXiv, e na página de trabalho do LOFI; uma fita, "lofi in csound", que toca as peças do rádio uma depois da outra enquanto a partitura em Csound de cada uma sobe pela TV, com a linha da cabeça de leitura acesa, e um clique passa para a próxima | 5 h 15 min |
+| 37 | 12 nov 16:32 | [#PRN](https://github.com/piabrota/room/pull/PRN) o LOFI esconde também as camadas do quarto: no mapa do ▲ grid (grid.piabrota.art, ou o plano do grid), o botão LOFI punha `?lofi` mas o mapa ficava sobre a página, porque os estilos do LOFI escondiam o canvas e os botões e não o mapa, a fechadura ou a janela ao vivo | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -428,6 +429,15 @@ user> 'finish this work'
 
 Os dois artigos foram achados no perfil do dono (h0ffmann/h0ffmann, nos selos do aiXiv) e lidos
 nas páginas deles no aiXiv. "cmusic code" foi lido como o código em Csound da música do rádio.
+
+**37.**
+
+```text
+user> 'https://grid.piabrota.art/?lofi broken in room'
+```
+
+"broken" foi lido como o que um visitante vê: no mapa, o LOFI acende e o endereço diz `?lofi`,
+mas o mapa continua cobrindo a página.
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
