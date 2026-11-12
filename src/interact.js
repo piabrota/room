@@ -3,7 +3,10 @@ import * as THREE from 'three';
 // Hover + click on 3D objects. Register any Object3D with a label (and
 // an optional hint) and an onClick; the pointer gets a label card and
 // the object glows (an emissive lift, plus an outline when the post-
-// processing runs).
+// processing runs). A label or a hint may be a function of the hit under
+// the pointer, for a thing whose parts say different things (the VCR's
+// keys); `onHover(on)` is called when the pointer comes and goes (a tape
+// slides out of its pile). A tap is a hover and a click.
 //
 // The ray tests the whole room, so a wall or a desk hides what is
 // behind it. A mesh marked `userData.proxy` (an invisible hit box) only
@@ -56,11 +59,11 @@ export function createInteractions(camera, canvas, tooltip, { root, onHover = ()
     targets.get(p.obj).onClick?.(p.hit);
   });
 
-  const read = (v) => (typeof v === 'function' ? v() : v);
+  const read = (v, hit) => (typeof v === 'function' ? v(hit) : v);
   return {
     add(obj, opts) { if (obj) targets.set(obj, opts); },
     // the same label and click, now on another object (Nash, when he is made again)
-    move(from, to) { const o = targets.get(from); if (!o || !to) return; targets.delete(from); targets.set(to, o); if (hovered === from) hovered = null; },
+    move(from, to) { const o = targets.get(from); if (!o || !to) return; targets.delete(from); targets.set(to, o); if (hovered === from) { o.onHover?.(false); hovered = null; } },
     remove(obj) { targets.delete(obj); },
     get hovered() { return hovered; },
     // a click on an object without a pointer, for the scripts (`just peek --click`)
@@ -73,21 +76,23 @@ export function createInteractions(camera, canvas, tooltip, { root, onHover = ()
       const p = lastEvent && pick(lastEvent);
       const next = p?.obj ?? null;
       if (next !== hovered) {
-        if (hovered) glow(hovered, false);
-        if (next) glow(next, true);
+        if (hovered) { glow(hovered, false); targets.get(hovered)?.onHover?.(false); }
+        if (next) { glow(next, true); targets.get(next).onHover?.(true); }
         hovered = next;
         canvas.style.cursor = next ? 'pointer' : '';
         onHover(next);
       }
       const t = next && targets.get(next);
-      const label = t && read(t.label);
+      const label = t && read(t.label, p.hit);
       tooltip.classList.toggle('on', !!label);
       if (label) {
         title.textContent = label;
-        hint.textContent = read(t.hint) ?? '';
+        hint.textContent = read(t.hint, p.hit) ?? '';
         hint.hidden = !hint.textContent;
-        const x = Math.min(lastEvent.clientX, innerWidth - 220);
-        tooltip.style.transform = `translate(${x + 14}px, ${lastEvent.clientY + 14}px)`;
+        // beside the pointer, and whole inside the window: a card at the edge is not cut
+        const x = Math.max(4, Math.min(lastEvent.clientX + 14, innerWidth - (tooltip.offsetWidth || 220) - 6));
+        const y = Math.max(4, Math.min(lastEvent.clientY + 14, innerHeight - (tooltip.offsetHeight || 0) - 6));
+        tooltip.style.transform = `translate(${x}px, ${y}px)`;
       }
     },
   };

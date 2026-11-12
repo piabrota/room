@@ -5,7 +5,7 @@
 // the sound button mutes it, and stop() releases every node it made.
 //
 // On the screen: click a link to open it, click the bar at the bottom
-// to jump to a chapter.
+// to jump to a chapter. The deck's REW and FF step a chapter back and on.
 import { piabrotaTape } from '../config.js';
 import { score, midiToHz } from '../score.js';
 
@@ -146,7 +146,13 @@ export default {
     for (const st of starts.slice(1)) ctx.fillRect(24 + (W - 48) * (st / duration) - 1, BAR_Y, 2, 6);
   },
 
-  input({ x, y }) {
+  input({ type, x, y }) {
+    if (type === 'rew' || type === 'ff') { // a chapter back (or to this one's start), or on
+      if (loading) return;
+      const i = chapterAt(pos()), to = type === 'ff' ? (i + 1) % chapters.length : pos() - starts[i] > 3 ? i : (i + chapters.length - 1) % chapters.length;
+      play(starts[to]); return;
+    }
+    if (type !== 'click') return;
     if (y > BAR_Y - 12 && y < BAR_Y + 20 && !loading) {
       const s = ((x - 24) / (W - 48)) * duration;
       play(starts[chapterAt(Math.max(0, Math.min(duration - 0.01, s)))]);
