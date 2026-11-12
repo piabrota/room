@@ -175,6 +175,11 @@ the room uses, thins its mesh, re-encodes its textures as WebP and packs it with
 | `public/models/side_table_tall_01.glb` | James Ray Cock | "Side Table Tall 01" on [Poly Haven](https://polyhaven.com/a/side_table_tall_01) | CC0 1.0 |
 | `public/models/alarm_clock_01.glb` | Yann Kervran, James Ray Cock | "Alarm Clock 01" on [Poly Haven](https://polyhaven.com/a/alarm_clock_01) | CC0 1.0 |
 | `public/models/ceramic_vase_01.glb` | James Ray Cock | "Ceramic Vase 01" on [Poly Haven](https://polyhaven.com/a/ceramic_vase_01) | CC0 1.0 |
+| `public/models/modern_arm_chair_01.glb` | Vibrant Nordic | "Modern Arm Chair 01" on [Poly Haven](https://polyhaven.com/a/modern_arm_chair_01) | CC0 1.0 |
+| `public/models/small_wooden_table_01.glb` | Ulan Cabanilla | "Small Wooden Table 01" on [Poly Haven](https://polyhaven.com/a/small_wooden_table_01) | CC0 1.0 |
+| `public/models/vintage_wooden_drawer_01.glb` | James Ray Cock | "Vintage Wooden Drawer 01" on [Poly Haven](https://polyhaven.com/a/vintage_wooden_drawer_01) | CC0 1.0 |
+| `public/models/plastic_thermos.glb` | PierreB3D | "Plastic Thermos" on [Poly Haven](https://polyhaven.com/a/plastic_thermos) | CC0 1.0 |
+| `public/models/fishermans_hat.glb` | PierreB3D | "Fishermans Hat" on [Poly Haven](https://polyhaven.com/a/fishermans_hat) | CC0 1.0 |
 <!-- models:end -->
 
 The four recordings are on freesound.org, under Creative Commons Attribution 4.0

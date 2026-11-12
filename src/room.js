@@ -13,6 +13,8 @@ import { creditsPlate } from './credits.js';
 import { buildSimulator } from './simulator.js';
 import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, plasticArt, paperArt, folderArt } from './art.js';
 import { buildTapeStack, buildVCR, buildMixtape } from './vhs.js';
+import { lived } from './config.js';
+import { buildLived } from './lived.js';
 
 // Photographed surfaces (Poly Haven, CC0; CREDITS.md): colour, normal and roughness, or only
 // some of them (`maps`). The small files (a phone, a small screen, a slow line) are the colour alone, at 512 px.
@@ -77,10 +79,14 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
   const hang = new THREE.PointLight(0xffc48a, 0, 7.5, 1.5);
   const chandelier = find('chandelier');
   if (chandelier) { hang.position.copy(chandelier.getWorldPosition(v)).y -= 0.52; scene.add(hang); }
+  // the standing lamp by the sofa (src/lived.js): its shade glows in the evening, and on the laptop's look it lights its corner
+  const stand = new THREE.PointLight(0xffb878, 0, 3.2, 2);
+  const shade = find('stand_shade');
+  if (shade && !lite) { stand.position.copy(shade.getWorldPosition(v)).y -= 0.04; scene.add(stand); }
   // The walls are light, so the night is made of lamps, not of a sky that fills the room: a little
   // blue from the window, the hanging lamp dim, the desk lamp's pool on the desk.
-  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.45, hang: 2.4, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
-  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 1.5], moon: 0, sun: 4.2, neon: 0.5, lamp: 0.35, hang: 0, env: 0.4, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
+  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.45, hang: 2.4, stand: 0.22, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
+  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 1.5], moon: 0, sun: 4.2, neon: 0.5, lamp: 0.35, hang: 0, stand: 0, env: 0.4, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
   const dust = buildDust(quality.dust); scene.add(dust);
   let day = false;
   function setDay(on) {
@@ -89,6 +95,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     sky.color.set(m.sky[0]); sky.groundColor.set(m.sky[1]); sky.intensity = m.sky[2];
     moon.intensity = m.moon; sun.intensity = m.sun; neon.intensity = m.neon; hang.intensity = m.hang;
     if (root.userData.hangGlow) root.userData.hangGlow.emissiveIntensity = m.hang ? 1.6 : 0;
+    stand.intensity = m.stand; if (root.userData.standGlow) root.userData.standGlow.emissiveIntensity = m.stand ? 0.5 : 0;
     // a lamp in daylight adds little; at full power, 0.35 m from the fax's page, it burns it white
     lamp.userData.full = lampFull * m.lamp; if (lamp.intensity) lamp.intensity = lamp.userData.full;
     scene.environmentIntensity = m.env;
@@ -569,6 +576,20 @@ function placeholderRoom() {
   F.place('pens', g, { at: [0.5, top + 0.001, -1.15], rot: 0.3, turn: [-Math.PI / 2, 0, 0], fit: { w: 0.2 } });
   // the lamp of the room hangs from the rose (its light is in loadRoom: dim in the evening, off by day)
   F.place('chandelier', g, { at: [ROSE[0], ROOM.h - 0.07, ROSE[1]], name: 'chandelier', anchor: 'top', fit: { h: 0.82 }, shadow: false, tune: (m) => { if (/bulb/.test(m.name)) { m.emissive.set('#ffd9a0'); m.emissiveIntensity = 0; g.userData.hangGlow = m; } } });
+
+  // ── lived in: an armchair under the painting with a hat stand near it, a low table before the sofa with a thermos,
+  // a cabinet of card drawers under the chart; the rest is built in src/lived.js, with the marks of the years ──
+  F.place('armchair', g, { at: [-2.36, 0, 2.78], rot: Math.PI / 2 + 0.4, fit: { h: 0.88 }, standin: (s) => {
+    sbox(s, [0.6, 0.14, 0.6], [0, 0.36, 0.02], '#1d1c1b'); sbox(s, [0.6, 0.5, 0.12], [0, 0.63, -0.3], '#1d1c1b');
+    for (const kx of [-1, 1]) sbox(s, [0.05, 0.56, 0.7], [kx * 0.33, 0.28, 0], '#7a5a3c');
+  } });
+  F.place('lowTable', g, { at: [-1.72, 0, 0.95], rot: Math.PI / 2, fit: { h: 0.46 }, standin: (s) => {
+    sbox(s, [0.79, 0.03, 0.38], [0, 0.445, 0], '#8a7558'); for (const kx of [-1, 1]) for (const kz of [-1, 1]) sbox(s, [0.035, 0.43, 0.035], [kx * 0.36, 0.215, kz * 0.16], '#8a7558');
+  } });
+  F.place('cards', g, { at: [3.06, 0, 1.3], rot: -Math.PI / 2, fit: { w: 1.25, h: 0.78, d: 0.64 }, stretch: true, standin: (s) => { sbox(s, [1.25, 0.78, 0.56], [0, 0.39, 0], '#8a5a34'); } });
+  F.place('thermos', g, { at: [-1.79, 0.46, 1.25], rot: 2.2, fit: { h: 0.3 } });
+  const { rack } = buildLived({ g, part, mesh, wood, woodPer, look, words: lived, lite, anisotropy, deskTop: top, door: [DOOR.x - DOOR.w / 2 - 0.09, DOOR.x + DOOR.w / 2 + 0.09], win: [WIN.x - WIN.w / 2 - 0.08, WIN.x + WIN.w / 2 + 0.08], rose: ROSE });
+  F.place('hat', g, { at: [rack[0], 1.7, rack[1]], rot: [0.14, 0.8, 0.08], fit: { w: 0.33 }, shadow: false });
 
   // the soft shadow each thing leaves where it stands
   g.add(contactShadows([
