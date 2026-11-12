@@ -72,6 +72,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 35 | 11 nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) mais cinco peças de lofi na rádio, dez ao todo, escritas em Csound como as cinco primeiras: um violão de nylon e um vibrafone entram na banda (`music/lofi.orc`), e as peças são um tema respondido pelo vibrafone, um violão que acompanha, uma balada, um ciclo de quintas e uma mais clara em ré maior | 45 min |
 | 36 | 11 nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) os dois artigos no aiXiv (2611.01104, "Wave models on GPUs", e 2611.01105, "A decision layer for contextual bandits, proved in Agda") na estante ao lado das obras com DOI, preprints encadernados de capa branca, cada um com um link para a página dele no aiXiv, e na página de trabalho do LOFI; uma fita, "lofi in csound", que toca as peças do rádio uma depois da outra enquanto a partitura em Csound de cada uma sobe pela TV, com a linha da cabeça de leitura acesa, e um clique passa para a próxima | 5 h 15 min |
 | 37 | 11 nov 23:44 | [#45](https://github.com/piabrota/room/pull/45) o respingo desenhava quadrados escuros no site no ar: os shaders da cratera, da ondulação e do jato faziam `pow()` de um número negativo, que o renderizador por software das capturas responde com boa vontade e o Direct3D e o Metal respondem com "não é um número"; assim a superfície da água, e tudo por onde o bloom e a oclusão espalham esse valor, fica preta durante o 1,4 s da cratera (mostrado aqui forçando o renderizador por software a responder igual; não visto numa GPU de verdade); os quadrados agora são produtos, e os termos de Fresnel e um alfa têm limite; `just peek --strict` desenha como uma GPU dessas e falha quando um pixel não é um número (519 no respingo antigo, nenhum agora), `just check` recusa `pow(x, 2.0)`, e a skill `room-shaders` tem a regra | 55 min |
+| 38 | 12 nov 20:35 | [#48](https://github.com/piabrota/room/pull/48) um quarto mais cheio e mais velho, feito pelo Fable 5.2 com três subagentes: uma poltrona, uma mesa baixa, um gaveteiro com um aparelho de som, um abajur de pé, um ventilador, um cabideiro, um ar-condicionado de janela e as coisas pequenas que alguém deixa pela casa; umidade, rachaduras, tinta amarelada e um piso gasto (`src/lived.js`); as fitas VHS com etiquetas no tamanho real e a faixa da conta do GitHub de cada uma, um hover que puxa a fita da pilha, as seis teclas do videocassete e o visor dele, e uma fita de índice para cada conta, h0ffmann, marola-dev e piabrota (`src/tapes/index.js`); o fax com o endereço como nome; o email da porta assina a newsletter no Substack, dito no formulário, e a página do Substack abre com o endereço preenchido para o visitante confirmar; um simulador de universos, o microfone dele e um mapa de mundos na parede, uma homenagem a The Midnight Gospel sem copiar nada da série (`src/simulator.js`); e treze livros do Goodreads do dono na estante | 2 h 20 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -438,6 +439,21 @@ observation of the splash itself. balloon respawn looks ok'
 ```
 
 "dark quara frames" foi lido como quadrados escuros nos quadros do respingo.
+
+**38.**
+
+```text
+user> '1. add more fornitures, make room more complex
+2. bring more realism, this should look like a old room, but no too antiquade
+3. Improve VHS Tapes, proportions, interactions, h0ffmann/marola-dev/piabrota indexing of projects
+4. Fax name should be mhoffmannfs@gmail.com
+5. Make sure everyone that puts the email in the puzzle subscribes to my substack
+6. Add a machine in or 2 objects to remember Midnight Ghospel, at least 1 board in the wall related to it.
+7. Add all books from my goodreads/piabrota to the shelf as well
+8. Use Fable 5.2 use subagents'
+```
+
+"Midnight Ghospel" foi lido como The Midnight Gospel, e "the puzzle" como a fechadura da porta, que pede um email. O Substack não tem um jeito público de assinar alguém, então a página de assinatura dele abre com o endereço preenchido. O Goodreads mostra a um robô 14 dos 24 livros: 13 estão na estante, e um já estava entre os ebooks.
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
