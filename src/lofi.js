@@ -45,7 +45,7 @@ export function renderLofi(root, config) {
     s.append(el('h3', 'works with a DOI'), links(config.works.map((w) => [w.title, `https://doi.org/${w.doi}`, `doi ${w.doi}`])));
     s.append(el('h3', config.papers.group), links(config.papers.list.map((p) => [p.title, `https://aixiv.online/abs/${p.aixiv}`, `aiXiv:${p.aixiv} · ${p.by}`])));
     s.append(el('h3', 'friends'), links([[config.sea.label, config.sea.url, config.sea.hint], [config.loop.label, config.loop.url, config.loop.hint]]));
-    s.append(el('h3', 'tapes'), links(config.tapes.map((t) => [t.label, null, t.text])));
+    s.append(el('h3', 'tapes'), links(config.tapes.map((t) => [t.label, t.index ? config.catalogue?.accounts[t.account]?.url ?? null : null, t.text])));
     s.append(el('h3', 'inspiration'), links(linkSpots('inspiration')));
     return s;
   };
@@ -54,8 +54,9 @@ export function renderLofi(root, config) {
   const subscribe = () => {
     const p = el('p', `${r.subscribe.line} `); p.append(out(r.subscribe.feedLabel, r.feed));
     const mail = config.hotspots.find((h) => h.name === 'fax');
-    const p2 = el('p', `${r.subscribe.mailLine} `); if (mail) p2.append(out(mail.hint, mail.value));
-    return section('subscribe', p, ...(mail ? [p2] : []));
+    const p2 = el('p', `${r.subscribe.mailLine} `); if (mail) p2.append(out(mail.label, mail.value));
+    const nl = r.subscribe.letter, p3 = el('p', `${r.subscribe.letterLine ?? ''} `); if (nl) p3.append(out(nl.handle, nl.subscribe));
+    return section('subscribe', p, ...(nl ? [p3] : []), ...(mail ? [p2] : []));
   };
   const credits = () => { const s = section('credits', ...(config.credits ? creditsNodes(config.credits, 'h3') : [])); s.classList.add('credits'); return s; };
   function footer() {

@@ -25,7 +25,7 @@ for (const [name, s] of shots) {
 if (!config.shots?.[config.startShot]) fail(4, `startShot "${config.startShot}" is not a shot`);
 
 // 5. Every hotspot has a label and a known action.
-const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits', 'splash']);
+const actions = new Set(['shot', 'link', 'sfx', 'toggleLamp', 'toggleRadio', 'playlist', 'door', 'cat', 'credits', 'splash', 'simulate']);
 const names = new Set();
 for (const h of config.hotspots ?? []) {
   if (names.has(h.name)) fail(5, `hotspot name "${h.name}" is used twice`);
@@ -50,6 +50,44 @@ for (const t of config.tapes ?? []) {
   for (const hook of ['input', 'stop']) {
     if (hook in (mod ?? {}) && typeof mod[hook] !== 'function') fail(6, `tape "${t.id}": ${hook} must be a function`);
   }
+}
+
+// 3, 5, 6. The tapes are a catalogue of the owner's GitHub accounts (config.catalogue): a tape's `account` is
+// one of them, an index tape lists its account's repositories, each a link to github.com, and the piles
+// name tapes that exist. The deck's keys (config.deck.keys) each do one known thing and say so on hover.
+{
+  const accounts = config.catalogue?.accounts ?? {}, hex = /^#[0-9a-f]{6}$/i;
+  for (const [key, a] of Object.entries(accounts)) {
+    if (!a.name || !/^https:\/\/github\.com\//.test(a.url ?? '') || !hex.test(a.color ?? '')) fail(3, `config.catalogue.accounts["${key}"] needs a name, its github.com address and a #rrggbb color`);
+    if (!a.repos) continue;
+    const rows = a.repos(), seen = new Set();
+    if (!rows.length) fail(6, `the index of ${key} lists no repository`);
+    for (const r of rows) {
+      if (!r.name || !String(r.url ?? '').startsWith(`https://github.com/${key}/`)) fail(3, `the index of ${key}: "${r.name}" needs a name and an address under https://github.com/${key}/`);
+      if (typeof r.line !== 'string') fail(3, `the index of ${key}: "${r.name}" needs a line (it may be empty)`);
+      if (seen.has(r.url)) fail(3, `the index of ${key} lists ${r.url} twice`);
+      seen.add(r.url);
+    }
+    if (!(config.tapes ?? []).some((t) => t.index && t.account === key)) fail(6, `config.catalogue.accounts["${key}"] has a list of repositories and no index tape`);
+  }
+  for (const t of config.tapes ?? []) {
+    if (t.account && !accounts[t.account]) fail(3, `tape "${t.id}" belongs to "${t.account}", which is not in config.catalogue.accounts`);
+    if (t.index && !accounts[t.account]?.repos) fail(6, `tape "${t.id}" is an index, and its account has no list of repositories`);
+  }
+  if (config.tapes?.some((t) => t.index)) for (const k of ['title', 'count', 'page', 'prev', 'next', 'open']) if (!config.catalogue?.words?.[k]) fail(3, `config.catalogue.words.${k} is missing: the index tapes say it`);
+  for (const id of (config.stack?.piles ?? []).flat()) if (!ids.has(id)) fail(6, `config.stack names the tape "${id}", which is not in config.tapes`);
+  const does = new Set(['eject', 'rew', 'play', 'ff', 'stop', 'rec']), keys = config.deck?.keys ?? [], used = new Set();
+  for (const k of keys) {
+    if (!does.has(k.id)) fail(5, `the deck's key "${k.id}" does nothing: one of ${[...does].join(', ')} (add it to src/app.js and here together)`);
+    if (!k.word || !k.label || !k.hint) fail(5, `the deck's key "${k.id}" needs a word (printed under it), a label and a hint (its hover card)`);
+    if (k.key != null && (!/^[a-z]$/.test(k.key) || used.has(k.key))) fail(5, `the deck's key "${k.id}": its keyboard key must be one lower-case letter, used once`);
+    used.add(k.key ?? k.id);
+  }
+  if (new Set(keys.map((k) => k.id)).size !== keys.length) fail(5, 'two keys of the deck do the same thing');
+  if (keys.length && !keys.some((k) => k.id === 'eject')) fail(5, 'the deck has no eject key');
+  const w = config.deck?.words;
+  for (const k of ['vcr', 'empty', 'slot', 'loading', 'inDeck', 'screen', 'idle', 'stopped', 'modes']) if (!w?.[k]) fail(3, `config.deck.words.${k} is missing: the deck and the TV say it`);
+  for (const k of ['load', 'play', 'stop', 'rew', 'ff', 'eject', 'rec']) if (!w?.modes?.[k]) fail(3, `config.deck.words.modes.${k} is missing: the deck's display shows it`);
 }
 
 const radioTracks = (config.radio?.stations ?? []).flatMap((s) => s.tracks);
@@ -146,6 +184,22 @@ if (config.hotspots.some((h) => h.action === 'splash')) {
   if (!(b?.radius > 0.02 && b.radius < 0.12) || !(b?.height > 0.1 && b.height < 0.7)) fail(3, 'config.sea.balloon: radius (0.02 to 0.12 m) and height over the water (0.1 to 0.7 m)');
   if (!(b?.drops <= 2000) || !(b?.liteDrops <= 500)) fail(9, 'config.sea.balloon: at most 2000 drops, and 500 on the phone\'s look');
   for (const k of ['pop', 'splash']) if (!config.sfx?.[k]) fail(7, `the water balloon plays config.sfx.${k}, which is missing`);
+}
+// 1, 3, 5, 7. The universe simulator, an homage to The Midnight Gospel: its worlds and words are in config.simulator,
+// the series and its makers are named on the chart, in the credits and in CREDITS.md, and its sounds are the room's.
+if (config.hotspots.some((h) => h.action === 'simulate')) {
+  const s = config.simulator, hex = (c) => /^#[0-9a-f]{6}$/i.test(c ?? '');
+  if (!s?.label || !s?.hint) fail(3, 'a hotspot runs the universe simulator, but config.simulator has no label and hint');
+  if (!(s?.worlds?.length >= 2 && s.worlds.length <= 8)) fail(3, 'config.simulator.worlds needs 2 to 8 worlds');
+  for (const w of s?.worlds ?? []) if (!w.name || !w.line || w.colors?.length !== 3 || !w.colors.every(hex)) fail(5, `config.simulator.worlds: "${w.name}" needs a name, a line for its hover and three #rrggbb colours`);
+  if (!config.sfx?.[s?.sfx]) fail(7, `the simulator plays config.sfx.${s?.sfx}, which is missing`);
+  const h = s?.homage, text = readFileSync(join(root, 'CREDITS.md'), 'utf8');
+  if (!h?.title || !h?.by || !/^https:\/\/[a-z]+\.wikipedia\.org\//.test(h?.url ?? '')) fail(1, 'config.simulator.homage needs the title of the series, its makers (by) and its page on Wikipedia (url)');
+  else {
+    if (!text.includes(h.title) || !text.includes(h.by)) fail(1, `CREDITS.md does not name ${h.title} and ${h.by}: the simulator is an homage`);
+    if (!config.credits?.sources?.some((r) => r.who.includes(h.title))) fail(1, `config.credits.sources has no row that names ${h.title}`);
+    if (!config.hotspots.some((x) => x.action === 'link' && x.value === h.url)) fail(1, 'no hotspot links to config.simulator.homage.url: the chart on the wall says what the corner remembers');
+  }
 }
 // the door's lock: a code of digits, one clue for each
 if (config.hotspots.some((h) => h.action === 'door')) {

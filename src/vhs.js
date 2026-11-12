@@ -11,7 +11,8 @@ import { FACES, FONT_TITLE, FONT_MONO } from './art.js';
 //   VHS cassette   187 × 103 × 25    the shell 186.2 × 102.4 × 24.6, edges rounded 1.6;
 //                                    the flap 187 × 25 × 5.5 along one long edge;
 //                                    two windows of 46 × 30, sunk 1.5, reel hubs 93 apart;
-//                                    top label 148 × 40, spine sticker 147 × 19.4
+//                                    face label 78 × 46.6 (3 1/16 × 1 5/6 in, the sticker sold for it),
+//                                    in the middle under the windows; spine sticker 147 × 19.4
 //   its sleeve     189–193.5 × 106 × 28   card, edges rounded 1.2, open at one short end
 //   VCR            430 × 90 × 300    feet 7, the cover 428 × 80 × 290, the fascia 430 × 83 × 14;
 //                                    the slot 192 × 32, its flap 191 × 31; the display 158 × 32;
@@ -19,10 +20,11 @@ import { FACES, FONT_TITLE, FONT_MONO } from './art.js';
 //   audio cassette 100 × 64 × 9      12 thick at the head (60 × 13.5); the window 28 × 12,
 //                                    spindle holes 42.5 apart
 //
-// Budgets: a cassette is one draw call (244 triangles), a sleeve one (100),
-// the VCR three (the body, the slot's flap, the LED; about 1 150 triangles),
-// the mixtape one (two with its clear case, on the full look only). Each
-// has one atlas, drawn on a canvas; the lite look draws them at half size.
+// Budgets: a cassette is one draw call (244 triangles), a sleeve one (100); a cassette at rest in
+// its sleeve is not drawn (the sleeve's mouth shows its end), so a tape in a sleeve is one draw
+// call until a hand is on it. The VCR is three (the body with its keys, the slot's flap, and what
+// is lit; about 1 150 triangles), the mixtape one (two with its clear case, on the full look only).
+// Each has one atlas, drawn on a canvas; the lite look draws them at half size.
 
 const M = 0.001; // metres in a millimetre
 const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -96,6 +98,18 @@ function grain(ctx, amount) { // fine red noise, added to a relief sheet: the gr
   }
   ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = amount; ctx.fillStyle = ctx.createPattern(_noise, 'repeat');
   ctx.fillRect(0, 0, 4096, 4096); ctx.restore();
+}
+// The band of a GitHub account ({ name, color, ink }, config.catalogue.accounts): its colour across
+// the end of a label or of a sleeve, and its name along it. The colour is what reads from the desk;
+// the name, from close by.
+function accountBand(c, acc, x, y, w, h, size) {
+  c.save(); c.globalAlpha = 1; c.shadowBlur = 0; c.fillStyle = acc.color; c.fillRect(x, y, w, h);
+  c.translate(x + w / 2, y + h / 2); if (h > w) c.rotate(-Math.PI / 2);
+  const long = Math.max(w, h) - 3;
+  c.font = `bold ${size}px ${FONT_MONO}`; const tw = c.measureText(acc.name).width;
+  if (tw > long) c.font = `bold ${size * long / tw}px ${FONT_MONO}`;
+  c.fillStyle = acc.ink ?? '#fff'; c.textBaseline = 'middle'; c.textAlign = 'center'; c.fillText(acc.name, 0, size * 0.05);
+  c.restore();
 }
 // A relief sheet holds three things in one texture: red is the height (the bump),
 // green the roughness, blue the metalness.
@@ -206,7 +220,7 @@ function shadowed(m) { m.castShadow = m.receiveShadow = true; return m; }
 const CAS = {
   w: 187, h: 25, d: 103,
   windows: [[24, 15, 46, 30], [117, 15, 46, 30]], hubs: [[47, 30.5], [140, 30.5]], // on the top, from the flap's left corner
-  label: [19.5, 54, 148, 40], sticker: [20, 2.8, 147, 19.4], lip: 5.5,
+  label: [54.5, 50.2, 78, 46.6], sticker: [20, 2.8, 147, 19.4], lip: 5.5,
   ribs: [[4.5, 16, 14, 28], [168.5, 16, 14, 28]],
   size: [1024, 1024],
   at: { py: [0, 0, 1024, 564], pz: [0, 572, 1024, 137], nz: [0, 716, 1024, 137], ny: [0, 860, 298, 164], px: [306, 860, 340, 82], nx: [306, 942, 340, 82] },
@@ -341,25 +355,30 @@ function paintShellRelief(ctx) {
 // What is written on a label: by hand (a marker, a typewriter) on a ruled
 // sticker, or printed, in the tape's own face and colours.
 function writing(c, x, y, w, h, look, rnd, big) {
-  const { text, face = 'marker', paper = '#f4efe4', ink = '#222', code } = look;
+  const { text, face = 'marker', paper = '#f4efe4', ink = '#222', code, account } = look;
   const byHand = face === 'marker' || face === 'typewriter', font = fontOf(face);
   c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip(); c.translate(x, y);
   c.fillStyle = paper; c.fillRect(0, 0, w, h);
   specks(c, w, h, w * h * 0.25, rnd, { light: 0.1, dark: 0.07, size: 0.4 });
   c.textBaseline = 'middle';
   if (byHand) {
-    const band = big ? 6 : 12; // a printed band, where the tape's length is
-    c.fillStyle = ink; c.globalAlpha = 0.85; if (big) c.fillRect(0, 0, w, band); else c.fillRect(0, 0, band, h); c.globalAlpha = 1;
-    if (code) {
-      c.fillStyle = paper; c.textAlign = 'center';
-      if (big) { c.font = `3.4px ${FONT_MONO}`; c.textAlign = 'left'; c.fillText(code, 3, band / 2 + 0.2); }
-      else { c.save(); c.translate(band / 2, h / 2); c.rotate(-Math.PI / 2); fit(c, code, h - 3, 3.6, FONT_MONO); c.fillText(code, 0, 0.3); c.restore(); }
+    const band = big ? 6 : 12; // a printed band: the account the tape belongs to, or else the tape's length
+    if (account) {
+      if (big) accountBand(c, account, 0, 0, w, band, 3.6); else accountBand(c, account, 0, 0, band, h, 4.2);
+      if (code) { c.fillStyle = big ? account.ink ?? paper : ink; c.globalAlpha = big ? 0.9 : 0.6; c.textAlign = 'right'; c.font = `${big ? 3 : 2.4}px ${FONT_MONO}`; c.fillText(code, w - 3, big ? band / 2 + 0.2 : 2.6); c.globalAlpha = 1; }
+    } else {
+      c.fillStyle = ink; c.globalAlpha = 0.85; if (big) c.fillRect(0, 0, w, band); else c.fillRect(0, 0, band, h); c.globalAlpha = 1;
+      if (code) {
+        c.fillStyle = paper; c.textAlign = 'center';
+        if (big) { c.font = `3.4px ${FONT_MONO}`; c.textAlign = 'left'; c.fillText(code, 3, band / 2 + 0.2); }
+        else { c.save(); c.translate(band / 2, h / 2); c.rotate(-Math.PI / 2); fit(c, code, h - 3, 3.6, FONT_MONO); c.fillText(code, 0, 0.3); c.restore(); }
+      }
     }
     c.strokeStyle = ink; c.globalAlpha = 0.3; c.lineWidth = 0.2;
-    const lines = big ? [18, 27, 36] : [h - 3.2];
+    const lines = big ? [h * 0.5, h * 0.7, h * 0.9] : [h - 3.2];
     for (const ly of lines) { c.beginPath(); c.moveTo(big ? 4 : band + 3, ly); c.lineTo(w - 4, ly); c.stroke(); }
     c.globalAlpha = 1;
-    const x0 = big ? 8 : band + 6, room = w - x0 - 8, size = big ? 12 : 12.5, base = big ? 12.5 + band / 2 + 5 : h / 2 - 0.4;
+    const x0 = big ? 6 : band + 6, room = w - x0 - (big ? 6 : 8), size = big ? 12 : 12.5, base = big ? band + (h * 0.5 - band) / 2 + 1 : h / 2 - 0.4;
     c.fillStyle = face === 'marker' ? ink : '#1d1d22'; c.textAlign = 'left';
     if (face === 'marker') {
       c.translate(x0, base); c.rotate(-0.012 - rnd() * 0.02);
@@ -370,9 +389,13 @@ function writing(c, x, y, w, h, look, rnd, big) {
       for (const ch of text) { c.globalAlpha = 0.62 + rnd() * 0.38; c.fillText(ch, cx + (rnd() - 0.5) * 0.12, base + (rnd() - 0.5) * s * 0.05); cx += c.measureText(ch).width; }
     }
   } else {
+    if (account) { // the printed label gives its end to the account's band
+      const band = big ? 6 : 12;
+      if (big) { accountBand(c, account, 0, 0, w, band, 3.6); c.translate(0, band); h -= band; } else { accountBand(c, account, 0, 0, band, h, 4.2); c.translate(band, 0); w -= band; }
+    }
     c.strokeStyle = ink; c.lineWidth = 0.35; c.globalAlpha = 0.7; c.strokeRect(1.4, 1.4, w - 2.8, h - 2.8); c.globalAlpha = 1;
     c.fillStyle = ink; c.textAlign = 'center';
-    const s = fit(c, text, w - (big ? 24 : 40), (big ? 17 : 12.5) * (face === 'pixel' ? 0.6 : face === 'neon' ? 0.92 : 1.15), font);
+    const s = fit(c, text, w - (big ? 12 : 40), (big ? 15 : 12.5) * (face === 'pixel' ? 0.6 : face === 'neon' ? 0.92 : 1.15), font);
     if (face === 'neon') { c.shadowColor = ink; c.shadowBlur = 6; }
     c.fillText(text, w / 2, h / 2 + s * 0.06 - (big ? 3 : 0)); c.shadowBlur = 0;
     if (code) { c.font = `${big ? 3.4 : 2.6}px ${FONT_MONO}`; c.globalAlpha = 0.75; if (big) c.fillText(code, w / 2, h - 7); else { c.textAlign = 'right'; c.fillText(code, w - 4, h - 3.6); } }
@@ -394,7 +417,7 @@ function cassetteRelief(k, anisotropy) {
   return _relief.get(k);
 }
 
-// One VHS cassette: `look` is what its labels say ({ text, face, paper, ink, code }),
+// One VHS cassette: `look` is what its labels say ({ text, face, paper, ink, code, account }),
 // `small` draws it at half size (a cassette that lives in a sleeve).
 export function buildCassette(look, { lite = false, anisotropy = 8, small = false, id = look.text } = {}) {
   const k = (lite ? 0.5 : 1) * (small ? 0.5 : 1), rb = cassetteRelief(lite ? 0.5 : 1, anisotropy);
@@ -412,13 +435,15 @@ const SLV = {
   at: { spine: [0, 0, 1024, 151], face: [0, 156, 640, 356], end: [648, 156, 320, 84], mouth: [648, 248, 320, 84] },
 };
 const _slvGeo = new Map();
-function sleeveGeometry(len, open) {
-  const key = `${len}:${open}`; if (_slvGeo.has(key)) return _slvGeo.get(key);
+// `plug` (mm) closes the mouth that far inside with a dark face: the end of the cassette that is in
+// it, so a cassette at rest in its sleeve is not drawn at all. Left out, the sleeve is empty to its end.
+function sleeveGeometry(len, open, plug) {
+  const key = `${len}:${open}:${plug ?? ''}`; if (_slvGeo.has(key)) return _slvGeo.get(key);
   const W = len * M, H = SLV.h * M, D = SLV.d * M, r = 1.2 * M, e = r * 0.2929, side = open > 0 ? 'px' : 'nx', box = boxOf(W, H, D), A = SLV.at;
   const rects = { pz: A.spine, nz: A.spine, py: A.face, ny: A.face, px: A.end, nx: A.end };
   const card = rbox(W, H, D, r, { open: [side] });
   // the inside: a tube of bare card as deep as the sleeve
-  const inside = plate(side, [-(D / 2 - e), -(H / 2 - e), D / 2 - e, H / 2 - e], W / 2 - e, [{ u0: -(D / 2 - e), v0: -(H / 2 - e), u1: D / 2 - e, v1: H / 2 - e, depth: W - 2.5 * M, inset: 0.3 * M }]);
+  const inside = plate(side, [-(D / 2 - e), -(H / 2 - e), D / 2 - e, H / 2 - e], W / 2 - e, [{ u0: -(D / 2 - e), v0: -(H / 2 - e), u1: D / 2 - e, v1: H / 2 - e, depth: plug != null ? plug * M : W - 2.5 * M, inset: 0.3 * M }]);
   const g = geometry([unwrap(card, rects, SLV.size, box), unwrap(inside, A.mouth, SLV.size, box, side)]);
   _slvGeo.set(key, g); return g;
 }
@@ -569,6 +594,35 @@ const STYLES = {
       c.fillStyle = bg; c.font = `3.8px ${FONT_MONO}`; c.fillText(d.sub ?? '', w / 2, h - 13); c.fillText(d.code ?? '', w / 2, h - 6.5);
     },
   },
+  // a volume of an index: the name large on a ledger's card, and a tab of the series' colour with its
+  // word (`tag`). The volumes of one series are meant to look alike: only the name and the colour change
+  index: {
+    spine(c, w, h, d) {
+      const [bg, ink, tab = ink] = d.colors, tw = 44, tag = (d.tag ?? '').toUpperCase();
+      c.fillStyle = bg; c.fillRect(0, 0, w, h);
+      c.fillStyle = ink; c.globalAlpha = 0.3; for (const y of [4.6, h - 4.6]) c.fillRect(6, y, w - tw - 12, 0.3); c.globalAlpha = 1;
+      c.textBaseline = 'middle'; c.textAlign = 'left';
+      const s = fit(c, d.title, w - tw - 20, 15, d.font); c.fillText(d.title, 8, h / 2 + s * 0.07);
+      c.fillStyle = tab; c.fillRect(w - tw, 0, tw, h);
+      c.fillStyle = bg; c.textAlign = 'center'; c.font = `bold 9.5px ${FONT_MONO}`; c.fillText(tag, w - tw / 2, h / 2 - 2.6);
+      c.font = `3.1px ${FONT_MONO}`; c.globalAlpha = 0.9; c.fillText(d.code ?? '', w - tw / 2, h - 6); c.globalAlpha = 1;
+    },
+    face(c, w, h, d) {
+      const [bg, ink, tab = ink] = d.colors, tag = (d.tag ?? '').toUpperCase();
+      c.fillStyle = bg; c.fillRect(0, 0, w, h);
+      c.fillStyle = tab; c.fillRect(0, 0, w, 24);
+      c.fillStyle = bg; c.textBaseline = 'middle'; c.textAlign = 'left'; c.font = `bold 15px ${FONT_MONO}`; c.fillText(tag, 9, 12.6);
+      c.textAlign = 'right'; c.font = `4.2px ${FONT_MONO}`; c.fillText(d.code ?? '', w - 9, 12.4);
+      c.fillStyle = ink; c.textAlign = 'left';
+      const s = fit(c, d.title, w - 20, 27, d.font); c.fillText(d.title, 9, 42 + s * 0.07);
+      c.font = `3.8px ${FONT_MONO}`; c.globalAlpha = 0.8; c.fillText(d.sub ?? '', 9.5, 60); c.globalAlpha = 1;
+      for (let i = 0; i < 5; i++) { // the ledger: numbered lines, as on the screen
+        const y = 70 + i * 7; c.globalAlpha = 0.3; c.fillRect(20, y + 2.6, w - 30, 0.3);
+        c.globalAlpha = 0.6; c.font = `3px ${FONT_MONO}`; c.fillText(String(i + 1).padStart(2, '0'), 10, y);
+      }
+      c.globalAlpha = 1;
+    },
+  },
   // an index card: typed small, ruled, with a row of colour tabs
   smalltype: {
     spine(c, w, h, d) {
@@ -595,24 +649,29 @@ const STYLES = {
     },
   },
 };
-function sleeveMap(def, k) {
+const BAND = 13; // mm of a sleeve's end that the account's band takes, on the spine and on the face
+function sleeveMap(def, k, acc) {
   const sl = def.sleeve, sp = def.spine ?? { text: def.label }, style = STYLES[sl.style] ?? STYLES.smalltype, rnd = rng(seedOf(def.id) + 7), A = SLV.at;
-  const d = { title: sp.text, sub: sl.sub, code: sp.code, font: fontOf(sl.face ?? sp.face), colors: sl.colors ?? [sp.paper ?? '#e9e4d8', sp.ink ?? '#222', sp.ink ?? '#222'], rnd };
+  const d = { title: sl.title ?? sp.text, tag: sl.tag, sub: sl.sub, code: sp.code, font: fontOf(sl.face ?? sp.face), colors: sl.colors ?? [sp.paper ?? '#e9e4d8', sp.ink ?? '#222', sp.ink ?? '#222'], rnd };
   const card = sl.card ?? '226,218,202', [c, ctx] = sheet(SLV.size, k);
   ctx.fillStyle = d.colors[0]; ctx.fillRect(0, 0, ...SLV.size);
   const finish = (cc, w, h, n) => { specks(cc, w, h, w * h * 0.12, rnd, { light: 0.06, dark: 0.07, size: 0.45 }); rim(cc, w, h); wear(cc, w, h, rnd, { color: card, n }); };
-  region(ctx, A.spine, SLV.w, SLV.h, (cc, w, h) => { cc.save(); cut(cc, w, h); style.spine(cc, w, h, d); cc.restore(); finish(cc, w, h, 1); });
-  region(ctx, A.face, SLV.w, SLV.d, (cc, w, h) => { cc.save(); cut(cc, w, h); style.face(cc, w, h, d); cc.restore(); finish(cc, w, h, 0.8); });
+  // the print keeps its layout and gives the left end to the band: it is set a little narrower
+  const printed = (cc, w, h, draw) => { cc.save(); cut(cc, w, h); if (acc) { cc.translate(BAND, 0); cc.scale((w - BAND) / w, 1); } draw(cc, w, h, d); cc.restore(); };
+  region(ctx, A.spine, SLV.w, SLV.h, (cc, w, h) => { printed(cc, w, h, style.spine); if (acc) accountBand(cc, acc, 0, 0, BAND, h, 5.4); finish(cc, w, h, 1); });
+  region(ctx, A.face, SLV.w, SLV.d, (cc, w, h) => { printed(cc, w, h, style.face); if (acc) accountBand(cc, acc, 0, 0, BAND, h, 6.4); finish(cc, w, h, 0.8); });
   region(ctx, A.end, SLV.d, SLV.h, (cc, w, h) => { // the closed end: the card's colour, the tape's length
     cc.fillStyle = d.colors[0]; cc.fillRect(-2, -2, w + 4, h + 4);
     cc.fillStyle = d.colors[1]; cc.fillRect(0, h - 5, w, 1.2);
-    cc.fillStyle = d.colors[2] ?? d.colors[1]; cc.textBaseline = 'middle'; cc.textAlign = 'center'; cc.font = `7px ${FONT_MONO}`; cc.fillText(sp.code ?? '', w / 2, h / 2 - 2);
+    cc.fillStyle = d.colors[2] ?? d.colors[1]; cc.textBaseline = 'middle'; cc.textAlign = 'center'; cc.font = `7px ${FONT_MONO}`; cc.fillText(sp.code ?? '', w / 2, h / 2 - (acc ? -2.5 : 2));
+    if (acc) accountBand(cc, acc, 0, 0, w, 8, 4.6);
     finish(cc, w, h, 1.2);
   });
   region(ctx, A.mouth, SLV.d, SLV.h, (cc, w, h) => { // the open end: bare card round the mouth, dark inside
     cc.fillStyle = '#2a2622'; cc.fillRect(-2, -2, w + 4, h + 4);
     cc.strokeStyle = '#8f8676'; cc.lineWidth = 1.6; cc.strokeRect(0, 0, w, h);
     cc.fillStyle = '#0c0b0a'; cc.fillRect(4, 3, w - 8, h - 6);
+    cc.fillStyle = 'rgba(255,255,255,0.05)'; cc.fillRect(4, h / 2, w - 8, 0.4); // the seam of the cassette's end, when it is in
   });
   return c;
 }
@@ -624,11 +683,14 @@ function cardGrain() { // the fibre of the card, a bump shared by every sleeve
   }
   return _card;
 }
-// One sleeve for the tape `def` (its `sleeve` and `spine`), `len` mm long, open toward +x or -x.
-export function buildSleeve(def, { lite = false, anisotropy = 8, len = SLV.w, open = -1 } = {}) {
+// One sleeve for the tape `def` (its `sleeve` and `spine`), `len` mm long, open toward +x or -x;
+// `account` ({ name, color, ink }) is the band across its left end. Its userData has two shapes to
+// wear: `full`, the empty sleeve, and `shut` (with `plug`, mm), its mouth closed by the cassette's end.
+export function buildSleeve(def, { lite = false, anisotropy = 8, len = SLV.w, open = -1, account, plug } = {}) {
   const gloss = def.sleeve.finish === 'gloss';
-  const mat = new THREE.MeshStandardMaterial({ map: texture(sleeveMap(def, lite ? 0.5 : 1), { anisotropy }), roughness: gloss ? 0.42 : 0.86, metalness: 0, bumpMap: cardGrain(), bumpScale: gloss ? 0.25 : 0.6 });
+  const mat = new THREE.MeshStandardMaterial({ map: texture(sleeveMap(def, lite ? 0.5 : 1, account), { anisotropy }), roughness: gloss ? 0.42 : 0.86, metalness: 0, bumpMap: cardGrain(), bumpScale: gloss ? 0.25 : 0.6 });
   const m = shadowed(new THREE.Mesh(sleeveGeometry(len, open), mat)); m.name = 'sleeve';
+  m.userData.full = m.geometry; m.userData.shut = plug != null ? sleeveGeometry(len, open, plug) : m.geometry;
   return m;
 }
 
@@ -645,12 +707,16 @@ export function buildSleeve(def, { lite = false, anisotropy = 8, len = SLV.w, op
 //   load(vcr, done)     the cassette leaves its sleeve (the sleeve stays in the pile), rises, flies to
 //                       the front of the VCR's slot and goes in; `done` when it is inside
 //   unload(done)        and back the same way
-// The group's userData.update(t) moves them with the room's clock.
+//   hover(on)           a hand on it: the tape slides a little out of its pile, toward the room, and
+//                       its cassette shows at the sleeve's mouth; and back when the hand leaves
+// The group's userData.update(t) moves them with the room's clock, and calls userData.onSettle
+// (when it is set) each time a tape comes to rest, for the shadows to be drawn again.
+// `accounts` is config.catalogue.accounts: a tape's `account` picks the band on its labels and sleeve.
 // `open` is the side each pile's sleeves open to (-1 is -x, 1 is +x), one number for all or one a
 // pile; left out, the first pile opens to -x and the last to +x, away from each other. A cassette
 // needs 0.21 m of free desk on that side to slide out. On its way it keeps above every pile it
 // crosses, and it reaches the slot from the front, so a shelf over the VCR is not in its way.
-export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8, open } = {}) {
+export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8, open, accounts = {} } = {}) {
   const g = new THREE.Group(); g.name = 'tapes';
   const byId = new Map(tapes.map((t) => [t.id, t]));
   const piles = (stack.piles ?? [[], []]).map((p) => p.filter((id) => byId.has(id)));
@@ -659,23 +725,28 @@ export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8
   const pitch = SLV.w * M + (stack.gap ?? 0.03), items = [], tops = [];
   const side = (pi) => (Array.isArray(open) ? open[pi] : open) ?? (pi === piles.length - 1 && pi > 0 ? 1 : -1);
   piles.forEach((ids, pi) => {
-    const pr = rng(seedOf(`pile${pi}`)), x0 = (pi - (piles.length - 1) / 2) * pitch, z0 = (pr() - 0.5) * 0.03, yaw0 = (pr() - 0.5) * 0.12, dir = side(pi);
+    const pr = rng(seedOf(`pile${pi}`)), x0 = (pi - (piles.length - 1) / 2) * pitch, z0 = (pr() - 0.5) * 0.02, yaw0 = (pr() - 0.5) * 0.07, dir = side(pi);
     let top = 0;
     ids.forEach((id, i) => {
       const def = byId.get(id), r = rng(seedOf(id)), bare = !def.sleeve, loose = bare && i === ids.length - 1 && i > 0;
-      const look = { text: def.label, ...def.spine };
+      const account = accounts[def.account], look = { text: def.label, ...def.spine, account };
       const tape = new THREE.Group(); tape.name = `tape_${id}`;
       const cas = buildCassette(look, { lite, anisotropy, small: !bare, id }); tape.add(cas);
       const len = SLV.w - 1 + Math.round(r() * 9) / 2;
       const back = (bare ? CAS.d : SLV.d) * M / 2; cas.position.z = -back; // the tape's origin is the middle of its spine: what the visitor sees, and clicks
-      if (!bare) { const sleeve = buildSleeve(def, { lite, anisotropy, len, open: dir }); sleeve.position.z = -back; tape.add(sleeve); cas.position.x = dir * ((len - CAS.w) / 2 - 0.4 - r() * 2.2) * M; } // its end at the sleeve's mouth, or a little inside
-      const cx = x0 + (r() - 0.5) * (loose ? 0.03 : 0.013), cz = z0 + (r() - 0.5) * 0.016 + (loose ? 0.004 + r() * 0.01 : 0);
-      const yaw = yaw0 + (r() - 0.5) * 0.15 + (loose ? (r() < 0.5 ? -1 : 1) * (0.1 + r() * 0.1) : 0);
+      // its end at the sleeve's mouth, or a little inside. At rest there the cassette is not drawn: the sleeve wears
+      // its shut shape, the cassette's end in its mouth (a draw call less for each tape in a sleeve)
+      let sleeve = null;
+      if (!bare) { const inset = 0.5 + Math.round(r() * 4) / 2; sleeve = buildSleeve(def, { lite, anisotropy, len, open: dir, account, plug: inset }); sleeve.position.z = -back; tape.add(sleeve); cas.position.x = dir * ((len - CAS.w) / 2 - inset) * M; }
+      const cx = x0 + (r() - 0.5) * (loose ? 0.022 : 0.012), cz = z0 + (r() - 0.5) * 0.012 + (loose ? 0.003 + r() * 0.008 : 0);
+      const yaw = yaw0 + (r() - 0.5) * 0.085 + (loose ? (r() < 0.5 ? -1 : 1) * (0.05 + r() * 0.06) : 0);
       tape.rotation.y = yaw; tape.position.set(cx + Math.sin(yaw) * back, 0, cz + Math.cos(yaw) * back);
       g.add(tape);
-      const it = { tape, cas, bare, pile: pi, thick: (bare ? CAS.h : SLV.h) * M, k: 0, to: 0, door: 0, done: null, vcr: null, cruise: 0,
+      const it = { tape, cas, sleeve, bare, pile: pi, thick: (bare ? CAS.h : SLV.h) * M, k: 0, to: 0, door: 0, done: null, vcr: null, cruise: 0,
+        h: 0, hTo: 0, yaw, x: tape.position.x, z: tape.position.z, twist: (r() < 0.5 ? -1 : 1) * 0.03,
         home: cas.position.clone(), out: new THREE.Vector3(), a: new THREE.Vector3(), b: new THREE.Vector3(), c: new THREE.Vector3(), m: new THREE.Matrix4(), q2: new THREE.Quaternion() };
       it.out.copy(it.home); if (bare) it.out.y += 0.03; else it.out.x += dir * (len + 12) * M;
+      if (sleeve) { cas.visible = false; sleeve.geometry = sleeve.userData.shut; }
       top += it.thick;
       tape.userData.cassette = cas;
       tape.userData.load = (vcr, done) => {
@@ -696,14 +767,23 @@ export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8
         if (still) it.k = 0.999;
       };
       tape.userData.unload = (done) => { it.to = 0; it.done = done; cas.visible = true; if (still) it.k = 0.001; };
+      tape.userData.hover = (on) => { it.hTo = on ? 1 : 0; };
       items.push(it);
     });
     tops.push(top);
   });
   const A = 0.2, B = 0.76, LOAD = 1.5; // the legs of the trip: out of the sleeve, across, in; and its seconds
+  const PULL = 0.032, PEEK = 0.13, HOVER = 0.16; // a hovered tape: metres out of the pile, how far its cassette shows (of the way out), seconds
   function pose(it) {
-    const { k, cas, a, b } = it;
-    if (k < A) { cas.position.lerpVectors(it.home, it.out, S(k / A)); cas.quaternion.identity(); }
+    const { k, cas, a, b, tape } = it, e = S(it.h);
+    if (it.sleeve) { const home = k === 0 && it.h === 0; cas.visible = !home && k < 1; it.sleeve.geometry = home ? it.sleeve.userData.shut : it.sleeve.userData.full; }
+    tape.position.x = it.x + Math.sin(it.yaw) * PULL * e; tape.position.z = it.z + Math.cos(it.yaw) * PULL * e; tape.rotation.y = it.yaw + it.twist * e;
+    if (k >= A && it.vcr) { // the tape may have moved under the hand since the trip began: the way is read again from where it is
+      tape.updateWorldMatrix(true, false);
+      it.m.copy(tape.matrixWorld).invert().multiply(it.vcr.matrixWorld); it.m.decompose(_v, it.q2, _s);
+      a.copy(it.out).applyMatrix4(tape.matrixWorld).applyMatrix4(_m.copy(it.vcr.matrixWorld).invert());
+    }
+    if (k < A) { cas.position.lerpVectors(it.home, it.out, Math.max(S(k / A), PEEK * e)); cas.quaternion.identity(); }
     else if (k < B) { // in the VCR's space: up and to the slot's depth first, then along its face and down to the slot
       const s = (k - A) / (B - A), sx = S(clamp((s - 0.15) / 0.85)), sz = S(clamp(s / 0.5));
       const y = s < 0.5 ? a.y + (it.cruise - a.y) * S(clamp(s / 0.4)) : it.cruise + (b.y - it.cruise) * S(clamp((s - 0.55) / 0.45));
@@ -722,13 +802,19 @@ export function buildTapeStack(tapes, stack = {}, { lite = false, anisotropy = 8
   g.userData.update = (t) => {
     const dt = last == null ? 0 : clamp(t - last, 0, 0.1); last = t;
     let moved = false, door = 0, vcr = null;
+    let rest = false;
     for (const it of items) {
-      if (it.k === it.to) continue;
-      it.k = it.to > it.k ? Math.min(1, it.k + dt / LOAD) : Math.max(0, it.k - dt / LOAD);
-      pose(it); moved = true; door = Math.max(door, it.door); vcr = it.vcr;
+      const flying = it.k !== it.to, handled = it.h !== it.hTo;
+      if (!flying && !handled) continue;
+      if (handled) { it.h = still ? it.hTo : it.hTo > it.h ? Math.min(1, it.h + dt / HOVER) : Math.max(0, it.h - dt / HOVER); if (it.h === it.hTo) rest = true; }
+      if (flying) it.k = it.to > it.k ? Math.min(1, it.k + dt / LOAD) : Math.max(0, it.k - dt / LOAD);
+      pose(it); moved = true;
+      if (!flying) continue;
+      door = Math.max(door, it.door); vcr = it.vcr;
       if (it.k === it.to) { if (it.k === 1) it.cas.visible = false; const done = it.done; it.done = null; done?.(); }
     }
     if (moved) { settle(); vcr?.userData.setDoor?.(door); }
+    if (rest) g.userData.onSettle?.();
   };
   return g;
 }
@@ -763,11 +849,19 @@ function digits(c, text, x, y, w, h, t, ghost) { // a seven-segment clock
   }
 }
 const GLOW = '#8dffe0'; // the display's phosphor
-function lit(c, deck, ghost) { // what is lit behind the display's glass
+// What is lit behind the display's glass. With nothing in the deck: the clock, the first of the
+// deck's words and a low level. While a tape is handled (`state`: { mode, name, digits }): the
+// counter in the clock's place, what the deck is doing, and the tape's name under it.
+function lit(c, deck, ghost, state) {
   const [dx, dy, dw, dh] = VCR.display;
   c.fillStyle = ghost ? 'rgba(120,200,180,0.07)' : GLOW;
-  digits(c, deck.clock ?? '', dx + 14, dy + 7.5, 10.5, 17, 1.9, ghost);
+  digits(c, state?.digits ?? deck.clock ?? '', dx + 14, dy + 7.5, 10.5, 17, 1.9, ghost);
   c.textBaseline = 'middle'; c.textAlign = 'left'; c.font = `4.2px ${FONT_MONO}`;
+  if (state && !ghost) {
+    c.font = `bold 6px ${FONT_MONO}`; c.fillText(state.mode ?? '', dx + 84, dy + 10.5);
+    fit(c, state.name ?? '', dw - 84 - 5, 5, FONT_MONO); c.fillText(state.name ?? '', dx + 84, dy + 22.5);
+    return;
+  }
   (deck.lit ?? []).forEach((word, i) => { if (ghost || i === 0) c.fillText(word, dx + 92, dy + 10 + i * 6.4); });
   for (let i = 0; i < 9; i++) if (ghost || i < 3) c.fillRect(dx + 118 + i * 3.6, dy + dh - 9 - i * 1.4, 2.4, 3 + i * 1.4); // a level, low
 }
@@ -785,8 +879,7 @@ function paintVCR(ctx, deck) {
     c.strokeStyle = 'rgba(255,255,255,0.09)'; c.lineWidth = 0.3; c.strokeRect(sx - 1.6, sy - 1.6, sw + 3.2, sh + 3.2);
     const [dx, dy, dw, dh] = VCR.display; c.fillStyle = '#030405'; c.fillRect(dx, dy, dw, dh);                       // the display's smoked glass
     c.strokeStyle = 'rgba(255,255,255,0.08)'; c.strokeRect(dx - 1, dy - 1, dw + 2, dh + 2);
-    lit(c, deck, true);
-    c.save(); c.globalAlpha = 0.5; lit(c, deck, false); c.restore(); // unlit, the segments that are on show a little; their light is the `vcr_led` mesh
+    lit(c, deck, true); // unlit, every segment shows a little; what is on is the light of the `vcr_led` mesh
     const sheen = c.createLinearGradient(dx, dy, dx + dw, dy + dh); sheen.addColorStop(0.3, 'rgba(255,255,255,0)'); sheen.addColorStop(0.45, 'rgba(255,255,255,0.05)'); sheen.addColorStop(0.6, 'rgba(255,255,255,0)');
     c.fillStyle = sheen; c.fillRect(dx, dy, dw, dh);
     c.fillStyle = '#c9c9d0'; c.textBaseline = 'middle'; c.textAlign = 'left';                                        // the brand plate
@@ -794,9 +887,9 @@ function paintVCR(ctx, deck) {
     c.fillStyle = '#8d8d96'; c.font = `3px ${FONT_MONO}`; c.fillText(deck.model ?? '', bx + 5, 65); c.fillText(deck.badge ?? '', bx + 5, 70.2);
     c.textAlign = 'right'; c.fillText(deck.line ?? '', sx + sw, 67.6);
     const K = VCR.keys; c.textAlign = 'center'; c.font = `2.5px ${FONT_MONO}`;
-    (deck.keys ?? []).forEach((word, i) => {
+    (deck.keys ?? []).forEach((key, i) => {
       const kx = K.x + i * K.pitch; c.fillStyle = '#050506'; c.fillRect(kx - 0.5, K.y - 0.5, K.w + 1, K.h + 1);       // the key's seat
-      c.fillStyle = i === (deck.keys.length - 1) ? '#d05a4a' : '#9a9aa4'; c.fillText(word, kx + K.w / 2, K.y + K.h + 4.6);
+      c.fillStyle = (key.id ? key.id === 'rec' : i === deck.keys.length - 1) ? '#d05a4a' : '#9a9aa4'; c.fillText(key.word ?? key, kx + K.w / 2, K.y + K.h + 4.6);
     });
     const [lx, ly] = VCR.led; c.fillStyle = '#050506'; c.beginPath(); c.arc(lx, ly, 2.6, 0, 7); c.fill();
     c.fillStyle = '#8d8d96'; c.font = `2.3px ${FONT_MONO}`; c.fillText(deck.led ?? '', lx, ly + 6.5);
@@ -852,7 +945,14 @@ function paintVCRRelief(ctx) {
 //   size        [width, height, depth] in metres, feet included
 //   slot        the middle of the slot's mouth, in the group's space
 //   setDoor(k)  the flap: 0 shut, 1 tilted in
-//   update(t)   the clock that nobody set, blinking with the room's clock
+//   keys        the middle of each key's face, in the group's space, from the left
+//   keyAt(p)    which key a point of the room is on (its place in deck.keys), or -1: a key answers
+//               for the whole strip of the fascia around it, so a finger finds it
+//   press(i)    the key goes in and comes back; the keys are part of the body, so it is the body's
+//               own vertices that move, and no draw call is added
+//   show(state) the display: null is the clock that nobody set; { mode, name, digits } while a tape
+//               is handled (the counter as 'mm:ss'). Drawn again only when it changes
+//   update(t)   the clock blinking and the keys moving, with the room's clock
 export function buildVCR(deck = {}, { lite = false, anisotropy = 8 } = {}) {
   const k = lite ? 0.5 : 1, A = VCR.at, size = VCR.size;
   const W = VCR.w * M, D = VCR.d * M, foot = VCR.foot * M, FH = VCR.fh * M, FD = VCR.fd * M, yc = foot + FH / 2, zf = D / 2;
@@ -869,7 +969,12 @@ export function buildVCR(deck = {}, { lite = false, anisotropy = 8 } = {}) {
   for (const p of fascia) shift(p, 0, yc, zf - FD / 2);
   // the keys, and the feet
   const K = VCR.keys, kb = boxOf(K.w * M, K.h * M, 4.4 * M), parts = [cover, ...fascia];
-  for (let i = 0; i < (deck.keys?.length ?? 6); i++) parts.push(shift(unwrap(rbox(K.w * M, K.h * M, 4.4 * M, 1 * M, { open: ['nz'] }), A.key, size, kb), (K.x + i * K.pitch + K.w / 2) * M - W / 2, foot + FH - (K.y + K.h / 2) * M, zf));
+  const nKeys = deck.keys?.length ?? 6, keyAt0 = parts.reduce((n, x) => n + x.p.length, 0), keyPos = [];
+  for (let i = 0; i < nKeys; i++) {
+    keyPos.push(new THREE.Vector3((K.x + i * K.pitch + K.w / 2) * M - W / 2, foot + FH - (K.y + K.h / 2) * M, zf + 2.2 * M));
+    parts.push(shift(unwrap(rbox(K.w * M, K.h * M, 4.4 * M, 1 * M, { open: ['nz'] }), A.key, size, kb), keyPos[i].x, keyPos[i].y, zf));
+  }
+  const keyLen = (parts.reduce((n, x) => n + x.p.length, 0) - keyAt0) / nKeys; // floats of one key in the body's positions
   const fg = new THREE.CylinderGeometry(15 * M, 13 * M, foot, 10, 1), fbx = boxOf(30 * M, foot, 30 * M);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) parts.push(shift(unwrap(fromGeometry(fg), A.foot, size, fbx), sx * 180 * M, foot / 2, sz * 118 * M));
   fg.dispose();
@@ -885,22 +990,48 @@ export function buildVCR(deck = {}, { lite = false, anisotropy = 8 } = {}) {
   // what is lit: the clock and the power LED, two small quads of light added over the fascia
   const [dx, dy, dwd, dhd] = VCR.display, [lx, ly] = VCR.led, L = [dx, dy, lx + 5 - dx, dhd], px = 4 * k; // the strip of the fascia they are drawn on, mm
   const [lc, lctx] = sheet([L[2] * px, L[3] * px]);
-  lctx.fillStyle = '#000'; lctx.fillRect(0, 0, L[2] * px, L[3] * px); lctx.scale(px, px); lctx.translate(-dx, -dy); lit(lctx, deck, false);
-  const halo = lctx.createRadialGradient(lx, ly, 0, lx, ly, 3.4); halo.addColorStop(0, '#ffb8a8'); halo.addColorStop(0.35, '#ff3b2f'); halo.addColorStop(0.6, '#7a1108'); halo.addColorStop(1, '#000');
-  lctx.fillStyle = halo; lctx.fillRect(lx - 4, ly - 4, 8, 8);
+  const drawLit = (state) => {
+    lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.fillStyle = '#000'; lctx.fillRect(0, 0, lc.width, lc.height); lctx.scale(px, px); lctx.translate(-dx, -dy); lit(lctx, deck, false, state);
+    const halo = lctx.createRadialGradient(lx, ly, 0, lx, ly, 3.4); halo.addColorStop(0, '#ffb8a8'); halo.addColorStop(0.35, '#ff3b2f'); halo.addColorStop(0.6, '#7a1108'); halo.addColorStop(1, '#000');
+    lctx.fillStyle = halo; lctx.fillRect(lx - 4, ly - 4, 8, 8);
+  };
+  drawLit(null);
   const lg = new THREE.BufferGeometry(), P = [], U = [], C = [], zl = zf + 0.2 * M;
   for (const [x0, y0, x1, y1, c] of [[dx + 1, dy + 1, dx + dwd - 1, dy + dhd - 1, 2.2], [lx - 4, ly - 4, lx + 4, ly + 4, 1.5]]) {
     for (const [x, y] of [[x0, y1], [x1, y1], [x1, y0], [x0, y1], [x1, y0], [x0, y0]]) { P.push(x * M - W / 2, foot + FH - y * M, zl); U.push((x - L[0]) / L[2], 1 - (y - L[1]) / L[3]); C.push(c, c, c); }
   }
   lg.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); lg.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); lg.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
-  const led = new THREE.Mesh(lg, new THREE.MeshBasicMaterial({ map: texture(lc, { anisotropy }), vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+  const ledMap = texture(lc, { anisotropy });
+  const led = new THREE.Mesh(lg, new THREE.MeshBasicMaterial({ map: ledMap, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
   led.name = 'vcr_led'; g.add(led);
   g.userData.size = [W, VCR.h * M, D];
   g.userData.slot = new THREE.Vector3((sx + sw / 2) * M - W / 2, foot + FH - (sy + sh / 2) * M - 1.5 * M, zf);
   g.userData.setDoor = (o) => { door.rotation.x = clamp(o) * 1.5; };
-  let shown = null;
-  g.userData.update = (t) => { // 12:00, 12:00, 12:00
-    const on = still || t % 1.2 < 0.75; if (on === shown) return; shown = on;
+  g.userData.keys = keyPos;
+  g.userData.keyAt = (point) => {
+    const p = g.worldToLocal(_v.copy(point)), x = (p.x + W / 2) / M, y = (foot + FH - p.y) / M;
+    if (p.z < zf - 3 * M || y < VCR.groove + 1.5 || y > VCR.fh) return -1;
+    const i = Math.floor((x - K.x + (K.pitch - K.w) / 2) / K.pitch);
+    return i >= 0 && i < nKeys ? i : -1;
+  };
+  const pos = body.geometry.attributes.position, rest = pos.array.slice(keyAt0, keyAt0 + nKeys * keyLen);
+  const key = Array.from({ length: nKeys }, () => ({ in: 0, until: -1, ask: false }));
+  g.userData.press = (i) => { if (key[i]) key[i].ask = true; };
+  let shown = null, lastState = '', active = false, lastT = null;
+  g.userData.show = (state) => {
+    const id = state ? `${state.mode}|${state.name}|${state.digits}` : ''; if (id === lastState) return; lastState = id;
+    active = !!state; drawLit(state); ledMap.needsUpdate = true; shown = null;
+  };
+  g.userData.update = (t) => { // 12:00, 12:00, 12:00; a counter does not blink
+    const dt = lastT == null ? 0 : clamp(t - lastT, 0, 0.1); lastT = t;
+    key.forEach((k, i) => {
+      if (k.ask) { k.ask = false; k.until = t + 0.14; }
+      const to = t < k.until ? 1 : 0; if (k.in === to) return;
+      k.in = still ? to : to > k.in ? Math.min(1, k.in + dt / 0.05) : Math.max(0, k.in - dt / 0.09);
+      for (let j = 2; j < keyLen; j += 3) pos.array[keyAt0 + i * keyLen + j] = rest[i * keyLen + j] - k.in * 1.7 * M;
+      pos.needsUpdate = true;
+    });
+    const on = still || active || t % 1.2 < 0.75; if (on === shown) return; shown = on;
     const col = lg.attributes.color; for (let i = 0; i < 6; i++) col.setXYZ(i, on ? 2.2 : 0.12, on ? 2.2 : 0.12, on ? 2.2 : 0.12); col.needsUpdate = true;
   };
   return g;

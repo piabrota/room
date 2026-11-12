@@ -23,7 +23,12 @@
     {"id": "cardboard_box_01", "ratio": 0.2, "liteRatio": 0.08, "px": 512, "litePx": 256},
     {"id": "side_table_tall_01", "ratio": 0.6, "liteRatio": 0.25, "px": 512, "litePx": 256},
     {"id": "alarm_clock_01", "ratio": 0.4, "liteRatio": 0.15, "px": 512, "litePx": 256},
-    {"id": "ceramic_vase_01", "liteRatio": 0.4, "px": 512, "litePx": 256}
+    {"id": "ceramic_vase_01", "liteRatio": 0.4, "px": 512, "litePx": 256},
+    {"id": "modern_arm_chair_01", "ratio": 0.7, "liteRatio": 0.3},
+    {"id": "small_wooden_table_01", "liteRatio": 0.5, "px": 512, "litePx": 256},
+    {"id": "vintage_wooden_drawer_01", "liteRatio": 0.5},
+    {"id": "plastic_thermos", "ratio": 0.6, "liteRatio": 0.25, "px": 512, "litePx": 256},
+    {"id": "fishermans_hat", "ratio": 0.3, "liteRatio": 0.1, "px": 512, "litePx": 256}
   ],
   "textures": [
     {"id": "herringbone_parquet", "use": "the floor"},

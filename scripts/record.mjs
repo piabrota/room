@@ -66,6 +66,8 @@ page.on('pageerror', (e) => errors.push(e.message));
 await page.addInitScript(() => { const real = performance.now.bind(performance); performance.now = () => window.__fakeNow ?? real(); });
 // the door's email gate posts to the room's own server, which `vite preview` does not run: answer it here
 await page.route('**/live/door', (r) => r.fulfill({ status: 204 }));
+// the gate then opens the newsletter's subscribe page in a new tab: no recording reaches that site
+await page.context().route(/substack\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '' }));
 await page.goto(`${url}?hifi&night&record`); // the same light on every run; no ambient occlusion
 await page.waitForSelector('#loading.done', { timeout: 120000 });
 // the furniture that is files: in software the room opens before the last piece has arrived, so wait for it
@@ -119,6 +121,12 @@ const at = (name, dy = 0) => page.evaluate(([n, d]) => {
   v.y += d; v.project(window.__room.camera);
   return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight];
 }, [name, dy]);
+// the screen position of one of the VCR's keys, by what it does (config.deck.keys); null in a room whose VCR has none
+const deckKey = (id) => page.evaluate((k) => {
+  const r = window.__room, i = (r.config?.deck?.keys ?? []).findIndex((d) => d.id === k), at = r.room.vcr?.userData.keys?.[i]; if (!at) return null;
+  const v = r.room.vcr.localToWorld(at.clone()).project(r.camera);
+  return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight];
+}, id);
 const button = async (shot) => {
   const b = await page.locator(`#shots button[data-shot="${shot}"]`).boundingBox();
   return [b.x + b.width / 2, b.y + b.height / 2];
@@ -240,8 +248,9 @@ async function wall(fn, seconds = 5.5) { const from = n; await fn(); await wait(
 await wall(async () => {                                                        // the back wall
   await moveTo(...(await at('sign')), 0.8); await wait(0.6);                    // hover the sign
   await moveTo(...(await button('desk')), 0.6); await click(); await land();    // a shot button: the desk
-  await moveTo(...(await at('tape_csound')), 0.5); await click(); await wait(1.6); // the Csound tape into the VCR: a lofi piece and its code
-  await moveTo(...(await at('screen')), 0.5); await wait(1.2);                  // over the TV while it plays
+  await moveTo(...(await at('tape_csound')), 0.5); await wait(0.3); await click(); await wait(1.6); // the Csound tape slides out under the pointer, then into the VCR: a lofi piece and its code
+  await moveTo(...(await at('screen')), 0.5); await wait(0.9);                  // over the TV while it plays
+  if (await deckKey('ff')) { await moveTo(...(await deckKey('ff')), 0.4); await click(); await wait(0.5); } // the deck's FF key: the next piece
   await moveTo(...(await at('fax', 0.22)), 0.5); await wait(0.5);               // the fax: the address
   await moveTo(...(await at('fax_linkedin')), 0.4); await wait(0.5);            // and its LinkedIn button
   await moveTo(...(await at('lamp_bulb')), 0.5); await click(); await wait(0.4); await click(); // the lamp, off and on

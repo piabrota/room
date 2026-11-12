@@ -6,7 +6,9 @@
 // The gate (config.door.gate): the keypad shows only to a visitor who has left an email. The form
 // posts it as JSON to `gate.endpoint` (scripts/listeners.mjs keeps it on the room's own host); a
 // 2xx answer opens the keypad, and this browser remembers it (localStorage), so the form is asked
-// once. Anything else keeps the door locked and says so. Without a `gate`, the keypad shows at once.
+// once. With `gate.subscribe` the email also subscribes the visitor to the owner's newsletter, and
+// the form's words say so (config): its subscribe page opens in a new tab with the address filled
+// in, for the visitor to confirm there, and a link to it stays over the keypad. Anything else keeps the door locked and says so. Without a `gate`, the keypad shows at once.
 
 const PASSED = 'room:door-gate';
 const passed = { get() { try { return localStorage.getItem(PASSED) === 'yes'; } catch { return false; } }, set() { try { localStorage.setItem(PASSED, 'yes'); } catch { /* private mode: asked again next visit */ } } };
@@ -47,14 +49,24 @@ export function createLock(root, cfg, { gate = null, onSolve = () => {}, onPress
       const email = input.value.trim();
       if (!input.checkValidity() || !email) { said.textContent = gate.invalid; return; }
       send.disabled = true; said.textContent = gate.sending;
+      // the newsletter's page, with the address filled in: its tab is opened here, on the click (a
+      // browser blocks one opened after the answer), blank until the room's server has kept the address
+      let tab = null;
+      if (letter) try { tab = window.open('', '_blank'); if (tab) tab.opener = null; } catch { /* blocked: the link under the clues stays */ }
       try {
-        const r = await fetch(gate.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email }) });
+        const r = await fetch(gate.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, newsletter: !!gate.subscribe }) });
         if (!r.ok) throw new Error(String(r.status));
         passed.set(); said.textContent = ''; showGame();
-      } catch { said.textContent = gate.failed; }
+        if (letter) { confirm.href = letter(email); confirm.hidden = false; tab?.location.replace(confirm.href); }
+      } catch { said.textContent = gate.failed; tab?.close(); }
       finally { send.disabled = false; }
     };
   }
+  // the newsletter the gate subscribes to (gate.subscribe): its page for this address, and the link
+  // to it that stays over the keypad
+  const letter = gate?.subscribe ? (email) => `${gate.subscribe}?email=${encodeURIComponent(email)}` : null;
+  const confirm = el('a', gate?.confirm ?? '', 'confirm'); Object.assign(confirm, { target: '_blank', rel: 'noopener', hidden: true });
+  game.prepend(confirm);
   root.append(head, form, game);
   const showGame = () => { form.hidden = true; game.hidden = false; };
   const showGate = () => { form.hidden = false; game.hidden = true; form.querySelector('input')?.focus(); };

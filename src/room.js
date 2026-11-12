@@ -3,15 +3,18 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles, stack as tapeStack, deck } from './config.js';
+import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles, stack as tapeStack, deck, catalogue } from './config.js';
 import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
 import { ROOM, WIN, SILL, buildShell, woodBox, contactShadows } from './shell.js';
 import { createFurniture } from './furniture.js';
 import { creditsPlate } from './credits.js';
+import { buildSimulator } from './simulator.js';
 import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, plasticArt, paperArt, folderArt } from './art.js';
 import { buildTapeStack, buildVCR, buildMixtape } from './vhs.js';
+import { lived } from './config.js';
+import { buildLived } from './lived.js';
 
 // Photographed surfaces (Poly Haven, CC0; CREDITS.md): colour, normal and roughness, or only
 // some of them (`maps`). The small files (a phone, a small screen, a slow line) are the colour alone, at 512 px.
@@ -76,10 +79,14 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
   const hang = new THREE.PointLight(0xffc48a, 0, 7.5, 1.5);
   const chandelier = find('chandelier');
   if (chandelier) { hang.position.copy(chandelier.getWorldPosition(v)).y -= 0.52; scene.add(hang); }
+  // the standing lamp by the sofa (src/lived.js): its shade glows in the evening, and on the laptop's look it lights its corner
+  const stand = new THREE.PointLight(0xffb878, 0, 3.2, 2);
+  const shade = find('stand_shade');
+  if (shade && !lite) { stand.position.copy(shade.getWorldPosition(v)).y -= 0.04; scene.add(stand); }
   // The walls are light, so the night is made of lamps, not of a sky that fills the room: a little
   // blue from the window, the hanging lamp dim, the desk lamp's pool on the desk.
-  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.45, hang: 2.4, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
-  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 1.5], moon: 0, sun: 4.2, neon: 0.5, lamp: 0.35, hang: 0, env: 0.4, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
+  const NIGHT = { sky: [0x46578c, 0x15100c, 0.24], moon: 0.3, sun: 0, neon: 1.1, lamp: 0.45, hang: 2.4, stand: 0.22, env: Math.min(scene.environmentIntensity ?? 0.12, 0.12), bg: scene.background?.clone(), fog: scene.fog?.color.clone() };
+  const DAY = { sky: [0xdbe8f7, 0x8a6e52, 1.5], moon: 0, sun: 4.2, neon: 0.5, lamp: 0.35, hang: 0, stand: 0, env: 0.4, bg: new THREE.Color('#a9c3dc'), fog: new THREE.Color('#9fb3c6') };
   const dust = buildDust(quality.dust); scene.add(dust);
   let day = false;
   function setDay(on) {
@@ -88,6 +95,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     sky.color.set(m.sky[0]); sky.groundColor.set(m.sky[1]); sky.intensity = m.sky[2];
     moon.intensity = m.moon; sun.intensity = m.sun; neon.intensity = m.neon; hang.intensity = m.hang;
     if (root.userData.hangGlow) root.userData.hangGlow.emissiveIntensity = m.hang ? 1.6 : 0;
+    stand.intensity = m.stand; if (root.userData.standGlow) root.userData.standGlow.emissiveIntensity = m.stand ? 0.5 : 0;
     // a lamp in daylight adds little; at full power, 0.35 m from the fax's page, it burns it white
     lamp.userData.full = lampFull * m.lamp; if (lamp.intensity) lamp.intensity = lamp.userData.full;
     scene.environmentIntensity = m.env;
@@ -253,9 +261,10 @@ function placeholderRoom() {
   // the video recorder in the riser's slot, at its real size, its slot and its clock toward the room (src/vhs.js)
   const vcr = buildVCR(deck, { lite, anisotropy }); vcr.position.set(TV.x, top, TV.z + 0.108); g.add(vcr); animated.push(vcr.userData.update);
 
-  // the tapes: two piles on the desk beside it, most in their card sleeves (src/vhs.js). Each pile's
-  // sleeves open away from the other, and a cassette needs 0.21 m of free desk there to slide out.
-  const pile = buildTapeStack(tapes, tapeStack, { lite, anisotropy }); pile.position.set(0.8, top, -1.3); g.add(pile); animated.push(pile.userData.update);
+  // the tapes: two piles on the desk beside it, most in their card sleeves (src/vhs.js), each with the band of
+  // its GitHub account. Each pile's sleeves open away from the other, and a cassette needs 0.21 m of free desk
+  // there to slide out. The piles are turned a little toward the chair, so the spines read from the desk shot.
+  const pile = buildTapeStack(tapes, tapeStack, { lite, anisotropy, accounts: catalogue?.accounts }); pile.position.set(0.82, top, -1.27); pile.rotation.y = -0.2; g.add(pile); animated.push(pile.userData.update);
 
   // the desk lamp: an architect's lamp clamped to the back of the desk, its shade over the papers
   // (the file's own origin is the middle of its footprint: the clamp is 0.3 behind it, the bulb 0.18 before it and 0.69 up)
@@ -488,7 +497,7 @@ function placeholderRoom() {
   });
   // under them, "how I read" (config.reads): ten ebooks as spines in their covers' colours, each
   // one draw call: its box's other faces read the corner of its spine, the cover's colour
-  let rx = sx - 0.52;
+  let rx = sx - 0.52, lyingH = 0;
   art('read').forEach((h, i) => {
     const hgt = 0.215 + ((i * 29) % 5) * 0.008, th = 0.03 + ((i * 7) % 3) * 0.005;
     const geo = new THREE.BoxGeometry(th, hgt, 0.17), uv = geo.attributes.uv;
@@ -503,8 +512,26 @@ function placeholderRoom() {
   for (let i = 0; i < 14; i++) box([0.005, 0.24, 0.3], [sx - 0.5 + i * 0.016 + (i % 4) * 0.002, levels[1] + 0.12, sz + 0.01], i % 3 ? '#1b1b1b' : '#3a2d2a'); // records, on edge
   const card = (size, pos, color) => part(new RoundedBoxGeometry(...size, 2, 0.008), pos, color, { opts: { roughness: 0.92 } }); // a card box: square, its corners a little worn
   card([0.34, 0.2, 0.26], [sx + 0.3, levels[1] + 0.1, sz], '#7a6448'); card([0.335, 0.02, 0.255], [sx + 0.3, levels[1] + 0.205, sz], '#6b563d');
-  card([0.3, 0.2, 0.26], [sx - 0.3, levels[2] + 0.1, sz], '#5c4a36');
-  card([0.42, 0.11, 0.25], [sx + 0.2, levels[2] + 0.055, sz], '#2f3a4a'); card([0.4, 0.07, 0.24], [sx + 0.19, levels[2] + 0.145, sz + 0.005], '#7c2a22');
+  // one shelf down, "what I read" (config.goodreads): the books of the owner's Goodreads, paper
+  // books of many sizes, the ones he is reading lying on the pile at the end. One draw call each,
+  // like the reads; a card box closes the row
+  let gx = sx - 0.53, lying = 0;
+  art('gread').forEach((h, i) => {
+    const reading = /reading/.test(h.hint) && lying < 2;
+    const hgt = 0.2 + ((i * 31) % 6) * 0.011, th = 0.026 + ((i * 11) % 4) * 0.006, dp = 0.14 + ((i * 5) % 3) * 0.012;
+    const geo = new THREE.BoxGeometry(th, hgt, dp), uv = geo.attributes.uv;
+    for (let v = 0; v < uv.count; v++) if (v < 16 || v >= 20) uv.setXY(v, 0.02, 0.5);
+    const b = mesh(h.name, geo, new THREE.MeshStandardMaterial({ map: spineArt({ title: h.art.spine, color: h.art.color, ink: h.art.ink, by: h.art.by, theme }), roughness: 0.82 }), [0, 0, 0]);
+    b.castShadow = true;
+    if (reading) { // on its side, spine out, on the pile at the right end of the shelf
+      b.rotation.z = -Math.PI / 2; b.rotation.y = lying ? 0.09 : -0.05;
+      b.position.set(sx + 0.36, levels[2] + 0.071 + lyingH + th / 2, sz + 0.05); lyingH += th; lying++;
+    } else {
+      const lean = i % 6 === 4 ? -0.1 : 0; // one or two lean on their neighbour
+      b.rotation.z = lean; b.position.set(gx + th / 2 + (lean ? 0.012 : 0), levels[2] + hgt / 2, sz + 0.06 - (i % 3) * 0.006); gx += th + 0.003 + (lean ? 0.02 : 0);
+    }
+  });
+  card([0.4, 0.07, 0.24], [sx + 0.36, levels[2] + 0.035, sz + 0.005], '#7c2a22');
   card([0.46, 0.21, 0.28], [sx - 0.22, levels[0] + 0.105, sz], '#6d5a44');
   card([0.36, 0.17, 0.27], [sx + 0.32, levels[0] + 0.085, sz], '#3d3530');
 
@@ -542,8 +569,8 @@ function placeholderRoom() {
   F.place('clock', g, { at: [-2.6, 0, ROOM.z1 - 0.24], rot: Math.PI, fit: { h: 2.12 }, standin: (s) => { sbox(s, [0.5, 2.1, 0.32], [0, 1.05, 0], '#6b3f2a'); } });
   // a big plant under the people's board, a suitcase and a box in the far corner, a box under the desk
   F.place('plant', g, { at: [2.32, 0, -1.6], rot: 2.2, fit: { h: 0.98 }, standin: (s) => { mesh('', new THREE.CylinderGeometry(0.2, 0.15, 0.36, 16), std('#b4673e'), [0, 0.18, 0], s); } });
-  F.place('box', g, { at: [3.0, 0, 3.36], rot: 0.25, fit: { w: 0.42 } });
-  F.place('suitcase', g, { at: [2.42, 0, 3.6], rot: [0.14, Math.PI + 0.08, 0], fit: { w: 0.66 } });
+  F.place('box', g, { at: [3.08, 0, 2.86], rot: 0.25, fit: { w: 0.42 } });
+  F.place('suitcase', g, { at: [3.03, 0, 3.6], rot: [0.14, Math.PI + 0.08, 0], fit: { w: 0.66 } });
   F.place('box', g, { at: [1.02, 0, -1.62], rot: -0.2, fit: { w: 0.38 } });
   // on the desk: a cup of pencils, pens laid out
   F.place('pencilCup', g, { at: [0.94, top, -1.8], fit: { h: 0.1 } });
@@ -551,17 +578,34 @@ function placeholderRoom() {
   // the lamp of the room hangs from the rose (its light is in loadRoom: dim in the evening, off by day)
   F.place('chandelier', g, { at: [ROSE[0], ROOM.h - 0.07, ROSE[1]], name: 'chandelier', anchor: 'top', fit: { h: 0.82 }, shadow: false, tune: (m) => { if (/bulb/.test(m.name)) { m.emissive.set('#ffd9a0'); m.emissiveIntensity = 0; g.userData.hangGlow = m; } } });
 
+  // ── lived in: an armchair under the painting with a hat stand near it, a low table before the sofa with a thermos,
+  // a cabinet of card drawers under the chart; the rest is built in src/lived.js, with the marks of the years ──
+  F.place('armchair', g, { at: [-2.36, 0, 2.78], rot: Math.PI / 2 + 0.4, fit: { h: 0.88 }, standin: (s) => {
+    sbox(s, [0.6, 0.14, 0.6], [0, 0.36, 0.02], '#1d1c1b'); sbox(s, [0.6, 0.5, 0.12], [0, 0.63, -0.3], '#1d1c1b');
+    for (const kx of [-1, 1]) sbox(s, [0.05, 0.56, 0.7], [kx * 0.33, 0.28, 0], '#7a5a3c');
+  } });
+  F.place('lowTable', g, { at: [-1.72, 0, 0.95], rot: Math.PI / 2, fit: { h: 0.46 }, standin: (s) => {
+    sbox(s, [0.79, 0.03, 0.38], [0, 0.445, 0], '#8a7558'); for (const kx of [-1, 1]) for (const kz of [-1, 1]) sbox(s, [0.035, 0.43, 0.035], [kx * 0.36, 0.215, kz * 0.16], '#8a7558');
+  } });
+  F.place('cards', g, { at: [3.06, 0, 1.3], rot: -Math.PI / 2, fit: { w: 1.25, h: 0.78, d: 0.64 }, stretch: true, standin: (s) => { sbox(s, [1.25, 0.78, 0.56], [0, 0.39, 0], '#8a5a34'); } });
+  F.place('thermos', g, { at: [-1.79, 0.46, 1.25], rot: 2.2, fit: { h: 0.3 } });
+  const { rack } = buildLived({ g, part, mesh, wood, woodPer, look, words: lived, lite, anisotropy, deskTop: top, door: [DOOR.x - DOOR.w / 2 - 0.09, DOOR.x + DOOR.w / 2 + 0.09], win: [WIN.x - WIN.w / 2 - 0.08, WIN.x + WIN.w / 2 + 0.08], rose: ROSE });
+  F.place('hat', g, { at: [rack[0], 1.7, rack[1]], rot: [0.14, 0.8, 0.08], fit: { w: 0.33 }, shadow: false });
+
   // the soft shadow each thing leaves where it stands
   g.add(contactShadows([
     [DESK.x, DESK.z + 0.05, DESK.w + 0.5, DESK.d + 0.6, 0.34],
     [-0.62, -0.5, 0.95, 0.95, 0.42, 0.014],
     [SOFA.x + 0.05, SOFA.z, 1.05, SOFA.w + 0.35, 0.5], [-2.7, 1.76, 0.6, 0.6, 0.4], [-2.6, ROOM.z1 - 0.26, 0.95, 0.75, 0.5],
     [CASE.x, CASE.z + 0.06, CASE.w + 0.3, CASE.d + 0.42, 0.5], [-2.2, -1.15, 0.72, 0.8, 0.45],
-    [2.32, -1.6, 0.7, 0.7, 0.45], [3.08, -0.45, 0.95, 2.1, 0.5], [3.0, 3.36, 0.75, 0.8, 0.42], [2.42, 3.62, 0.95, 0.5, 0.4], [1.02, -1.62, 0.6, 0.7, 0.3],
+    [2.32, -1.6, 0.7, 0.7, 0.45], [3.08, -0.45, 0.95, 2.1, 0.5], [3.08, 2.86, 0.75, 0.8, 0.42], [3.03, 3.62, 0.95, 0.5, 0.4], [2.26, 3.5, 0.95, 0.85, 0.5], [1.02, -1.62, 0.6, 0.7, 0.3],
   ]));
 
   // ── the other walls: marola-dev's sea, ouroboric-dev's loop, the slipbox ──
   animated.push(buildSea(g, mesh, std, part, F, { lite, still, hang: [ROSE[0], ROOM.h - 0.75, ROSE[1]] }), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
+
+  // the universe simulator by the front wall, its microphone and the chart over it: an homage to The Midnight Gospel (src/simulator.js)
+  animated.push(buildSimulator(g, { at: [2.26, 0, ROOM.z1], lite, still, anisotropy }));
 
   // the leaves sway a little in the air of the room (the vertex shader; still under reduced motion)
   const sway = std('#2f6b3a', LEAF);

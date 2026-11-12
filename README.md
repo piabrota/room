@@ -72,6 +72,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 35 | 11 Nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) five more lofi pieces on the radio, ten in all, written in Csound like the first five: a nylon guitar and a vibraphone join the band (`music/lofi.orc`), and the pieces are a tune answered by vibes, a guitar that comps, a ballad, a round of fifths and a bright one in D | 45 min |
 | 36 | 11 Nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) the two papers on aiXiv (2611.01104, "Wave models on GPUs", and 2611.01105, "A decision layer for contextual bandits, proved in Agda") on the bookcase beside the works with a DOI, bound preprints with white covers, each a link to its aiXiv page, and on the LOFI work page; a tape, "lofi in csound", that plays the radio's pieces one after another while each one's Csound score runs up the TV, the line at the reading head lit, a click for the next | 5 h 15 min |
 | 37 | 11 Nov 23:44 | [#45](https://github.com/piabrota/room/pull/45) the splash drew dark squares on the live site: the crater's, the swell's and the jet's shaders took `pow()` of a negative number, which the software renderer of the stills answers kindly and Direct3D and Metal answer with "not a number", so the water's surface, and whatever the bloom and the occlusion spread it over, goes black for the 1.4 s of the crater (shown here by forcing the software renderer to answer the same; not seen on a real GPU); the squares are products now, the Fresnel terms and an alpha are clamped; `just peek --strict` draws as such a GPU does and fails when a pixel is not a number (519 on the old splash, none now), `just check` refuses `pow(x, 2.0)`, and the `room-shaders` skill has the rule | 55 min |
+| 38 | 12 Nov 20:35 | [#48](https://github.com/piabrota/room/pull/48) a fuller, older room, by Fable 5.2 with three subagents: an armchair, a low table, a card cabinet with a hi-fi, a standing lamp, a fan, a coat rack, a window air conditioner and the small things someone leaves about; damp, cracks, yellowed paint and a worn floor (`src/lived.js`); the VHS tapes with real labels and the band of their GitHub account, a hover that slides a tape out, the recorder's six keys and its display, and an index tape for each of h0ffmann, marola-dev and piabrota (`src/tapes/index.js`); the fax named by its address; the door's email subscribes to the newsletter on Substack, said on the form, and Substack's page opens with the address filled in for the visitor to confirm; a universe simulator, its microphone and a chart of worlds on the wall, an homage to The Midnight Gospel with nothing of the series copied (`src/simulator.js`); and thirteen books of the owner's Goodreads on the bookcase | 2 h 20 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -438,6 +439,21 @@ observation of the splash itself. balloon respawn looks ok'
 ```
 
 "dark quara frames" was read as dark squares in the frames of the splash.
+
+**38.**
+
+```text
+user> '1. add more fornitures, make room more complex
+2. bring more realism, this should look like a old room, but no too antiquade
+3. Improve VHS Tapes, proportions, interactions, h0ffmann/marola-dev/piabrota indexing of projects
+4. Fax name should be mhoffmannfs@gmail.com
+5. Make sure everyone that puts the email in the puzzle subscribes to my substack
+6. Add a machine in or 2 objects to remember Midnight Ghospel, at least 1 board in the wall related to it.
+7. Add all books from my goodreads/piabrota to the shelf as well
+8. Use Fable 5.2 use subagents'
+```
+
+"Midnight Ghospel" was read as The Midnight Gospel, and "the puzzle" as the door's lock, which asks for an email. Substack has no public way to subscribe someone, so its subscribe page opens with the address filled in. Goodreads shows a robot 14 of the 24 books: 13 stand on the shelf, and one was already among the ebooks.
 
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).

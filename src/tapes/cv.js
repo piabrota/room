@@ -38,5 +38,5 @@ export default {
     ctx.restore();
     ctx.fillStyle = Math.floor(t * 2) % 2 ? '#7dff9b' : 'transparent'; ctx.fillRect(W - 30, H - 26, 12, 18); // the cursor
   },
-  input() { window.open(cv.url, '_blank', 'noopener'); },
+  input({ type }) { if (type === 'click') window.open(cv.url, '_blank', 'noopener'); },
 };
