@@ -297,13 +297,14 @@ export const tapes = [
   { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d', code: 'T-60' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
   { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950', code: 'E-240' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#2e9e4f', '#3FB950', '#d8ffe0'], sub: place.city }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
   { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347', code: 'T-90' }, sleeve: { style: 'sunburst', colors: ['#1a1208', '#d29922', '#ffe9b8', '#c2410c'], sub: 'play the screen' }, text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
+  { id: 'csound', label: 'LOFI IN CSOUND', color: '#1d2333', spine: { text: 'lofi in csound', face: 'terminal', paper: '#0b0d12', ink: '#ffb347', code: 'E-60' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#ffb347', '#7dd3a6', '#f3ead8'], sub: 'the code of the music' }, text: 'the radio\'s lofi pieces, each playing while its Csound score runs up the screen; a click for the next', lang: 'csound', hint: 'click: next piece', pieces: radio.stations.flatMap((s) => s.tracks), module: () => import('./tapes/csound.js') },
   { id: 'cv',        label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b', code: 'E-120' }, sleeve: { style: 'smalltype', face: 'typewriter', colors: ['#e4dfd2', '#22252d', ...Object.values(theme.lanes)], sub: 'track record' }, module: () => import('./tapes/cv.js') },
 ];
 // The stack beside the VCR: piles side by side, each from the bottom up, by
 // tape id; nothing is squared up. A tape named in no pile goes on the
 // shortest. A bare cassette belongs on top of its pile (the pile closes up
 // when it leaves). `gap` is the space between two piles, in metres.
-export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots']], gap: 0.03 };
+export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots', 'csound']], gap: 0.03 };
 // The VCR's face (src/vhs.js): a brand that does not exist, the words printed
 // on it, and the clock that nobody ever set. `lit` are the words behind the
 // display's glass (the first one is on), `keys` the six under it.
@@ -383,6 +384,17 @@ export const works = [
   { id: 'marola-bench',  title: 'marola-bench',           doi: '10.5281/zenodo.23352633', color: '#4a8fd4' },
   { id: 'nashkell',      title: 'nashkell, the open book', doi: '10.5281/zenodo.23356739', color: '#D29922' },
 ];
+
+// ── the papers on aiXiv, by Matheus Hoffmann, beside the works with a DOI: two bound preprints,
+// white covers, each a link to its aiXiv page (the owner, 11 November 2026). Titles, authors and
+// numbers as their aiXiv pages give them (read 11 November 2026).
+export const papers = {
+  group: 'papers on aiXiv', on: 'aiXiv',
+  list: [
+    { id: 'ww3-gpu-paper', aixiv: '2611.01104', title: 'Wave models on GPUs: C++/Kokkos and Rust ports of WAVEWATCH III that must give the Fortran\'s bits', spine: 'Wave models on GPUs', by: 'Matheus Hoffmann, Pedro Veras Guimarães, Pedro Cruz', color: '#f1ede4', ink: '#2b6fb3' },
+    { id: 'proof',         aixiv: '2611.01105', title: 'A decision layer for contextual bandits, proved in Agda', spine: 'Bandits, proved in Agda', by: 'Matheus Hoffmann', color: '#f1ede4', ink: '#2f8f45' },
+  ],
+};
 
 // ── how I read: ten technical ebooks from the owner's library, most on functional programming
 // and the architecture of real systems, on the bookcase under the works with a DOI. Each is a
@@ -723,7 +735,7 @@ export const grid = {
 export const hotspots = [
   { name: 'chart', label: grid.label, hint: grid.hint, action: 'shot', value: 'grid' },
   { name: 'window', label: 'Rio at night', hint: 'where piabrota is made', action: 'shot', value: 'window' },
-  { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI', action: 'shot', value: 'shelf' },
+  { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI, and the papers on aiXiv', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },
   { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
   { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'playlist', art: { kind: 'mixtape' } },
@@ -756,6 +768,10 @@ export const hotspots = [
   ...works.map((w) => ({
     name: `book_${w.id}`, label: w.title, hint: `doi ${w.doi}`, action: 'link', value: `https://doi.org/${w.doi}`, group: 'works with a DOI',
     art: { kind: 'book', color: w.color },
+  })),
+  ...papers.list.map((p) => ({
+    name: `paper_${p.id}`, label: p.title, hint: `aiXiv:${p.aixiv} · ${p.by}`, action: 'link', value: `https://aixiv.online/abs/${p.aixiv}`, group: papers.group,
+    art: { kind: 'paper', color: p.color, ink: p.ink, spine: p.spine, by: p.by },
   })),
   ...reads.books.map((b) => ({
     name: `read_${b.id}`, label: b.title, hint: `${b.by} · ${b.lang} · ${reads.on}`, action: 'link', value: b.url, group: reads.group,

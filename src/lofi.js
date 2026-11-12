@@ -43,6 +43,7 @@ export function renderLofi(root, config) {
     const s = section('work');
     s.append(el('h3', 'piabrota'), links(config.projects.map((p) => [p.id, p.url, p.line])));
     s.append(el('h3', 'works with a DOI'), links(config.works.map((w) => [w.title, `https://doi.org/${w.doi}`, `doi ${w.doi}`])));
+    s.append(el('h3', config.papers.group), links(config.papers.list.map((p) => [p.title, `https://aixiv.online/abs/${p.aixiv}`, `aiXiv:${p.aixiv} · ${p.by}`])));
     s.append(el('h3', 'friends'), links([[config.sea.label, config.sea.url, config.sea.hint], [config.loop.label, config.loop.url, config.loop.hint]]));
     s.append(el('h3', 'tapes'), links(config.tapes.map((t) => [t.label, null, t.text])));
     s.append(el('h3', 'inspiration'), links(linkSpots('inspiration')));

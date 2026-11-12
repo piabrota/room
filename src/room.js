@@ -477,6 +477,15 @@ function placeholderRoom() {
     b.rotation.z = i === 5 ? -0.14 : 0;
     if (i === 5) b.position.x += 0.035;
   });
+  // beside them, the papers on aiXiv (config.papers): bound preprints, thin, white covers, each one
+  // draw call like the reads below
+  art('paper').forEach((h, i) => {
+    const hgt = 0.26, th = 0.024;
+    const geo = new THREE.BoxGeometry(th, hgt, 0.21), uv = geo.attributes.uv;
+    for (let v = 0; v < uv.count; v++) if (v < 16 || v >= 20) uv.setXY(v, 0.02, 0.5);
+    const b = mesh(h.name, geo, new THREE.MeshStandardMaterial({ map: spineArt({ title: h.art.spine, color: h.art.color, ink: h.art.ink, by: h.art.by, theme }), roughness: 0.8 }), [sx + 0.05 + i * (th + 0.004), levels[4] + hgt / 2, sz + 0.025]);
+    b.castShadow = true;
+  });
   // under them, "how I read" (config.reads): ten ebooks as spines in their covers' colours, each
   // one draw call: its box's other faces read the corner of its spine, the cover's colour
   let rx = sx - 0.52;
