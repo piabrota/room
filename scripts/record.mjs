@@ -66,6 +66,8 @@ page.on('pageerror', (e) => errors.push(e.message));
 await page.addInitScript(() => { const real = performance.now.bind(performance); performance.now = () => window.__fakeNow ?? real(); });
 // the door's email gate posts to the room's own server, which `vite preview` does not run: answer it here
 await page.route('**/live/door', (r) => r.fulfill({ status: 204 }));
+// the gate then opens the newsletter's subscribe page in a new tab: no recording reaches that site
+await page.context().route(/substack\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '' }));
 await page.goto(`${url}?hifi&night&record`); // the same light on every run; no ambient occlusion
 await page.waitForSelector('#loading.done', { timeout: 120000 });
 // the furniture that is files: in software the room opens before the last piece has arrived, so wait for it
