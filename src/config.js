@@ -37,9 +37,12 @@ export const roomModel = '/models/room.glb';
 // The apartment: an old flat in Rio. The paint, the wood, the cloth and the rug of its shell
 // (src/shell.js): repaint it here. `ink` and `inkSoft` are the words painted on the walls.
 export const shell = {
-  wall: '#e7dcc6', ceiling: '#f3eee3', trim: '#f1ebdf', reveal: '#ded3bf',
+  wall: '#e5d8bd', ceiling: '#efe8d8', trim: '#ece4d1', reveal: '#dacdb4', // the paint has yellowed a little
   floor: '#b9a48e', wood: '#9c8676', brass: '#b08a4a', curtain: '#d9cdb6',
-  ink: '#33261d', inkSoft: '#77634f',
+  ink: '#33261d', inkSoft: '#77634f', lampshade: '#e3d3b1',
+  // the marks of the years on the walls, the ceiling and the floor (src/lived.js): damp, grime, paint
+  // that kept its colour behind a picture (`pale`), wood worn dull by feet (`worn`), rust. `amount` is how strong they all are: 1 as drawn, 0 a flat that was just painted
+  wear: { amount: 1, damp: '#8a6a3c', grime: '#3a2e22', pale: '#f4ecda', worn: '#c8b292', rust: '#8a4a22' },
   rug: { at: [0.1, -0.2], size: [2.6, 1.8], colors: ['#7c1d17', '#1d2b45', '#e6d7b8', '#c59a45', '#2a120f'] },
 };
 
@@ -75,8 +78,32 @@ export const models = {
     box: { file: 'cardboard_box_01', phone: false },
     alarm: { file: 'alarm_clock_01', phone: false },
     vase: { file: 'ceramic_vase_01', phone: false },
+    armchair: 'modern_arm_chair_01',
+    lowTable: 'small_wooden_table_01',
+    cards: 'vintage_wooden_drawer_01',
+    thermos: { file: 'plastic_thermos', phone: false },
+    hat: { file: 'fishermans_hat', phone: false },
     fish: 'fish', // the aquarium's fish (src/aquarium.js): Microsoft's Barramundi, CC0 (`just fish`)
   },
+};
+
+// What makes the room lived in (src/lived.js): the words printed on the things someone left about.
+// None is a real paper, magazine, shop, record or make: put your own here.
+export const lived = {
+  paper: { name: 'DIÁRIO DA ENSEADA', date: 'Rio de Janeiro · domingo · edição da manhã', head: 'MAR CALMO, CIDADE ACESA', sub: 'ondas de meio metro na baía; chuva fina à noite' },
+  magazines: [
+    { title: 'ONDA', line: 'mar · vento · maré', color: '#1f5f8b' },
+    { title: 'SOM & FITA', line: 'o guia do cassete', color: '#b3402a' },
+    { title: 'CIRCUITO', line: 'eletrônica em casa', color: '#d9a531', ink: '#2a2118' },
+    { title: 'BAIRRO', line: 'o que abre no domingo', color: '#3c5a43' },
+  ],
+  calendar: { top: 'ARMAZÉM DA ESQUINA', line: 'secos e molhados · entrega em casa', month: 'NOVEMBRO', days: 30, starts: 0, weekdays: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] }, // `starts`: the weekday of the 1st, 0 for Sunday
+  sleeves: [
+    { title: 'LADO B', by: 'os vizinhos do 302', colors: ['#d9a531', '#b3402a', '#2a2118'] },
+    { title: 'MARESIA', by: 'conjunto da praia', colors: ['#1f5f8b', '#e6d7b8', '#f3ead6'] },
+  ],
+  stereo: { brand: 'ENSEADA', dial: 'FM 88 92 96 100 104 108' },
+  ac: { brand: 'BRISA' },
 };
 
 // The view from the window: Botafogo bay and the Sugarloaf, a photograph
