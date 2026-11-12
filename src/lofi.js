@@ -54,8 +54,9 @@ export function renderLofi(root, config) {
   const subscribe = () => {
     const p = el('p', `${r.subscribe.line} `); p.append(out(r.subscribe.feedLabel, r.feed));
     const mail = config.hotspots.find((h) => h.name === 'fax');
-    const p2 = el('p', `${r.subscribe.mailLine} `); if (mail) p2.append(out(mail.hint, mail.value));
-    return section('subscribe', p, ...(mail ? [p2] : []));
+    const p2 = el('p', `${r.subscribe.mailLine} `); if (mail) p2.append(out(mail.label, mail.value));
+    const nl = r.subscribe.letter, p3 = el('p', `${r.subscribe.letterLine ?? ''} `); if (nl) p3.append(out(nl.handle, nl.subscribe));
+    return section('subscribe', p, ...(nl ? [p3] : []), ...(mail ? [p2] : []));
   };
   const credits = () => { const s = section('credits', ...(config.credits ? creditsNodes(config.credits, 'h3') : [])); s.classList.add('credits'); return s; };
   function footer() {

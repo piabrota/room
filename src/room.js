@@ -488,7 +488,7 @@ function placeholderRoom() {
   });
   // under them, "how I read" (config.reads): ten ebooks as spines in their covers' colours, each
   // one draw call: its box's other faces read the corner of its spine, the cover's colour
-  let rx = sx - 0.52;
+  let rx = sx - 0.52, lyingH = 0;
   art('read').forEach((h, i) => {
     const hgt = 0.215 + ((i * 29) % 5) * 0.008, th = 0.03 + ((i * 7) % 3) * 0.005;
     const geo = new THREE.BoxGeometry(th, hgt, 0.17), uv = geo.attributes.uv;
@@ -503,8 +503,26 @@ function placeholderRoom() {
   for (let i = 0; i < 14; i++) box([0.005, 0.24, 0.3], [sx - 0.5 + i * 0.016 + (i % 4) * 0.002, levels[1] + 0.12, sz + 0.01], i % 3 ? '#1b1b1b' : '#3a2d2a'); // records, on edge
   const card = (size, pos, color) => part(new RoundedBoxGeometry(...size, 2, 0.008), pos, color, { opts: { roughness: 0.92 } }); // a card box: square, its corners a little worn
   card([0.34, 0.2, 0.26], [sx + 0.3, levels[1] + 0.1, sz], '#7a6448'); card([0.335, 0.02, 0.255], [sx + 0.3, levels[1] + 0.205, sz], '#6b563d');
-  card([0.3, 0.2, 0.26], [sx - 0.3, levels[2] + 0.1, sz], '#5c4a36');
-  card([0.42, 0.11, 0.25], [sx + 0.2, levels[2] + 0.055, sz], '#2f3a4a'); card([0.4, 0.07, 0.24], [sx + 0.19, levels[2] + 0.145, sz + 0.005], '#7c2a22');
+  // one shelf down, "what I read" (config.goodreads): the books of the owner's Goodreads, paper
+  // books of many sizes, the ones he is reading lying on the pile at the end. One draw call each,
+  // like the reads; a card box closes the row
+  let gx = sx - 0.53, lying = 0;
+  art('gread').forEach((h, i) => {
+    const reading = /reading/.test(h.hint) && lying < 2;
+    const hgt = 0.2 + ((i * 31) % 6) * 0.011, th = 0.026 + ((i * 11) % 4) * 0.006, dp = 0.14 + ((i * 5) % 3) * 0.012;
+    const geo = new THREE.BoxGeometry(th, hgt, dp), uv = geo.attributes.uv;
+    for (let v = 0; v < uv.count; v++) if (v < 16 || v >= 20) uv.setXY(v, 0.02, 0.5);
+    const b = mesh(h.name, geo, new THREE.MeshStandardMaterial({ map: spineArt({ title: h.art.spine, color: h.art.color, ink: h.art.ink, by: h.art.by, theme }), roughness: 0.82 }), [0, 0, 0]);
+    b.castShadow = true;
+    if (reading) { // on its side, spine out, on the pile at the right end of the shelf
+      b.rotation.z = -Math.PI / 2; b.rotation.y = lying ? 0.09 : -0.05;
+      b.position.set(sx + 0.36, levels[2] + 0.071 + lyingH + th / 2, sz + 0.05); lyingH += th; lying++;
+    } else {
+      const lean = i % 6 === 4 ? -0.1 : 0; // one or two lean on their neighbour
+      b.rotation.z = lean; b.position.set(gx + th / 2 + (lean ? 0.012 : 0), levels[2] + hgt / 2, sz + 0.06 - (i % 3) * 0.006); gx += th + 0.003 + (lean ? 0.02 : 0);
+    }
+  });
+  card([0.4, 0.07, 0.24], [sx + 0.36, levels[2] + 0.035, sz + 0.005], '#7c2a22');
   card([0.46, 0.21, 0.28], [sx - 0.22, levels[0] + 0.105, sz], '#6d5a44');
   card([0.36, 0.17, 0.27], [sx + 0.32, levels[0] + 0.085, sz], '#3d3530');
 

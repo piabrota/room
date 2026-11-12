@@ -417,6 +417,34 @@ export const reads = {
   ],
 };
 
+// ── what I read: the books of the owner's Goodreads, on the bookcase under "how I read". Titles and
+// authors as his profile listed them on 12 November 2026: the three he is reading and the eleven
+// of the twenty he has read that the profile shows (the other nine, and the one he wants to read,
+// are on pages Goodreads keeps from a robot: add them here when the owner lists them). Certainty by
+// Construction, which he is reading, already stands among `reads` above and is not here twice.
+// Each is a spine in a plain cloth colour chosen for the room (no cover is copied), and a link to
+// the book's search on Goodreads. `shelf` is his shelf there: `reading` or `read`.
+export const goodreads = {
+  group: 'what I read', on: 'on Goodreads', handle: 'piabrota',
+  url: 'https://www.goodreads.com/user/show/206337057-piabrota', search: 'https://www.goodreads.com/search?q=',
+  shelves: { reading: 'reading now', read: 'read' },
+  books: [
+    { id: 'a-beautiful-math', title: 'A Beautiful Math: John Nash, Game Theory, and the Modern Quest for a Code of Nature', spine: 'A Beautiful Math', by: 'Tom Siegfried', shelf: 'reading', color: '#1f3a5f', ink: '#f2e6c4' },
+    { id: 'the-art-of-not-being-governed', title: 'The Art of Not Being Governed: An Anarchist History of Upland Southeast Asia', spine: 'The Art of Not Being Governed', by: 'James C. Scott', shelf: 'reading', color: '#5b2a1e', ink: '#f0dcc0' },
+    { id: 'os-ensaios', title: 'Os Ensaios', by: 'Michel de Montaigne', shelf: 'read', color: '#3b2f2a', ink: '#d9b46a' },
+    { id: 'reflections-on-the-revolution-in-france', title: 'Reflections on the Revolution in France', spine: 'Reflections on the Revolution in France', by: 'Edmund Burke', shelf: 'read', color: '#20324a', ink: '#e8e2d2' },
+    { id: 'zen-and-the-art-of-motorcycle-maintenance', title: 'Zen and the Art of Motorcycle Maintenance', by: 'Robert M. Pirsig', shelf: 'read', color: '#d9577a', ink: '#fff4e6' },
+    { id: 'the-biggest-secret', title: 'The Biggest Secret', by: 'David Icke', shelf: 'read', color: '#16161a', ink: '#c9a23f' },
+    { id: 'dom-casmurro', title: 'Dom Casmurro', by: 'Machado de Assis', shelf: 'read', color: '#6e1f1b', ink: '#f1e3c6' },
+    { id: 'o-caminho-do-artista', title: 'O caminho do artista', by: 'Julia Cameron', shelf: 'read', color: '#e9dfc8', ink: '#7a3b1e' },
+    { id: 'lila', title: 'Lila', by: 'Robert M. Pirsig', shelf: 'read', color: '#2c5a52', ink: '#f3ead6' },
+    { id: 'o-jardim-das-aflicoes', title: 'O Jardim das Aflições', by: 'Olavo de Carvalho', shelf: 'read', color: '#3f4a2c', ink: '#e9e1c8' },
+    { id: 'neon-genesis-evangelion-1', title: 'Neon Genesis Evangelion, Vol. 1', by: 'Yoshiyuki Sadamoto', shelf: 'read', color: '#4b2a7a', ink: '#8be04e' },
+    { id: 'the-diary-of-a-young-girl', title: 'The Diary of a Young Girl', by: 'Anne Frank', shelf: 'read', color: '#b9a98a', ink: '#2a211a' },
+    { id: 'beauty-will-save-the-world', title: 'Beauty Will Save the World', by: 'Gregory Wolfe', shelf: 'read', color: '#efe9dc', ink: '#8a2a22' },
+  ],
+};
+
 // ── the sea: marola-dev's repositories as buoys on an aquarium, the wall painted with the sea ──
 // The waves are computed live, a nod to ww3-gpu (WAVEWATCH III). `aquarium` is how many fish swim
 // in it (the big ones and the little school, fewer on the phone's look) and the colours of the
@@ -526,15 +554,25 @@ export const cv = {
   ],
 };
 
-// ── the contact: a fax on the desk. The address is kept in parts and
-// written with [at], so it is not lying in the page for a scraper.
+// ── the contact: a fax on the desk, named by its address (the owner, 12 November 2026: the fax's
+// name is the address, written whole). The address is kept in parts and joined here.
 export const contact = {
-  label: 'fax', name: 'Matheus Hoffmann',
-  email: { user: 'mhoffmann', host: 'gmail.com' },
+  name: 'Matheus Hoffmann', hint: 'fax: write to me',
+  email: { user: 'mhoffmannfs', host: 'gmail.com' },
   linkedin: { label: 'LinkedIn', url: 'https://www.linkedin.com/in/mhoffmannbr/' },
 };
-export const emailText = `${contact.email.user} [at] ${contact.email.host}`;
-const mailto = ['mailto:', contact.email.user, '@', contact.email.host].join('');
+export const emailText = [contact.email.user, '@', contact.email.host].join('');
+contact.label = emailText;
+const mailto = ['mailto:', emailText].join('');
+
+// ── the newsletter: the owner's Substack. The door's gate subscribes to it (`door.gate` below),
+// and the LOFI page links it. Substack has no public API to subscribe someone, so the room opens
+// its subscribe page with the visitor's address filled in (`subscribe` + `?email=`, read to work
+// on 12 November 2026), and the visitor confirms there.
+export const newsletter = {
+  name: 'hoffmagic', on: 'Substack', handle: 'hoffmagic.substack.com',
+  url: 'https://hoffmagic.substack.com', subscribe: 'https://hoffmagic.substack.com/subscribe',
+};
 
 // ── a file under the desk: closed source, a confidential letter ──
 export const closedSource = {
@@ -560,14 +598,18 @@ export const door = {
     code: [tapes.length, works.length, people.length, bots.length].map((n) => n % 10).join(''),
     clear: 'clear', enter: 'open', close: 'close', wrong: 'not that one', right: 'the lock turns',
   },
-  // the gate: the keypad opens only for a visitor who leaves an email. It is posted to `endpoint`
-  // on the room's own host (scripts/listeners.mjs, run by piabrota/nix-os), kept there, and never
-  // shown on the page or sent anywhere else.
+  // the gate: the keypad opens only for a visitor who leaves an email, and that email subscribes
+  // them to the owner's Substack (`newsletter` above; the owner, 12 November 2026). The form says so
+  // before the visitor sends it. The address is posted to `endpoint` on the room's own host
+  // (scripts/listeners.mjs, run by piabrota/nix-os) and kept there, marked as agreed to the
+  // newsletter; then Substack's subscribe page opens with the address filled in (`subscribe`), and
+  // the keypad keeps a link to it (`confirm`) for a browser that blocked the new tab.
   gate: {
     endpoint: '/live/door',
-    line: 'the door is locked. leave your email to try the lock:',
-    placeholder: 'you@example.com', button: 'let me try',
-    privacy: 'kept on piabrota’s own server, only to write to you about the room. nothing else.',
+    line: `the door is locked. leave your email to try the lock: it subscribes you to ${newsletter.name}, my newsletter on ${newsletter.on}.`,
+    placeholder: 'you@example.com', button: 'subscribe and try the lock',
+    privacy: `your email is kept on piabrota’s own server and subscribes you to ${newsletter.handle}. ${newsletter.on}’s page opens for you to confirm; you can unsubscribe there at any time.`,
+    subscribe: newsletter.subscribe, confirm: `confirm your subscription on ${newsletter.on}`,
     sending: 'sending…', invalid: 'that does not look like an email', failed: 'the door did not answer. try again later',
   },
   beyond: ['you found', 'the way out.', '', 'it was a flat circle', 'all along.'],
@@ -668,9 +710,11 @@ export const reading = {
     { label: 'GitHub', handle: 'h0ffmann', url: 'https://github.com/h0ffmann' },
     { label: 'LinkedIn', handle: 'mhoffmannbr', url: 'https://www.linkedin.com/in/mhoffmannbr/' },
     { label: 'piabrota.art', handle: 'piabrota.art', url: 'https://piabrota.art' },
+    { label: newsletter.on, handle: newsletter.name, url: newsletter.url },
+    { label: 'Goodreads', handle: goodreads.handle, url: goodreads.url },
     { label: 'Spotify', handle: 'the playlist', url: playlist.url },
   ],
-  subscribe: { line: 'New posts come out in an RSS feed. Add it to your reader:', feedLabel: 'feed.xml', mailLine: 'or write to' },
+  subscribe: { line: 'New posts come out in an RSS feed. Add it to your reader:', feedLabel: 'feed.xml', letterLine: `or by email, on ${newsletter.on}:`, letter: newsletter, mailLine: 'or write to' },
   back: 'all posts', empty: 'no posts yet',
 };
 
@@ -743,7 +787,7 @@ export const hotspots = [
   { name: 'sign',   label: 'piabrota',     hint: 'an open green eye on red', action: 'link', value: 'https://piabrota.art', group: 'piabrota' },
   { name: 'door',   label: door.label, hint: door.hint, action: 'door' },
   { name: 'cat',    label: cat.name, hint: cat.hint, action: 'cat' },
-  { name: 'fax',    label: contact.label, hint: emailText, action: 'link', value: mailto, group: 'contact', art: { kind: 'fax' } },
+  { name: 'fax',    label: contact.label, hint: contact.hint, action: 'link', value: mailto, group: 'contact', art: { kind: 'fax' } },
   { name: 'fax_linkedin', label: contact.linkedin.label, hint: contact.name, action: 'link', value: contact.linkedin.url, group: 'contact' },
   { name: 'folder_closed-source', label: closedSource.label, hint: closedSource.hint, action: 'link', value: closedSource.url, group: 'closed source', art: { kind: 'folder' } },
   { name: 'letter_closed-source', label: closedSource.letter.label, hint: closedSource.letter.hint, action: 'link', value: closedSource.letter.url, group: 'closed source' },
@@ -776,6 +820,10 @@ export const hotspots = [
   ...reads.books.map((b) => ({
     name: `read_${b.id}`, label: b.title, hint: `${b.by} · ${b.lang} · ${reads.on}`, action: 'link', value: b.url, group: reads.group,
     art: { kind: 'read', color: b.color, ink: b.ink, spine: b.spine ?? b.title, by: b.by },
+  })),
+  ...goodreads.books.map((b) => ({
+    name: `gread_${b.id}`, label: b.title, hint: `${b.by} · ${goodreads.shelves[b.shelf]} · ${goodreads.on}`, action: 'link', value: goodreads.search + encodeURIComponent(`${b.spine ?? b.title} ${b.by}`), group: goodreads.group,
+    art: { kind: 'gread', color: b.color, ink: b.ink, spine: b.spine ?? b.title, by: b.by },
   })),
   { name: 'tank', label: sea.label, hint: sea.hint, action: 'link', value: sea.url, group: 'marola-dev', art: { kind: 'tank' } },
   ...sea.buoys.map((b, i) => ({
