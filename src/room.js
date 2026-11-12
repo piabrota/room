@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles, stack as tapeStack, deck } from './config.js';
+import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles, stack as tapeStack, deck, catalogue } from './config.js';
 import { chartTexture } from './grid.js';
 import { buildOutside } from './outside.js';
 import { buildSea, buildLoop, buildRecords } from './props.js';
@@ -253,9 +253,10 @@ function placeholderRoom() {
   // the video recorder in the riser's slot, at its real size, its slot and its clock toward the room (src/vhs.js)
   const vcr = buildVCR(deck, { lite, anisotropy }); vcr.position.set(TV.x, top, TV.z + 0.108); g.add(vcr); animated.push(vcr.userData.update);
 
-  // the tapes: two piles on the desk beside it, most in their card sleeves (src/vhs.js). Each pile's
-  // sleeves open away from the other, and a cassette needs 0.21 m of free desk there to slide out.
-  const pile = buildTapeStack(tapes, tapeStack, { lite, anisotropy }); pile.position.set(0.8, top, -1.3); g.add(pile); animated.push(pile.userData.update);
+  // the tapes: two piles on the desk beside it, most in their card sleeves (src/vhs.js), each with the band of
+  // its GitHub account. Each pile's sleeves open away from the other, and a cassette needs 0.21 m of free desk
+  // there to slide out. The piles are turned a little toward the chair, so the spines read from the desk shot.
+  const pile = buildTapeStack(tapes, tapeStack, { lite, anisotropy, accounts: catalogue?.accounts }); pile.position.set(0.82, top, -1.27); pile.rotation.y = -0.2; g.add(pile); animated.push(pile.userData.update);
 
   // the desk lamp: an architect's lamp clamped to the back of the desk, its shade over the papers
   // (the file's own origin is the middle of its footprint: the clamp is 0.3 behind it, the bulb 0.18 before it and 0.69 up)

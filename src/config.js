@@ -278,39 +278,172 @@ export const sfx = {
 // Tapes: each one is a module in src/tapes with mount/frame/input/stop.
 // `label` shows on hover, `color` tints the room light while it plays,
 // `text` is the line the LOFI (plain text) view shows for the tape.
+// `account` is the GitHub account the tape belongs to, a key of
+// `catalogue.accounts` below: its colour is the band at the end of the
+// spine and of the sleeve, with its name, and the hover card says it.
 // `spine` is what is written on the cassette's own labels, and in which
 // face: one of the retro faces in src/art.js (`marker`, `neon`, `pixel`,
 // `terminal`, `typewriter`), with the colour of the label and its ink, and
 // `code`, the length printed small on it.
 // `sleeve` is the card box the cassette lives in (src/vhs.js): a `style`
 // (`waves`, `rings`, `bigtype`, `grid`, `sunburst`, `smalltype`: six
-// layouts, not one in six colours), its `colors` (the card first, then the
-// print), a `sub` line, a `face` when the sleeve is not set in the label's
+// layouts, not one in six colours; and `index`, the one look of the three
+// index tapes, with its `title` and its `tag`), its `colors` (the card
+// first, then the print), a `sub` line, a `face` when the sleeve is not set in the label's
 // (`title` and `mono` are the room's two), and `finish: 'gloss'` for a
 // laminated card. A tape with no `sleeve` lies bare, its sticker written
 // by hand or typed. Where each one lies is in `stack`, below.
+// The three `index-*` tapes are one module (src/tapes/index.js): each lists
+// the repositories of its account on the TV, from `catalogue` below (`index: true`).
+// `hint` is what the screen says on hover while the tape plays.
+const indexTape = (account, n, card, band, light) => ({
+  id: `index-${account}`, account, index: true, label: `INDEX: ${account}`, color: light,
+  text: `the index of ${account}: every public repository, a line each, each a link; REW and FF turn the page`,
+  hint: 'a click on a line opens it; REW and FF turn the page',
+  spine: { text: 'index', face: 'typewriter', paper: card, ink: '#22252d', code: `IDX ${n}/3` },
+  sleeve: { style: 'index', face: 'title', title: account, tag: 'index', colors: [card, '#22252d', band], sub: 'every public repository, a line each' },
+  module: () => import('./tapes/index.js'),
+});
 export const tapes = [
-  { id: 'marola',    label: 'marola.dev',     color: '#0f3d66', text: 'the sea of marola-dev: its repositories, floating on live waves', spine: { text: 'marola.dev', face: 'neon', paper: '#08243f', ink: '#5cc8ff', code: 'T-120' }, sleeve: { style: 'waves', colors: ['#0a2c4d', '#5cc8ff', '#eaf6ff', '#f2c14e'], sub: 'live waves', finish: 'gloss' }, module: () => import('./tapes/marola.js') },
-  { id: 'ouroboric', label: 'ouroboric-dev',  color: '#3a1d0e', text: 'Ouroboric\'s factory: the snake that eats its tail, and the repositories on its loop', spine: { text: 'ouroboric-dev', face: 'pixel', paper: '#f2e6c9', ink: '#c2410c', code: 'E-180' }, sleeve: { style: 'rings', colors: ['#efe2c2', '#c2410c', '#3a1d0e', '#e2a03f'], sub: 'the factory loop' }, module: () => import('./tapes/ouroboric.js') },
-  { id: 'piabrota', label: 'PIABROTA (the fabric)', color: '#1682d4', spine: { text: 'piabrota', face: 'marker', paper: '#f4efe4', ink: '#1682d4', code: 'T-160' }, sleeve: { style: 'bigtype', face: 'title', colors: [theme.accent, theme.eye.white, theme.eye.iris, theme.eye.white], sub: 'the fabric', finish: 'gloss' }, text: 'a radio piece on piabrota, its people, its agents and its works, with links', module: () => import('./tapes/piabrota.js') },
-  { id: 'hello',  label: 'HELLO (who we are)', color: '#bc2318', spine: { text: 'hello', face: 'marker', paper: '#f4efe4', ink: '#bc2318', code: 'T-30' }, text: 'the name, typed out, and where to find us', module: () => import('./tapes/hello.js') },
-  { id: 'bots',   label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d', code: 'T-60' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', module: () => import('./tapes/bots.js') },
-  { id: 'clock',  label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950', code: 'E-240' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#2e9e4f', '#3FB950', '#d8ffe0'], sub: place.city }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
-  { id: 'synth',  label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347', code: 'T-90' }, sleeve: { style: 'sunburst', colors: ['#1a1208', '#d29922', '#ffe9b8', '#c2410c'], sub: 'play the screen' }, text: 'a small instrument you play on the screen', module: () => import('./tapes/synth.js') },
-  { id: 'csound', label: 'LOFI IN CSOUND', color: '#1d2333', spine: { text: 'lofi in csound', face: 'terminal', paper: '#0b0d12', ink: '#ffb347', code: 'E-60' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#ffb347', '#7dd3a6', '#f3ead8'], sub: 'the code of the music' }, text: 'the radio\'s lofi pieces, each playing while its Csound score runs up the screen; a click for the next', lang: 'csound', hint: 'click: next piece', pieces: radio.stations.flatMap((s) => s.tracks), module: () => import('./tapes/csound.js') },
-  { id: 'cv',        label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b', code: 'E-120' }, sleeve: { style: 'smalltype', face: 'typewriter', colors: ['#e4dfd2', '#22252d', ...Object.values(theme.lanes)], sub: 'track record' }, module: () => import('./tapes/cv.js') },
+  indexTape('h0ffmann', 1, '#dbe8d0', '#2e9e4f', '#1c4a2c'),
+  { id: 'cv',        account: 'h0ffmann', label: 'CV (h0ffmann)',  color: '#1b1d22', text: 'Matheus Hoffmann\'s track record, year by year, and his six works with a DOI', spine: { text: 'cv / h0ffmann', face: 'terminal', paper: '#0f1a12', ink: '#7dff9b', code: 'E-120' }, sleeve: { style: 'smalltype', face: 'typewriter', colors: ['#e4dfd2', '#22252d', ...Object.values(theme.lanes)], sub: 'track record' }, module: () => import('./tapes/cv.js') },
+  indexTape('marola-dev', 2, '#d3e2f0', '#1682d4', '#123c62'),
+  { id: 'marola',    account: 'marola-dev', label: 'marola.dev',     color: '#0f3d66', text: 'the sea of marola-dev: its repositories, floating on live waves', spine: { text: 'marola.dev', face: 'neon', paper: '#08243f', ink: '#5cc8ff', code: 'T-120' }, sleeve: { style: 'waves', colors: ['#0a2c4d', '#5cc8ff', '#eaf6ff', '#f2c14e'], sub: 'live waves', finish: 'gloss' }, module: () => import('./tapes/marola.js') },
+  { id: 'ouroboric', account: 'ouroboric-dev', label: 'ouroboric-dev',  color: '#3a1d0e', text: 'Ouroboric\'s factory: the snake that eats its tail, and the repositories on its loop', spine: { text: 'ouroboric-dev', face: 'pixel', paper: '#f2e6c9', ink: '#c2410c', code: 'E-180' }, sleeve: { style: 'rings', colors: ['#efe2c2', '#c2410c', '#3a1d0e', '#e2a03f'], sub: 'the factory loop' }, module: () => import('./tapes/ouroboric.js') },
+  indexTape('piabrota', 3, '#f2d9cf', '#bc2318', '#5e1a14'),
+  { id: 'piabrota', account: 'piabrota', label: 'PIABROTA (the fabric)', color: '#1682d4', spine: { text: 'piabrota', face: 'marker', paper: '#f4efe4', ink: '#1682d4', code: 'T-160' }, sleeve: { style: 'bigtype', face: 'title', colors: [theme.accent, theme.eye.white, theme.eye.iris, theme.eye.white], sub: 'the fabric', finish: 'gloss' }, text: 'a radio piece on piabrota, its people, its agents and its works, with links; REW and FF step through its chapters', hint: 'a click on a link opens it; REW and FF step through the chapters', module: () => import('./tapes/piabrota.js') },
+  { id: 'bots',   account: 'piabrota', label: 'THE BOTS',           color: '#9aa3b2', spine: { text: 'the bots', face: 'typewriter', paper: '#e9e4d8', ink: '#22252d', code: 'T-60' }, text: 'piabrota-ops and piabrota-hermes, and what each agent does', hint: 'a click opens the bots on GitHub', module: () => import('./tapes/bots.js') },
+  { id: 'hello',  account: 'piabrota', label: 'HELLO (who we are)', color: '#bc2318', spine: { text: 'hello', face: 'marker', paper: '#f4efe4', ink: '#bc2318', code: 'T-30' }, text: 'the name, typed out, and where to find us', hint: 'a click on a line opens it', module: () => import('./tapes/hello.js') },
+  { id: 'clock',  account: 'piabrota', label: 'NIGHT CLOCK',        color: '#2e9e4f', spine: { text: 'night clock', face: 'terminal', paper: '#0b0d12', ink: '#3FB950', code: 'E-240' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#2e9e4f', '#3FB950', '#d8ffe0'], sub: place.city }, text: 'the time in Rio, glowing in the dark', module: () => import('./tapes/clock.js') },
+  { id: 'synth',  account: 'piabrota', label: 'TAPE SYNTH',         color: '#d29922', spine: { text: 'tape synth', face: 'neon', paper: '#1a1208', ink: '#ffb347', code: 'T-90' }, sleeve: { style: 'sunburst', colors: ['#1a1208', '#d29922', '#ffe9b8', '#c2410c'], sub: 'play the screen' }, text: 'a small instrument you play on the screen', hint: 'a click plays a note', module: () => import('./tapes/synth.js') },
+  { id: 'csound', account: 'piabrota', label: 'LOFI IN CSOUND', color: '#1d2333', spine: { text: 'lofi in csound', face: 'terminal', paper: '#0b0d12', ink: '#ffb347', code: 'E-60' }, sleeve: { style: 'grid', colors: ['#0b0d12', '#ffb347', '#7dd3a6', '#f3ead8'], sub: 'the code of the music' }, text: 'the radio\'s lofi pieces, each playing while its Csound score runs up the screen; a click or FF for the next, REW for the one before', lang: 'csound', hint: 'click: next piece', pieces: radio.stations.flatMap((s) => s.tracks), module: () => import('./tapes/csound.js') },
 ];
 // The stack beside the VCR: piles side by side, each from the bottom up, by
 // tape id; nothing is squared up. A tape named in no pile goes on the
 // shortest. A bare cassette belongs on top of its pile (the pile closes up
 // when it leaves). `gap` is the space between two piles, in metres.
-export const stack = { piles: [['marola', 'ouroboric', 'clock', 'synth', 'hello'], ['piabrota', 'cv', 'bots', 'csound']], gap: 0.03 };
+// The piles are a catalogue, read from the top: on the left h0ffmann, then
+// marola-dev, each under its index, and the partner at the bottom; on the
+// right piabrota, under its two bare cassettes.
+export const stack = {
+  piles: [
+    ['ouroboric', 'marola', 'index-marola-dev', 'cv', 'index-h0ffmann'],
+    ['csound', 'synth', 'clock', 'piabrota', 'index-piabrota', 'bots', 'hello'],
+  ],
+  gap: 0.03,
+};
 // The VCR's face (src/vhs.js): a brand that does not exist, the words printed
 // on it, and the clock that nobody ever set. `lit` are the words behind the
-// display's glass (the first one is on), `keys` the six under it.
+// display's glass (the first one is on). `keys` are the six under it, from the
+// left: `id` is what the key does (src/app.js: `eject`, `rew`, `play`, `ff`,
+// `stop`, `rec`), `word` is printed under it, `key` is the same on the keyboard,
+// `label` and `hint` are its hover card. `words` is everything else the deck
+// and the TV say: the hover cards of the recorder, of the screen and of a
+// tape, the display's words while a tape is handled (`modes`), and the TV's
+// blue screen with no tape and with a stopped one.
 export const deck = {
   brand: 'BROTA', model: 'PB-180', badge: '4 HEAD', line: 'VIDEO CASSETTE RECORDER',
-  clock: '12:00', lit: ['SP', 'HI-FI', 'TIMER'], keys: ['EJECT', 'REW', 'PLAY', 'FF', 'STOP', 'REC'], led: 'POWER',
+  clock: '12:00', lit: ['SP', 'HI-FI', 'TIMER'], led: 'POWER',
+  keys: [
+    { id: 'eject', word: 'EJECT', key: 'e', label: 'eject', hint: 'the tape goes back to its sleeve' },
+    { id: 'rew',   word: 'REW',   key: 'r', label: 'rewind', hint: 'the page, the chapter or the piece before' },
+    { id: 'play',  word: 'PLAY',  key: 'p', label: 'play', hint: 'starts the tape in the deck, or takes the next one of the piles' },
+    { id: 'ff',    word: 'FF',    key: 'f', label: 'fast forward', hint: 'the next page, chapter or piece' },
+    { id: 'stop',  word: 'STOP',  key: 's', label: 'stop', hint: 'the tape stays in the deck; PLAY starts it again' },
+    { id: 'rec',   word: 'REC',   label: 'record', hint: 'this deck only plays' },
+  ],
+  words: {
+    vcr: 'VCR', empty: 'pick a tape beside it, or press PLAY',
+    slot: 'eject', key: (k) => `key ${k.toUpperCase()}`,
+    tape: (account, text) => `${account} · ${text}`,
+    loading: 'on its way to the deck', inDeck: 'in the deck: a click brings it back',
+    screen: 'insert a tape', screenHint: 'a click on the screen is passed to the tape',
+    modes: { load: 'LOAD', play: 'PLAY', stop: 'STOP', rew: 'REW', ff: 'FF', eject: 'EJECT', rec: 'NO REC' },
+    idle: ['NO SIGNAL', 'insert a tape'], stopped: ['STOP', 'press PLAY'],
+  },
+};
+// The catalogue: the three GitHub accounts the owner writes in, and the partner's. `color` and
+// `ink` are the band at the end of each of its tapes (src/vhs.js); `repos` is the list its index
+// tape shows (src/tapes/index.js): first the repositories the room already has somewhere, in the
+// room's own words (the frames, the buoys, the slipbox's sleeves), then `more`, the
+// account's other public repositories as GitHub lists them, the most recently pushed first:
+// [name, description, 'archived'?], read with `gh api search/repositories -f q='user:<account>'`
+// on 12 November 2026. Private repositories and forks are left out. `words` are the index
+// tape's own: its header, its footer, and what stands for a missing description.
+const listed = (account, rows) => rows.map(([name, line, archived]) => ({ name, line, url: `https://github.com/${account}/${name}`, archived: !!archived }));
+const shown = (rows) => rows.map((r) => ({ name: r.url.split('/').pop(), line: r.line, url: r.url }));
+const once = (rows) => rows.filter((r, i) => rows.findIndex((o) => o.url === r.url) === i);
+export const catalogue = {
+  words: {
+    title: 'index', count: (n) => `${n} public repositories`, page: (i, n) => `${i}/${n}`,
+    prev: '◀◀ REW', next: 'FF ▶▶', open: 'click a line to open it', archived: 'archived', none: '—',
+  },
+  accounts: {
+    h0ffmann: {
+      name: 'h0ffmann', url: 'https://github.com/h0ffmann', color: '#2e9e4f', ink: '#f7f3ea',
+      repos: () => once([...shown(slipbox.sleeves), ...listed('h0ffmann', catalogue.accounts.h0ffmann.more)]),
+      more: [
+      ['h0ffmann', 'R E A D M E'],
+      ['boat-tracker', '[9YO] since 2017 marola.dev'],
+      ['legacy-CSUB', '[10YO] Do not use it as a base for new work. It is a record of my part in an underwater communication program. feat. w/ Brazilian Navy and LIOC (COPPE/UFRJ)'],
+      ['ww3-dia-gpu-v2', 'ww3-dia-gpu-v2: the whole W3SNL1, inside WAVEWATCH III, bit for bit'],
+      ['awesome-neurosymbolic-ai', 'when Symbolic AI meets DNN'],
+      ['chaceon', 'CPU/GPU wave modeling in pure agentic rust'],
+      ['smart-notes', 'obsidian for humans', 'archived'],
+      ['montaigne', 'text-to-sound (TTS) experiments', 'archived'],
+      ['nashkell', 'game theory + haskell'],
+      ['hoffmannxd.github.io', 'Personal stuff'],
+      ['akka-bank', ''],
+      ['zex', ''],
+      ['scala-spice', 'Circuit analysis using Scala-lang.'],
+      ['che-scala-template', 'che test'],
+      ['scalabase', 'My personal skeleton for scala projects'],
+      ['chemo-rx', 'My undergraduate thesis'],
+      ['go-hello', 'Skeleton for GO RESTful API\'s.'],
+      ['js-advanced-es6', 'Advanced JavaScript ES6 Alura\'s course.'],
+      ['mdd-risk-analysis', 'Risk analysis using Apache Spark.'],
+      ['awesome-ocean-science', ''],
+      ['gcp-agentic-architect', 'learning agents on GCP'],
+      ['predictive-content', ''],
+      ['literator', 'next gen book analytics'],
+      ['tf-gcp-workspace', 'An automated Terraform and Python template for accessing shared Google Workspace documents (Docs, Sheets, Drive) via a service account.'],
+      ['fp-gym', 'func. programing exercises'],
+      ['hoffmagic', 'me + blog + over-engineering'],
+      ['the-garden-of-aflictions', ''],
+      ['awesome-agentic-ai', ''],
+      ['manus-playground', ''],
+      ['ihoje', ''],
+      ['awesome-prediction-markets', ''],
+      ['elyra-fork-test', ''],
+      ['scan4s', ''],
+      ['quad-ci', 'The Simple Haskell Handbook book suff'],
+      ['ops-cheat-sheet', '---'],
+      ],
+    },
+    'marola-dev': {
+      name: 'marola-dev', url: 'https://github.com/marola-dev', color: '#1682d4', ink: '#f7f3ea',
+      repos: () => once([...shown(sea.buoys), ...listed('marola-dev', catalogue.accounts['marola-dev'].more)]),
+      more: [
+      ['marola-swim', 'wip'],
+      ['marola-clock', 'smart clocks'],
+      ['.github', 'Org-wide defaults for marola-dev: community health files and the org profile'],
+      ['awesome-ocean-sciences', 'A curated list of ocean-science software, models, data and resources'],
+      ['marola-agents', 'marola way of living'],
+      ],
+    },
+    piabrota: {
+      name: 'piabrota', url: 'https://github.com/piabrota', color: '#bc2318', ink: '#f7f3ea',
+      repos: () => once([...shown(projects), ...listed('piabrota', catalogue.accounts.piabrota.more)]),
+      more: [
+      ['agents', '🤖 piabrota\'s buddies'],
+      ['room', 'A personal site that is a 3D room: switch camera shots, play VHS tapes on a TV, listen to lofi radio. three.js + Vite, static files.'],
+      ['skills', 'piabrota skillset'],
+      ['.github', '⚖️ piabrota dogma'],
+      ],
+    },
+    // a partner of piabrota: its tape wears its band, and its repositories are the crates on the belt
+    'ouroboric-dev': { name: 'ouroboric-dev', url: 'https://github.com/ouroboric-dev', color: '#c2410c', ink: '#f7f3ea', partner: true },
+  },
 };
 
 // ── the fabric: piabrota's projects, framed on the left wall ──

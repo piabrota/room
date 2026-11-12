@@ -35,5 +35,5 @@ export default {
     }
     ctx.restore();
   },
-  input() { window.open(bots[0].url, '_blank', 'noopener'); },
+  input({ type }) { if (type === 'click') window.open(bots[0].url, '_blank', 'noopener'); },
 };

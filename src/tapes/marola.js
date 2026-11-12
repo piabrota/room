@@ -24,7 +24,8 @@ export default {
       return { x, y, url: b.url };
     });
   },
-  input({ x, y }) {
+  input({ type, x, y }) {
+    if (type !== 'click') return;
     const hit = spots.find((s) => Math.hypot(s.x - x, s.y - y) < 18);
     window.open(hit ? hit.url : sea.url, '_blank', 'noopener');
   },

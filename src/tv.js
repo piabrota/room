@@ -4,11 +4,13 @@ import * as THREE from 'three';
 // module that draws into that canvas:
 //
 //   export default {
-//     mount({ ctx, width, height, audio, signature, config }) {},  // tape inserted
+//     mount({ ctx, width, height, audio, signature, config, tape }) {},  // tape inserted; `tape` is its entry in config.tapes
 //     frame(ctx, t, dt) {},                                 // every frame
-//     input({ type, x, y }) {},                             // click on screen, x/y in px
-//     stop() {},                                            // ejected
+//     input({ type, x, y }) {},                             // `click` on the screen, x/y in px; or a key of the deck,
+//                                                           // `rew` or `ff`, with no x/y: a step back or on (a page, a chapter)
+//     stop() {},                                            // ejected, or stopped
 //   }
+// A tape acts only on the types it knows: a `rew` is never a click.
 // The glass of a CRT, added to three's own material (onBeforeCompile), so
 // the tapes still draw on a plain 2D canvas: the picture bulges a little,
 // the corners darken and round off, and a fine RGB mask shows up close.
@@ -47,12 +49,18 @@ export function createTV(screenMesh, deps) {
     brightness += (sum / 12 / 255 - brightness) * 0.5;
   }
 
-  function idle(dt) {
-    // no tape: a calm blue screen and the time, no static
+  // no tape: a calm blue screen, no static. Its two lines are the deck's words (config.deck.words):
+  // `idle` with nothing in the deck, or what `standby` was set to (a tape that waits, stopped).
+  const words = deps.config?.deck?.words ?? {};
+  let standby = null;
+  function idle() {
+    const [title, sub, third] = standby ?? words.idle ?? [];
     const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0d1f3c'); g.addColorStop(1, '#081428');
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#cfe0ff'; ctx.font = '20px monospace'; ctx.fillText('NO SIGNAL', 20, 36);
-    ctx.fillStyle = '#7f95b8'; ctx.font = '14px monospace'; ctx.fillText('insert a tape', 20, 60);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = 1;
+    ctx.fillStyle = '#cfe0ff'; ctx.font = '20px monospace'; ctx.fillText(title ?? '', 20, 36);
+    ctx.fillStyle = '#7f95b8'; ctx.font = '14px monospace'; ctx.fillText(sub ?? '', 20, 60);
+    if (third) ctx.fillText(third, 20, 80);
   }
 
   function scanlines() {
@@ -63,17 +71,21 @@ export function createTV(screenMesh, deps) {
   return {
     get playing() { return tape; },
     get brightness() { return brightness; },
+    get time() { return t; },                 // seconds since the tape started: the deck's counter
+    set standby(lines) { standby = lines; },  // what the blue screen says while no tape plays
     async insert(def) {
       this.eject();
       const mod = (await def.module()).default;
       tape = { def, mod }; t = 0;
-      mod.mount?.({ ctx, width: W, height: H, ...deps });
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = 1; // each tape starts from a clean canvas state
+      mod.mount?.({ ctx, width: W, height: H, ...deps, tape: def });
     },
     eject() { tape?.mod.stop?.(); tape = null; },
     input(uv, type = 'click') { tape?.mod.input?.({ type, x: uv.x * W, y: (1 - uv.y) * H }); },
+    key(type) { tape?.mod.input?.({ type }); }, // a key of the deck: `rew`, `ff`
     update(dt) {
       t += dt;
-      if (tape) tape.mod.frame?.(ctx, t, dt); else idle(dt);
+      if (tape) tape.mod.frame?.(ctx, t, dt); else idle();
       scanlines(); tex.needsUpdate = true;
       if (tape && ++frames % 4 === 0) measure();
     },

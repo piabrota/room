@@ -19,6 +19,7 @@ import { buildNav } from './catnav.js';
 import { createCredits } from './creditscard.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
+let elapsed = 0; // the room's clock, in seconds: the loop at the end moves it
 const canvas = document.getElementById('scene');
 // A phone or a weak machine gets the lite look: fewer pixels, frames and passes (src/quality.js).
 const quality = pick();
@@ -98,47 +99,111 @@ addEventListener('keydown', (e) => {
 const gridHome = !!gridView && document.body.classList.contains('grid-home');
 rig.go(gridHome ? 'grid' : config.startShot, true);
 
-// ── tapes: hover shows label, click flies it into the VCR ──
+// ── tapes: a hover slides one out of its pile and says what it is, a click flies it into the VCR ──
 const S = (t) => t * t * t * (t * (t * 6 - 15) + 10);
 const tweens = [];
 const tween = (obj, to, dur, done) => tweens.push({ obj, from: obj.position.clone(), to, t: 0, dur, done });
 // The placeholder room's tapes know the way themselves (src/vhs.js: the cassette leaves its sleeve,
 // which stays in the pile, and goes in by the VCR's slot); a tape of a room.glb is a plain mesh, and flies.
-let inDeck = null; // the tape in the VCR, or on its way there
-for (const def of config.tapes) {
-  const mesh = room.find(`tape_${def.id}`); if (!mesh) continue;
-  mesh.userData.home = mesh.position.clone();
-  ui.add(mesh, {
-    label: def.label, hint: def.text,
-    onClick: () => {
-      if (inDeck?.def === def) { if (tv.playing?.def === def) eject(); return; } // its empty sleeve: the tape comes back
-      eject();
-      audio.play(config.sfx.click);
-      inDeck = { def, mesh };
-      const arrived = async () => {
-        if (inDeck?.def !== def) return; // called back before it got there
-        mesh.visible = !!mesh.userData.load; redrawShadows();
-        audio.play(config.sfx.insert);
-        await tv.insert(def);
-        if (inDeck?.def !== def) { if (tv.playing?.def === def) tv.eject(); return; }
-        room.tvLight.color.set(def.color); room.tvLight.intensity = 3;
-      };
-      if (mesh.userData.load) mesh.userData.load(room.vcr, arrived);
-      else tween(mesh, room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2)), 0.7, arrived);
-      rig.go('desk');
-    },
-  });
+// The deck (config.deck): its six keys work, by a click on them or by their letter on the keyboard, and
+// its display shows what it does, the tape's name and a counter. A tape in the deck is `loading` (on its
+// way in), `playing`, or `stopped` (in the deck, the screen blue; PLAY starts it again).
+const deckWords = config.deck?.words ?? {}, deckKeys = config.deck?.keys ?? [], modes = deckWords.modes ?? {};
+const accounts = config.catalogue?.accounts ?? {};
+const tapeMeshes = new Map();
+let inDeck = null;   // { def, mesh, state }: the tape in the VCR, or on its way there
+let lastTape = null; // the last one that went in: PLAY on an empty deck takes the one after it
+let flash = null;    // { mode, until }: what the display says for a moment (REW, FF, NO REC, EJECT)
+const nameOf = (def) => def.label;
+const mmss = (s) => `${String(Math.floor(s / 60) % 100).padStart(2, '0')}:${String(Math.floor(s) % 60).padStart(2, '0')}`;
+let deckShown = null;
+function showDeck() { // the display, from what the deck is doing now; drawn again only when it changes
+  const show = room.vcr?.userData.show; if (!show) return;
+  if (flash && elapsed >= flash.until) flash = null;
+  const state = inDeck?.state, s = Math.floor(state === 'playing' ? tv.time : inDeck?.at ?? 0);
+  const mode = flash?.mode ?? (inDeck ? modes[state === 'playing' ? 'play' : state === 'stopped' ? 'stop' : 'load'] : null);
+  const name = inDeck ? nameOf(inDeck.def) : flash?.name ?? '', now = mode ? `${mode}|${name}|${s}` : '';
+  if (now === deckShown) return; deckShown = now;
+  show(mode ? { mode, name, digits: inDeck ? mmss(s) : config.deck.clock } : null);
+}
+const say = (mode, name) => { flash = { mode: modes[mode], name, until: elapsed + 0.9 }; };
+async function start(def) { // the tape is in: it plays
+  await tv.insert(def);
+  if (inDeck?.def !== def || inDeck.state === 'stopped') { if (tv.playing?.def === def) tv.eject(); return; }
+  inDeck.state = 'playing'; tv.standby = null;
+  room.tvLight.color.set(def.color); room.tvLight.intensity = 3;
+}
+function load(def) {
+  const mesh = tapeMeshes.get(def); if (!mesh) return;
+  eject();
+  audio.play(config.sfx.click);
+  inDeck = { def, mesh, state: 'loading' }; lastTape = def; flash = null;
+  const arrived = () => {
+    if (inDeck?.def !== def) return; // called back before it got there
+    mesh.visible = !!mesh.userData.load; redrawShadows();
+    audio.play(config.sfx.insert);
+    start(def);
+  };
+  if (mesh.userData.load) mesh.userData.load(room.vcr, arrived);
+  else tween(mesh, room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2)), 0.7, arrived);
+  rig.go('desk');
 }
 function eject() {
   const cur = inDeck; if (!cur) return; inDeck = null;
-  tv.eject(); room.tvLight.intensity = 0;
+  tv.eject(); tv.standby = null; room.tvLight.intensity = 0;
   if (cur.mesh.userData.unload) cur.mesh.userData.unload(redrawShadows);
   else { cur.mesh.visible = true; tween(cur.mesh, cur.mesh.userData.home, 0.7, redrawShadows); }
   redrawShadows();
+  say('eject', nameOf(cur.def));
   audio.play(config.sfx.eject ?? config.sfx.insert);
 }
-ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), hint: () => (tv.playing ? tv.playing.def.label : 'pick a tape beside it'), onClick: eject });
-ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClick: (hit) => hit.uv && tv.input(hit.uv) });
+// One key of the deck, by its id. Each does one thing, and the display says it.
+function pressKey(id) {
+  const i = deckKeys.findIndex((k) => k.id === id); if (i < 0) return;
+  room.vcr?.userData.press?.(i);
+  if (id === 'eject') { if (inDeck) eject(); else audio.play(config.sfx.click); return; }
+  audio.play(config.sfx.click);
+  if (id === 'play') {
+    if (!inDeck) { const all = config.tapes.filter((t) => tapeMeshes.has(t)); if (all.length) load(all[(all.indexOf(lastTape) + 1) % all.length]); }
+    else if (inDeck.state === 'stopped') { inDeck.state = 'loading'; start(inDeck.def); }
+  } else if (id === 'stop') {
+    if (inDeck?.state === 'playing') { inDeck.at = tv.time; inDeck.state = 'stopped'; tv.eject(); tv.standby = [...(deckWords.stopped ?? []), inDeck.def.label]; room.tvLight.intensity = 0; }
+  } else if (id === 'rew' || id === 'ff') {
+    if (inDeck?.state === 'playing') tv.key(id); // a step back or on, for the tape to take as it knows (src/tv.js)
+    say(id);
+  } else say(id); // `rec`: this deck only plays
+}
+for (const def of config.tapes) {
+  const mesh = room.find(`tape_${def.id}`); if (!mesh) continue;
+  mesh.userData.home = mesh.position.clone(); tapeMeshes.set(def, mesh);
+  const account = accounts[def.account]?.name;
+  ui.add(mesh, {
+    label: def.label,
+    hint: () => (inDeck?.def === def ? (inDeck.state === 'loading' ? deckWords.loading : deckWords.inDeck) : account && deckWords.tape ? deckWords.tape(account, def.text) : def.text),
+    onHover: (on) => mesh.userData.hover?.(on),
+    onClick: () => {
+      if (inDeck?.def === def) { if (inDeck.state !== 'loading') eject(); return; } // its empty sleeve: the tape comes back
+      load(def);
+    },
+  });
+}
+const pile = room.find('tapes'); if (pile) pile.userData.onSettle = redrawShadows;
+// the VCR: a key under the pointer says what it does and does it; anywhere else on it, a click ejects
+const keyUnder = (hit) => (hit?.point ? deckKeys[room.vcr.userData.keyAt?.(hit.point) ?? -1] : null);
+ui.add(room.vcr, {
+  label: (hit) => keyUnder(hit)?.label ?? (inDeck ? deckWords.slot : deckWords.vcr),
+  hint: (hit) => { const k = keyUnder(hit); return k ? [k.hint, k.key && deckWords.key?.(k.key)].filter(Boolean).join(' · ') : inDeck ? inDeck.def.label : deckWords.empty; },
+  onClick: (hit) => { const k = keyUnder(hit); if (k) pressKey(k.id); else eject(); },
+});
+ui.add(room.screen, {
+  label: () => (tv.playing ? tv.playing.def.label : inDeck ? null : deckWords.screen),
+  hint: () => (tv.playing ? tv.playing.def.hint ?? deckWords.screenHint : null),
+  onClick: (hit) => hit?.uv && tv.input(hit.uv),
+});
+addEventListener('keydown', (e) => { // the deck's keys, on the keyboard
+  if (paused || e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.target instanceof HTMLInputElement || gridView?.covering) return;
+  const k = deckKeys.find((d) => d.key && d.key === e.key.toLowerCase()); if (k) pressKey(k.id);
+});
 
 // ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
 // On the full look he reads the room first, to walk around things and leap clear of them (src/catnav.js);
@@ -338,7 +403,7 @@ dispatchEvent(new Event('room:shown')); // the chart's mesh waits for it (src/gr
 
 // ── loop ──
 const clock = new THREE.Clock();
-let elapsed = 0, frames = 0, since = 0;
+let frames = 0, since = 0;
 const minDt = quality.fps ? 1 / quality.fps - 0.004 : 0; // a little early, so a 60 Hz screen gives every other frame
 function frame() {
   since += clock.getDelta();
@@ -361,7 +426,7 @@ function tick(dt, measure) {
     room.setDoor?.(S(doorState.k)); if (doorState.k === doorState.to) redrawShadows();
   }
   const moving = rig.moving;
-  rig.update(dt); you.follow(camera); room.update(elapsed); tv.update(dt); nash?.update(dt);
+  rig.update(dt); you.follow(camera); showDeck(); room.update(elapsed); tv.update(dt); nash?.update(dt);
   if (tv.playing && room.tvLight.intensity) room.tvLight.intensity = 0.8 + 4.5 * tv.brightness; // the room flickers with the picture
   ui.update(moving || tweens.length > 0 || ++frames % 3 === 0); // things on the wheel and the waves move too
   if (gridView) {
@@ -389,7 +454,7 @@ export function resume() {
   radio.resume();
 }
 // handy for debugging in the console; `step` drives the room by hand for `just record`
-window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, lock, quality, nash, grid: gridView, step: (dt) => {
+window.__room = { config, rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, lock, quality, nash, grid: gridView, deck: { press: pressKey, get tape() { return inDeck; } }, step: (dt) => {
   if (!stepping) { stepping = true; renderer.setAnimationLoop(() => {}); } // frames keep coming, the room only moves on step
   tick(dt, false);
 } };
