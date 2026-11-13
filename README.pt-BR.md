@@ -73,6 +73,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 36 | 11 nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) os dois artigos no aiXiv (2611.01104, "Wave models on GPUs", e 2611.01105, "A decision layer for contextual bandits, proved in Agda") na estante ao lado das obras com DOI, preprints encadernados de capa branca, cada um com um link para a página dele no aiXiv, e na página de trabalho do LOFI; uma fita, "lofi in csound", que toca as peças do rádio uma depois da outra enquanto a partitura em Csound de cada uma sobe pela TV, com a linha da cabeça de leitura acesa, e um clique passa para a próxima | 5 h 15 min |
 | 37 | 11 nov 23:44 | [#45](https://github.com/piabrota/room/pull/45) o respingo desenhava quadrados escuros no site no ar: os shaders da cratera, da ondulação e do jato faziam `pow()` de um número negativo, que o renderizador por software das capturas responde com boa vontade e o Direct3D e o Metal respondem com "não é um número"; assim a superfície da água, e tudo por onde o bloom e a oclusão espalham esse valor, fica preta durante o 1,4 s da cratera (mostrado aqui forçando o renderizador por software a responder igual; não visto numa GPU de verdade); os quadrados agora são produtos, e os termos de Fresnel e um alfa têm limite; `just peek --strict` desenha como uma GPU dessas e falha quando um pixel não é um número (519 no respingo antigo, nenhum agora), `just check` recusa `pow(x, 2.0)`, e a skill `room-shaders` tem a regra | 55 min |
 | 38 | 12 nov 20:35 | [#48](https://github.com/piabrota/room/pull/48) um quarto mais cheio e mais velho, feito pelo Fable 5.2 com três subagentes: uma poltrona, uma mesa baixa, um gaveteiro com um aparelho de som, um abajur de pé, um ventilador, um cabideiro, um ar-condicionado de janela e as coisas pequenas que alguém deixa pela casa; umidade, rachaduras, tinta amarelada e um piso gasto (`src/lived.js`); as fitas VHS com etiquetas no tamanho real e a faixa da conta do GitHub de cada uma, um hover que puxa a fita da pilha, as seis teclas do videocassete e o visor dele, e uma fita de índice para cada conta, h0ffmann, marola-dev e piabrota (`src/tapes/index.js`); o fax com o endereço como nome; o email da porta assina a newsletter no Substack, dito no formulário, e a página do Substack abre com o endereço preenchido para o visitante confirmar; um simulador de universos, o microfone dele e um mapa de mundos na parede, uma homenagem a The Midnight Gospel sem copiar nada da série (`src/simulator.js`); e treze livros do Goodreads do dono na estante | 2 h 20 min |
+| 39 | 12 nov 23:53 | [#49](https://github.com/piabrota/room/pull/49) o que o #48 escondeu, e um Nash novo, feito pelo Fable 5.2 com um subagente: o simulador de universos e o mapa dele ficavam atrás da câmera da visão geral e agora ficam na parede esquerda, na visão geral e na tomada dos quadros; os livros do Goodreads ficavam abaixo do quadro da tomada da estante e agora ficam na prateleira de cima; o Nash tem um corpo feito em código (uma malha com esqueleto, 33 ossos, pelo com brilho, olhos em fenda de dia e redondos à noite, `src/catbody.js`), anda com as patas firmes no chão, vagueia ao acaso em vez de fazer a ronda dos poleiros, salta em parábolas sob a gravidade que um gato consegue (no máximo 1,5 m de altura e 5,4 m/s, então o alto da estante não é mais dele) e dorme enrolado; `just cat` observa o gato | 3 h |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -454,6 +455,20 @@ user> '1. add more fornitures, make room more complex
 ```
 
 "Midnight Ghospel" foi lido como The Midnight Gospel, e "the puzzle" como a fechadura da porta, que pede um email. O Substack não tem um jeito público de assinar alguém, então a página de assinatura dele abre com o endereço preenchido. O Goodreads mostra a um robô 14 dos 24 livros: 13 estão na estante, e um já estava entre os ebooks.
+
+**39.**
+
+```text
+user> 'In a new PR
+
+1 . missing midnight ghospel references I asked before
+
+2. missing goodread on the shelf
+3. Improve drastically the cat appearence, is not realistic, put way more effort in the cat looking and physics over the ambient
+4. The cat jumps are unrealistic, it must have a real brownian realistic movement of a cat, the cat can also do to sleep'
+```
+
+"brownian" foi lido como um vaguear ao acaso: cada próximo ponto é o rumo mais um ruído, a um passo aleatório. As duas coisas "faltando" estavam no quarto, mas fora da vista das tomadas.
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).
