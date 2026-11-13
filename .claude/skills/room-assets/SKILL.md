@@ -34,7 +34,12 @@ The same goes for a photo (`rio-night.jpg` and `rio-night.lite.jpg`, 1280 px) an
 - Drop what the room does not use: metal-roughness and occlusion maps on a matte prop, a normal
   map on the lite file, cameras and lights in the file.
 - Textures: WebP in a model, JPEG (mozjpeg) for a surface. KTX2 would stay compressed in GPU
-  memory, but the room has no KTX2 loader yet; add one only with a reason in the pull request.
+  memory, but its files are no smaller and its transcoder is 260 kB more; AVIF made from the WebP
+  is no smaller at a quality that does not show (the `room-load` skill has the numbers). Add
+  either only with a measurement in the pull request.
+- A file of `public/` is asked for through `asset(path)` (`src/files.js`) or `image(path)`
+  (`src/first.js`), never by its bare path: the address then carries the file's hash, and the
+  host lets the browser keep it. A changed model needs no new name.
 
 ## Budgets (invariant 9)
 
@@ -52,5 +57,6 @@ just check
   stand-in until the file comes. A small prop is `phone: false` in `config.models.files`.
 - Anything else from a file (the fish): `F.load(key)`, which waits until the room is on screen.
 - Nothing is fetched before the room shows (`room.furnish()` in `src/app.js`): check it with
-  `just mobile --bytes`, which lists what was downloaded before.
+  `just mobile --load --bytes`, which lists what was downloaded before. A picture the first frame
+  shows goes in `firstFiles` (`src/first.js`), and `just check` counts it against the budget.
 - Look at it with `just peek --shot <name>` and `--lite`.

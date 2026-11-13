@@ -47,10 +47,16 @@ The room runs three.js r170 (`package.json`), so ignore advice written for r180 
 
 ## Shader stalls
 
-`src/app.js` compiles every material with `renderer.compileAsync` and uploads every texture
-before the first frame. A material made later (a model that arrives, a tape) compiles on its
-first draw. Give each `onBeforeCompile` material a `customProgramCacheKey`, so materials that
-share the hook share one program.
+`src/app.js` compiles every material with `post.compile()` and draws one whole frame behind the
+cover, so every texture is uploaded and every pass has its shader before the room shows. Never
+call `renderer.compileAsync(scene, camera)` by itself: with no render target set, three.js makes
+each program for the screen (tone mapping, sRGB output), and the room, which is drawn into the
+post-processing chain's HDR buffer, would never use one of them and would make them all again in
+its first frame. `post.compile(what)` (`src/post.js`) sets that buffer first. A model that arrives
+later is compiled the same way before it is shown (`prepare` in `src/furniture.js`); a tape's
+material compiles on its first draw. Give each `onBeforeCompile` material a
+`customProgramCacheKey`, so materials that share the hook share one program. To check:
+`renderer.info.programs.length` when the room shows and a few frames later must be the same.
 
 ## Memory
 
