@@ -39,11 +39,11 @@ export const POSES = {
   trot: { ...base, hipY: 0.186, neckP: 0.36, headP: -0.02, p0: 0.04, tailP: -0.1, tailC: 0.04, ears: 0.15 },
   sniff: { ...base, hipY: 0.185, p0: -0.06, p1: -0.3, neckP: -0.55, headP: -1.05, fF: 0.03, tailP: -0.5, tailC: 0.08 },
   alert: { ...base, neckP: 0.95, headP: -0.05, tailP: -0.55, lid: 0.02 },
-  sit: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.25, p1: 0.2, neckP: 0.9, headP: -0.1, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.078, hPhi: 0.12, splayH: 1.0, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.3 },
-  loaf: { ...base, hipF: -0.118, hipY: 0.07, p0: 0.06, p1: 0.02, neckP: 0.85, headP: -0.05, free: 1, ffA: 0.03, ffB: -0.045, hfA: 0.07, hfB: -0.055, fPhi: 2.6, hPhi: 0.1, splayF: 0.5, splayH: 0.7, tailP: -0.2, tailC: 0.03, tailW: 0.36, lid: 0.3 },
+  sit: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.25, p1: 0.2, neckP: 0.9, headP: -0.1, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.078, hPhi: 0.12, splayH: 1.0, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.42 },
+  loaf: { ...base, hipF: -0.118, hipY: 0.07, p0: 0.06, p1: 0.02, neckP: 0.85, headP: -0.05, free: 1, ffA: 0.035, ffB: -0.05, hfA: 0.07, hfB: -0.055, fPhi: 2.75, hPhi: 0.1, splayF: 0.12, splayH: 0.7, tailP: -0.2, tailC: 0.03, tailW: 0.42, lid: 0.3 },
   // curled up: the spine is an arc about the middle of the nest, the head comes round to the hips
   curl: { ...base, hipF: -0.089, hipX: -0.03, hipY: 0.064, yaw0: -1.25, bend: 2.5, p0: 0, p1: -0.02, roll0: 0.45, roll1: 0.3, neckP: -0.22, neckY: 0.5, headP: -0.3, headY: 0.4, headR: 0.25,
-    free: 1, ffA: 0.035, ffB: -0.04, hfA: 0.075, hfB: -0.04, fPhi: 2.7, hPhi: 0.1, splayF: 0.4, splayH: 0.5, tailP: -0.12, tailC: 0, tailW: 0.24, lid: 1, ears: 0.25 },
+    free: 1, ffA: 0.035, ffB: -0.04, hfA: 0.075, hfB: -0.04, fPhi: 2.7, hPhi: 0.1, splayF: 0.4, splayH: 0.5, tailP: -0.12, tailC: 0, tailW: 0.28, lid: 1, ears: 0.25 },
   rouse: null,
   crouch: { ...base, hipF: -0.128, hipY: 0.118, p0: 0.2, p1: 0.02, neckP: 0.75, headP: 0.05, fF: 0.0, hF: 0.035, hPhi: 0.75, splayH: 0.3, tailP: -0.5, tailC: 0.04, lid: 0.02 },
   push: { ...base, hipF: -0.1, hipY: 0.235, p0: 0.75, p1: 0.6, neckP: 0.8, headP: 0.3, free: 0, hF: -0.11, hPhi: 1.5, fF: 0.05, tailP: -0.3, tailC: 0.02, lid: 0.02 },
@@ -53,7 +53,7 @@ export const POSES = {
   absorb: { ...base, hipY: 0.125, p0: 0.12, p1: -0.1, neckP: 0.7, headP: 0.05, hF: 0.03, hPhi: 0.8, splayH: 0.3, tailP: -0.1, tailC: 0.08 },
   peer: { ...base, hipF: -0.12, hipY: 0.14, p0: -0.25, p1: -0.55, neckP: -0.5, headP: -0.9, fF: 0.035, hF: 0.02, hPhi: 0.8, splayH: 0.3, tailP: -0.3, tailC: 0.05, lid: 0.02 },
   bow: { ...base, hipF: -0.135, hipY: 0.205, p0: -0.5, p1: -0.3, neckP: 0.55, headP: 0.25, fF: 0.13, fPhi: 0.75, hF: -0.045, tailP: 0.5, tailC: 0.12, lid: 0.7, ears: 0.4 },
-  yawn: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.25, p1: 0.2, neckP: 1.0, headP: 0.4, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.078, hPhi: 0.12, splayH: 1.0, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.3, lid: 0.95, ears: 0.7, jaw: 1 },
+  yawn: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.25, p1: 0.2, neckP: 1.0, headP: 0.4, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.078, hPhi: 0.12, splayH: 1.0, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.42, lid: 0.95, ears: 0.7, jaw: 1 },
 };
 POSES.rouse = { ...POSES.curl, neckP: 0.6, neckY: 0.3, headP: 0.05, headY: 0.05, headR: 0, lid: 0.22, ears: 0 }; // woken, still curled: the head up
 for (const p of Object.values(POSES)) for (const k of KEYS) if (typeof p[k] !== 'number') throw new Error(`a pose lacks ${k}`);

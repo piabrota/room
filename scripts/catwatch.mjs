@@ -14,7 +14,7 @@
 //
 // The room steps 1/30 s a frame from its own clock, so two runs film the same life.
 import { join, resolve } from 'node:path';
-import { existsSync, readdirSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, mkdirSync, rmSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createServer } from 'vite';
 import { chromium } from 'playwright-core';
@@ -59,7 +59,9 @@ if (opt('seed')) await page.evaluate((n) => { const r = window.__room; for (let 
 if (opt('skip')) await run(Math.round(Number(opt('skip')) * 30));
 if (opt('act')) await page.evaluate((a) => window.__room.nash.act(a), opt('act'));
 if (warm) await run(Math.round(warm * 30));
+if (opt('then')) { await page.evaluate((a) => window.__room.nash.act(a), opt('then')); await run(Math.round(Number(opt('wait', 6)) * 30)); } // a second thing, once the first is done
 
+if (opt('eval-file')) console.log(JSON.stringify(await page.evaluate((code) => (0, eval)(code), readFileSync(opt('eval-file'), 'utf8')), null, 1));
 if (opt('eval')) console.log(JSON.stringify(await page.evaluate((code) => (0, eval)(code), opt('eval')), null, 1));
 if (opt('poses')) { // one still of each thing he does, side by side
   mkdirSync(out, { recursive: true });

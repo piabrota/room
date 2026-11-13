@@ -108,6 +108,9 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
           if (found) break;
         }
         if (found) { p.pos.copy(found[0]); p.face = found[1]; } else p.tight = true;
+        // lying down he is longer: is there room for that, along him?
+        const f = fwd(p.face, tmp2);
+        if (p.tight || [-0.2, -0.1, 0.1, 0.2, 0.28].some((al) => nav.solidAt(p.pos.x + f.x * al, p.pos.y + 0.1, p.pos.z + f.z * al) || nav.solidAt(p.pos.x + f.x * al, p.pos.y + 0.16, p.pos.z + f.z * al))) p.tight = true;
       }
       perches.set(p.id, p);
     }
@@ -121,8 +124,9 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
     }
     for (const p of [...perches.values()]) if (p.out || chain(p).some((c) => c.out)) perches.delete(p.id);
     // he starts over from where he is, on the floor; the first time, at home
-    const start = still ? perches.get(cfg.still) ?? home : home;
-    if (!started || still) { pos.copy(start.pos); yaw = start.face; here = start; started = true; }
+    const bed = still && cfg.perches.find((p) => p.id === cfg.still); // asleep for good: where the config says, map or no map
+    const start = bed ? { pos: new THREE.Vector3(...bed.at), face: bed.face ?? 0 } : home;
+    if (!started || still) { pos.copy(start.pos); yaw = start.face; here = bed ? null : start; started = true; }
     else if (here && !perches.has(here.id)) here = null;
     if (!nav.open && !still && !(here && high(here))) { const n = nav.nearest(pos.x, pos.z); if (!nav.free(pos.x, pos.z)) { pos.x = n.x; pos.z = n.y; } pos.y = nav.groundAt(pos.x, pos.z); }
     plan.length = 0; step = null; replant = true;
@@ -201,7 +205,7 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
     }
     return null;
   }
-  const restful = (p) => (p.rest ?? ['sit']);
+  const restful = (p) => (p.tight ? ['sit'] : p.rest ?? ['sit']); // where he has no room to lie, he sits
   function settle(p, long = 1) { // what he does once he is somewhere to stay
     const kinds = p ? restful(p) : ['sit', 'loaf'];
     const k = kinds[Math.floor(rnd() * kinds.length)], t = about(habits.pause * long) / (cfg.restless || 1);
@@ -210,7 +214,7 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
   }
   function goSleep() {
     const day = !!group.parent?.userData.day, table = {};
-    for (const p of perches.values()) if (p.sleep) table[p.id] = p.sleep * (p.sun ? (day ? 4 : 0.2) : 1) * (p === here ? 2 : 1);
+    for (const p of perches.values()) if (p.sleep && !p.tight) table[p.id] = p.sleep * (p.sun ? (day ? 4 : 0.2) : 1) * (p === here ? 2 : 1);
     const p = perches.get(draw(table)) ?? here ?? home;
     if (p !== here) goTo(p);
     plan.push({ k: 'spin', turns: (rnd() < 0.5 ? 1 : -1) * (0.8 + rnd() * 0.7) });
@@ -563,7 +567,6 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
       else if (POSES[what]) pose(what, 30);
       else if (perches.get(what)) { goTo(perches.get(what)); settle(perches.get(what), 3); }
     },
-    get debug() { return { Q, cur, yawRate, phase, mirror, flyPitch, wiggle, lookYaw, lookPitch, foot: Array.from(out.foot), hm: Array.from(hm), plantX: Array.from(plantX), swing: Array.from(swing) }; },
     get state() {
       return { step: step?.k, phase: step?.ph, pose: Object.keys(POSES).find((k) => POSES[k] === target), anim: step?.anim, here: here?.id ?? null, at: pos.toArray().map((v) => +v.toFixed(3)), yaw: +yaw.toFixed(3), speed: +speed.toFixed(3),
         asleep, awake: +awake.toFixed(1), bedtime: +bedtime.toFixed(1), flying, jump: lastJump, triangles: body.triangles,
