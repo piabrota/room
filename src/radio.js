@@ -9,6 +9,8 @@
 // listeners, scripts/listeners.mjs) that one more person is listening,
 // over one EventSource, and shows the count it sends back. Without the
 // service the count stays hidden; nothing else changes.
+import { asset } from './files.js';
+
 export function createRadio(audio, { stations, volume = 0.6, listeners: liveUrl }) {
   const out = audio.bus(); out.gain.value = volume;
   let station = stations[0], i = 0, on = false, el = null, node = null, bed = null, live = null, count = null;
@@ -32,7 +34,7 @@ export function createRadio(audio, { stations, volume = 0.6, listeners: liveUrl 
   function start() {
     release();
     const t = station.tracks[i];
-    el = new Audio(); el.preload = 'auto'; el.src = t.src;
+    el = new Audio(); el.preload = 'auto'; el.src = asset(t.src);
     node = audio.ctx.createMediaElementSource(el); node.connect(out);
     el.onended = () => next();
     el.onerror = () => fallback(t);

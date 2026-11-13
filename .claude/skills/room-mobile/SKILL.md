@@ -41,9 +41,10 @@ was 780×1688 pixels through five passes, 60 times a second. Every rule here com
 ## Measure
 
 `just mobile` opens the built room as a phone (390×844, ratio 3, touch, CPU slowed 4×) and as a
-laptop (1280×720, ratio 2) and prints, for each, the look, the bytes downloaded before the room
-shows, the time until then, the size of the drawing buffer and the median time of a frame with the
-GPU's work in it. In this container the GPU is software (SwiftShader), so compare builds with each
+laptop (1280×720, ratio 2) and prints, for each, the look, the bytes and the requests before the
+room shows, when its code and its first pictures arrived, the time until it shows and until every
+model is in, the size of the drawing buffer and the median time of a frame with the GPU's work in
+it (`--load` leaves the frames out, `--net 4g` slows the line; the `room-load` skill). In this container the GPU is software (SwiftShader), so compare builds with each
 other on the same machine, never with a phone. Put the before and after lines in the pull request.
 `just mobile --device phone` measures one; `--url https://room.piabrota.art/` the live site.
 

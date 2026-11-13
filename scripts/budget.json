@@ -1,0 +1,21 @@
+{
+  "about": "What may load before the room shows, in bytes as the host sends them and in requests (scripts/budget.mjs; the room-load skill). Written by `node scripts/budget.mjs --write` with 8 % of room; raise a number by hand only with the reason in the pull request.",
+  "phone": {
+    "code": 340000,
+    "fonts": 220000,
+    "quick": 90000,
+    "waits": 640000,
+    "pictures": 340000,
+    "total": 890000,
+    "requests": 24
+  },
+  "laptop": {
+    "code": 340000,
+    "fonts": 220000,
+    "quick": 90000,
+    "waits": 640000,
+    "pictures": 2040000,
+    "total": 2590000,
+    "requests": 37
+  }
+}

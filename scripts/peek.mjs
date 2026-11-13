@@ -25,6 +25,7 @@ import { existsSync, readdirSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { createServer } from 'vite';
 import { chromium } from 'playwright-core';
+import { holdFrames } from './hold.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -57,6 +58,7 @@ const browser = await chromium.launch({
 // --still: a visitor who asked for reduced motion (invariant 8)
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: flag('phone') ? 2 : 1, isMobile: flag('phone'), hasTouch: flag('phone'), reducedMotion: flag('still') ? 'reduce' : 'no-preference' });
 page.setDefaultTimeout(180000);
+await holdFrames(page); // the room's clock starts at the first step, the same on every run
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
@@ -88,7 +90,7 @@ await page.addStyleTag({ content: `#enter{display:none!important}${flag('hud') ?
 
 const look = (o) => page.evaluate(async ({ list, shot, from, to, fov, steps, code }) => {
   const r = window.__room;
-  if (r.room.ready) await r.room.ready; // the models, when the room loads them after its first frame
+  if (r.room.ready) await (r.room.settled ?? r.room.ready); // the models, when the room loads them after its first frame, and the chart's mesh
   r.rig.go(shot ?? Object.keys(r.rig.names)[0] ?? r.rig.names[0], true);
   for (let i = 0; i < steps; i++) r.step(1 / 30);
   if (code) { await (0, eval)(code); r.renderer.shadowMap.needsUpdate = true; r.step(1 / 30); }

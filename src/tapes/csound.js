@@ -4,6 +4,7 @@
 // track's name. A click on the screen or the deck's FF goes to the next piece, REW to the one before.
 // The sound plays through audio.bus(),
 // so the sound button mutes it, and stop() releases every node, fetch and timer it made.
+import { asset } from '../files.js';
 import { FACES } from '../art.js';
 
 let W, H, audio, bus, def;
@@ -24,7 +25,7 @@ async function load(i) {
   const track = def.pieces[i], key = Object.keys(scores).find((k) => name(k) === name(track.src));
   try { lines = key ? (await scores[key]()).split('\n') : []; } catch { lines = []; }
   try {
-    const res = await fetch(track.src);
+    const res = await fetch(asset(track.src));
     if (!res.ok) throw new Error(res.status);
     const b = await audio.ctx.decodeAudioData(await res.arrayBuffer());
     if (my !== token || stopped) return;

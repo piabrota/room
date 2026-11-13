@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles, stack as tapeStack, deck, catalogue } from './config.js';
@@ -14,18 +12,36 @@ import { buildSimulator } from './simulator.js';
 import { fontsReady, frameArt, eyeArt, photoArt, spineArt, noteArt, quoteArt, noiseTex, plasticArt, paperArt, folderArt } from './art.js';
 import { buildTapeStack, buildVCR, buildMixtape } from './vhs.js';
 import { lived } from './config.js';
+import { asset, missing } from './files.js';
+import { image, whenLoaded, surfaceFiles } from './first.js';
 import { buildLived } from './lived.js';
 
 // Photographed surfaces (Poly Haven, CC0; CREDITS.md): colour, normal and roughness, or only
 // some of them (`maps`). The small files (a phone, a small screen, a slow line) are the colour alone, at 512 px.
-const loader = new THREE.TextureLoader();
 let anisotropy = 8, lite = false, small = false; // the quality's look and files (src/quality.js), set by loadRoom before anything is built
-function pbr(name, repeat = [1, 1], rot = 0, maps = ['diff', 'nor', 'rough']) {
-  const map = (k, srgb) => { const t = loader.load(`/textures/pbr/${name}_${k}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.rotation = rot; t.anisotropy = anisotropy; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
-  const out = {};
-  if (maps.includes('diff')) out.map = map(small ? 'diff.lite' : 'diff', true);
-  if (!small && maps.includes('nor')) out.normalMap = map('nor');
-  if (!small && maps.includes('rough')) out.roughnessMap = map('rough');
+// `maps` comes from the list of src/first.js, which src/main.js reads too: it asks for these same
+// pictures while the room's code is still on its way, and `image` hands them over here.
+//
+// A surface is never drawn with a map that has not arrived: until its file is here a map is one
+// neutral pixel (a mid grey, a flat normal, a roughness of one), so the floor is the floor's
+// colour and not black and shining. On a large screen the colour shows first in its small file
+// (512 px), which arrives early, and the full maps take its place as they come; the surface ends
+// exactly as it would have with the full maps alone.
+const pixels = {};
+const pixel = (kind) => (pixels[kind] ??= (() => { const c = document.createElement('canvas'); c.width = c.height = 1; const x = c.getContext('2d'); x.fillStyle = { diff: '#808080', nor: '#8080ff', rough: '#ffffff' }[kind]; x.fillRect(0, 0, 1, 1); return c; })());
+function pbr(name, repeat = [1, 1], rot = 0, maps) {
+  const map = (kind, file, srgb, quick) => {
+    const t = new THREE.Texture(pixel(kind)); t.needsUpdate = true;
+    let full = false;
+    const put = (img) => { t.dispose(); t.image = img; t.needsUpdate = true; }; // a picture of another size is a new texture on the GPU
+    whenLoaded(image(file), (img) => { full = true; put(img); });
+    if (quick && quick !== file) whenLoaded(image(quick), (img) => { if (!full) put(img); });
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.rotation = rot; t.anisotropy = anisotropy; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t;
+  };
+  const files = surfaceFiles(name, small, maps), out = {};
+  if (files.diff) out.map = map('diff', files.diff, true, surfaceFiles(name, true, maps).diff);
+  if (files.nor) out.normalMap = map('nor', files.nor);
+  if (files.rough) out.roughnessMap = map('rough', files.rough);
   return out;
 }
 
@@ -35,16 +51,21 @@ function pbr(name, repeat = [1, 1], rot = 0, maps = ['diff', 'nor', 'rough']) {
 export async function loadRoom(scene, url, onProgress = () => {}, quality = { shadowSize: 1024, anisotropy: 8, dust: 400 }) {
   anisotropy = quality.anisotropy; lite = quality.name === 'lite'; small = (quality.files ?? (lite ? 'lite' : 'full')) === 'lite';
   let root, animated = [], ready = Promise.resolve(), furnish = () => {};
+  // The fonts the canvases draw with are asked for at once (the page's head has already asked for
+  // them in a build, vite.config.js), while the host is asked whether there is a room.glb; a build
+  // that found none does not ask at all.
+  const fonts = fontsReady();
   try {
-    const head = await fetch(url, { method: 'HEAD' });
+    if (missing(url)) throw 0;
+    const head = await fetch(asset(url), { method: 'HEAD' });
     if (!head.ok || !(head.headers.get('content-type') || '').match(/gltf|octet|model/)) throw 0;
-    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-    const gltf = await loader.loadAsync(url, (e) => e.total && onProgress(e.loaded / e.total));
+    const loader = (await import('./gltf.js')).gltfLoader();
+    const gltf = await loader.loadAsync(asset(url), (e) => e.total && onProgress(e.loaded / e.total));
     root = gltf.scene;
     root.userData.cameras = gltf.cameras;
     useBakedLighting(root);
   } catch {
-    await fontsReady();
+    await fonts;
     ({ root, animated, ready, furnish } = placeholderRoom());
   }
   onProgress(1);
@@ -108,6 +129,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     root, find, lamp, tvLight, screen, vcr: find('vcr'),
     furnish,        // asks for the furniture that is files: called once the room is on screen
     ready,          // the furniture that is files has arrived, or failed and left its stand-in (src/furniture.js)
+    settled: ready.then(() => root.userData.chartDrawn), // and the chart on the wall has its mesh: nothing more will change by itself (`just peek`, `just record`)
     onChange: null, // called when a piece of it arrives after the room is on screen: draw the shadows again
     get day() { return day; }, setDay,
     // the door: 0 shut, 1 open (about 100°); the light beyond shows only while it is ajar
@@ -398,7 +420,8 @@ function placeholderRoom() {
     const BW = 0.72, BH = 0.72;
     const board = named(h.name); board.position.set(-2.15, 2.47, -1.975);
     mesh('', new THREE.BoxGeometry(BW + 0.08, BH + 0.08, 0.035), std('#2a1d16', { roughness: 0.7 }), [0, 0, 0], board);
-    const logo = loader.load(h.art.logo); logo.colorSpace = THREE.SRGBColorSpace; logo.magFilter = THREE.NearestFilter; logo.anisotropy = anisotropy;
+    const logo = new THREE.Texture(); whenLoaded(image(h.art.logo), (img) => { logo.image = img; logo.needsUpdate = true; }); // asked for by src/main.js already (src/first.js)
+    logo.colorSpace = THREE.SRGBColorSpace; logo.magFilter = THREE.NearestFilter; logo.anisotropy = anisotropy;
     const face = mesh('', new THREE.PlaneGeometry(BW, BH), new THREE.MeshStandardMaterial({ map: logo, roughness: 0.85, emissive: h.art.lights?.color ?? '#ff2a1a', emissiveIntensity: 0 }), [0, 0, 0.018], board);
     face.castShadow = false;
     const n = h.art.lights?.count ?? 26, red = new THREE.Color(h.art.lights?.color ?? '#ff2a1a');
@@ -435,7 +458,7 @@ function placeholderRoom() {
   for (const h of hotspots.filter((x) => x.name === 'chart')) {
     const chart = named(h.name); chart.position.set(3.37, 1.62, 1.55); chart.rotation.y = -Math.PI / 2;
     mesh('', new THREE.BoxGeometry(1.12, 0.86, 0.025), std('#1b2733', { roughness: 0.6 }), [0, 0, -0.012], chart);
-    mesh('', new THREE.PlaneGeometry(1.04, 0.78), (() => { const t = chartTexture(grid); return new THREE.MeshStandardMaterial({ map: t, emissiveMap: t, emissive: '#ffffff', emissiveIntensity: 0.28, roughness: 0.85 }); })(), [0, 0, 0.002], chart).castShadow = false;
+    mesh('', new THREE.PlaneGeometry(1.04, 0.78), (() => { const t = chartTexture(grid); g.userData.chartDrawn = t.userData.drawn; return new THREE.MeshStandardMaterial({ map: t, emissiveMap: t, emissive: '#ffffff', emissiveIntensity: 0.28, roughness: 0.85 }); })(), [0, 0, 0.002], chart).castShadow = false;
   }
 
   // ── the door, on the front wall: a lock of four digits (config.door, src/lock.js) ──
@@ -658,7 +681,7 @@ function placeholderRoom() {
     });
     geo.setIndex(new THREE.BufferAttribute(out, 1)); o.geometry = geo; o.material = uniq;
   });
-  return { root: g, animated, ready: F.ready, furnish: () => F.start() };
+  return { root: g, animated, ready: F.ready, furnish: (how) => F.start(how) };
 }
 
 // You: a pair of sneakers and the legs of a pair of jeans, standing under
