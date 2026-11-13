@@ -414,8 +414,9 @@ await (recording ? firstPictures : Promise.race([picturesIn(quickFiles()), new P
 room.settled = Promise.all([room.settled, firstPictures]); // nothing more will change by itself (`just peek`)
 redrawShadows();
 // One whole frame behind the cover: the shadow maps, the passes' own shaders and every texture's
-// upload happen here, so when the cover lifts the room is there and already moving.
-try { you.follow(camera); room.update(elapsed); live.update(); post.render(0, elapsed, false); } catch { /* the loop will draw it */ }
+// upload happen here, so when the cover lifts the room is there and already moving. The room's
+// clock is not touched (no `room.update`): the water's simulation starts at the loop's first frame.
+try { you.follow(camera); live.update(); post.render(0, elapsed, false); } catch { /* the loop will draw it */ }
 loading?.classList.add('done');
 // The furniture's files, now that the room is on screen (src/furniture.js): what the camera sees
 // first, and each piece's shaders compiled before it takes its stand-in's place.

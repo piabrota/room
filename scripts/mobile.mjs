@@ -122,14 +122,11 @@ async function visit(d) {
   // ETag is asked about again, and answered "not changed" in a few hundred bytes and one round trip)
   let second = null;
   if (again) {
-    const asked = new Map(), served = new Set(); let bytes = 0;
-    cdp.on('Network.requestWillBeSent', (e) => { if (/^https?:/.test(e.request.url)) asked.set(e.requestId, e.request.url); });
-    cdp.on('Network.requestServedFromCache', (e) => served.add(e.requestId));
-    cdp.on('Network.loadingFinished', (e) => { if (asked.has(e.requestId) && !served.has(e.requestId)) bytes += e.encodedDataLength; });
-    asked.clear();
+    let bytes = 0, requests = 0; // what crosses the line: a file from the browser's cache costs no bytes and is not counted
+    cdp.on('Network.loadingFinished', (e) => { if (e.encodedDataLength > 0) { bytes += e.encodedDataLength; requests++; } });
     await page.reload(); await page.waitForSelector('#loading.done');
     await page.evaluate(() => window.__room.room.ready); await page.waitForTimeout(1500);
-    second = { requests: [...asked.keys()].filter((id) => !served.has(id)).length, bytes };
+    second = { requests, bytes };
   }
   await ctx.close();
   return { ...r, second, shown, requests: before.length + 1, shownAt: shownAt / 1000, codeAt: codeAt / 1000, filesAt: filesAt / 1000, drawnAt: drawnAt / 1000, modelsAt: modelsAt / 1000, cpuDrawn, cpuModels, total, totalRequests: files.length, before, all: files };

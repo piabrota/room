@@ -18,6 +18,7 @@ just load-budget                  # no browser: what loads before the room shows
 just mobile --load --bytes        # phone and laptop in a browser: bytes, requests, when each part arrived
 just mobile --load --net 4g       # on a 4G line (`slow4g` too); --runs 3 gives the spread
 just mobile --load --budget       # fails when more was downloaded than the budget allows
+just mobile --load --again --host today   # and a second visit, on the host as nix-os has it (`--host proposed`, the default: Brotli, `?v=` kept for good)
 just mobile --url https://room.piabrota.art/   # the live site
 ```
 
