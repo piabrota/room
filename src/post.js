@@ -105,6 +105,18 @@ export function createPost(renderer, scene, camera, { accent = '#BC2318', ao: wi
     setDay(on) { Object.assign(bloom, on ? BLOOM.day : BLOOM.night); },
     select(obj) { outline.selectedObjects = obj ? [obj] : []; outline.enabled = !!obj; },
     skipAO(obj) { unshaded.push(obj); },
+    // The shaders of the room (or of one thing, before it joins the room), compiled for the buffer
+    // the room is really drawn into. A program is made for where its picture goes: drawn to the
+    // screen it carries the tone mapping and the sRGB output, drawn into this chain's HDR buffer it
+    // carries neither. Compiled with no buffer set, every program would be made for the screen,
+    // never used, and made again in the first frame, with the room standing still for as long.
+    compile(what = scene) {
+      const was = renderer.getRenderTarget();
+      renderer.setRenderTarget(composer.renderTarget1);
+      let done;
+      try { done = renderer.compileAsync(what, camera, scene); } finally { renderer.setRenderTarget(was); }
+      return done;
+    },
     before(fn) { first.push(fn); }, // called before every frame is drawn: a picture a material needs of the room (the splash's lens)
     render(dt, t, measure = true) {
       grade.uniforms.time.value = t % 100;

@@ -170,7 +170,7 @@ function curtainGeo(width, height, folds, seed) {
 }
 
 // Builds the shell into the room. `mesh`, `part` and `std` are the room's own helpers
-// (src/room.js); `pbr(name, repeat, rot, maps)` loads a photographed surface; `look` is
+// (src/room.js); `pbr(name, repeat, rot)` loads a photographed surface (its maps are listed in src/first.js); `look` is
 // `config.shell`; `rose` is where the ceiling rose is, `doorGap` where the front wall's
 // skirting stops for the door.
 export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) {
@@ -186,7 +186,7 @@ export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) 
 
   // ── the walls: painted plaster, the paint a little uneven, the plaster's grain under it ──
   const paint = mottle(3, 512, Math.min(look.wear?.amount ?? 0, 2)); paint.repeat.set(1 / 3.7, 1 / 3.7);
-  const plaster = (color) => new THREE.MeshStandardMaterial({ color, map: paint, ...pbr('beige_wall_001', [1 / 2.4, 1 / 2.4], 0, ['nor', 'rough']), roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
+  const plaster = (color) => new THREE.MeshStandardMaterial({ color, map: paint, ...pbr('beige_wall_001', [1 / 2.4, 1 / 2.4]), roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
   const wallMat = plaster(look.wall);
   const wall = (name, w, holes, pos, rotY, cast = true) => { const m = mesh(name, sheet(w, H, holes), wallMat, pos); m.rotation.y = rotY; m.castShadow = cast; return m; };
   const wx0 = WIN.x - WIN.w / 2, wy0 = WIN.y - WIN.h / 2, top = wy0 + WIN.h;
@@ -245,7 +245,7 @@ export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) 
 
   // ── the curtains: cotton, drawn back to each side of the window, on a brass rod ──
   const rodY = 2.86, cw = 0.44, cz0 = z0 + 0.1, hem = 0.025;
-  const cloth = new THREE.MeshStandardMaterial({ color: look.curtain, ...pbr('cotton_jersey', [3, 14], 0, ['nor', 'rough']), roughness: 1, side: THREE.DoubleSide, normalScale: new THREE.Vector2(0.6, 0.6) });
+  const cloth = new THREE.MeshStandardMaterial({ color: look.curtain, ...pbr('cotton_jersey', [3, 14]), roughness: 1, side: THREE.DoubleSide, normalScale: new THREE.Vector2(0.6, 0.6) });
   const brass = { opts: { metalness: 0.85, roughness: 0.32 } };
   part(new THREE.CylinderGeometry(0.011, 0.011, WIN.w + 2 * cw + 0.1, 12), [WIN.x, rodY, cz0], look.brass, { rot: [0, 0, Math.PI / 2], ...brass });
   for (const s of [-1, 1]) {

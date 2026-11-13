@@ -6,6 +6,7 @@
 //
 // On the screen: click a link to open it, click the bar at the bottom
 // to jump to a chapter. The deck's REW and FF step a chapter back and on.
+import { asset } from '../files.js';
 import { piabrotaTape } from '../config.js';
 import { score, midiToHz } from '../score.js';
 
@@ -28,7 +29,7 @@ const clock = (s) => [Math.floor(s / 3600), Math.floor(s / 60) % 60, Math.floor(
 
 async function loadTrack() {
   try {
-    const res = await fetch(piabrotaTape.track.src);
+    const res = await fetch(asset(piabrotaTape.track.src));
     if (!res.ok) throw new Error(res.status);
     return await audio.ctx.decodeAudioData(await res.arrayBuffer());
   } catch {

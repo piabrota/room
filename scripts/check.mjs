@@ -274,6 +274,21 @@ for (const f of walk(join(root, 'src')).filter((f) => f.endsWith('.js'))) {
   });
 }
 
+// 9. The room opens fast, and stays so (the `room-load` skill; `scripts/budget.mjs` counts the bytes after the build).
+// Shaders are compiled through post.compile(), for the buffer the room is drawn into: compiled bare, each program is
+// made for the screen, never used, and made again in the first frame. MapLibre and the glTF loader come by import(),
+// on the click or the moment that needs them. A file of public/ is asked for through asset() or image(), so its
+// address carries its hash and the host can let a browser keep it.
+for (const f of walk(join(root, 'src')).filter((f) => f.endsWith('.js'))) {
+  const name = f.slice(root.length), text = readFileSync(f, 'utf8');
+  if (name !== 'src/post.js' && /\.compileAsync\(|renderer\.compile\(/.test(text)) fail(9, `${name} compiles shaders by itself: use post.compile() (src/post.js), which sets the buffer the room is drawn into`);
+  if (/^import[^\n]*from\s+'maplibre-gl/m.test(text)) fail(9, `${name} imports maplibre-gl at the top: it is 800 kB, and comes by import() when the map opens`);
+  if (name !== 'src/gltf.js' && /^import[^\n]*GLTFLoader/m.test(text)) fail(9, `${name} imports GLTFLoader at the top: take it from src/gltf.js by import(), after the first frame`);
+  text.split('\n').forEach((line, i) => {
+    if (/(TextureLoader\(\)|loader)\.load(Async)?\(\s*[`'"]\/|fetch\(\s*[`'"]\/(models|textures|audio|grid)\//.test(line)) fail(9, `${name}:${i + 1} asks for a file of public/ by its bare path: wrap it in asset() (src/files.js)`);
+  });
+}
+
 // AGENTS.md keeps exactly ten invariants.
 const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
 const count = (agents.split('## Invariants')[1]?.split('\n## ')[0].match(/^\d+\. \*\*/gm) ?? []).length;

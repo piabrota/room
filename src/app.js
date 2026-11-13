@@ -17,6 +17,7 @@ import { createLock } from './lock.js';
 import { createCat } from './cat.js';
 import { buildNav } from './catnav.js';
 import { createCredits } from './creditscard.js';
+import { isDay, firstFiles, quickFiles, arrived as picturesIn } from './first.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 let elapsed = 0; // the room's clock, in seconds: the loop at the end moves it
@@ -74,6 +75,8 @@ rig.names.forEach((name, i) => {
   const k = document.createElement('kbd'); k.textContent = String((i + 1) % 10); // the tenth is 0
   b.append(k, document.createTextNode(` ${config.shots[name]?.label ?? name}`));
   b.onclick = () => rig.go(name); b.dataset.shot = name;
+  // the map's code and files start on their way when the pointer, the finger or the focus reaches its button
+  if (name === 'grid') for (const ev of ['pointerenter', 'focus', 'touchstart']) b.addEventListener(ev, () => gridView?.warm(), { once: true, passive: true });
   nav.appendChild(b);
 });
 // ── ▲ grid: when the camera lands on the chart (key 0), the map opens; any other shot closes it ──
@@ -137,6 +140,7 @@ function load(def) {
   const mesh = tapeMeshes.get(def); if (!mesh) return;
   eject();
   audio.play(config.sfx.click);
+  Promise.resolve().then(() => def.module?.()).catch(() => {}); // the tape's code comes while the cassette flies to the deck (src/tv.js imports it again, from the cache)
   inDeck = { def, mesh, state: 'loading' }; lastTape = def; flash = null;
   const arrived = () => {
     if (inDeck?.def !== def) return; // called back before it got there
@@ -345,9 +349,7 @@ function setDay(on) {
   dayBtn.title = on ? words.toNight : words.toDay;
 }
 dayBtn.onclick = () => setDay(!room.day);
-const hour = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: config.place.timeZone }).format(new Date()));
-const [dawn, dusk] = config.outside?.dayHours ?? [6, 18];
-setDay(new URLSearchParams(location.search).has('day') || (!new URLSearchParams(location.search).has('night') && hour >= dawn && hour < dusk));
+setDay(isDay(config)); // `?day`, `?night`, or the hour where the room is (src/first.js, which src/main.js asks too)
 
 // ── piabrota RADIO: the button at the top and the radio on the sill ──
 const radioBtn = document.getElementById('radio'), radioNext = document.getElementById('radio-next');
@@ -401,10 +403,22 @@ scene.traverse((o) => {
   for (const m of [o.material].flat()) for (const k of ['map', 'emissiveMap']) if (m?.[k]) renderer.initTexture(m[k]);
 });
 rig.update(0);
-await renderer.compileAsync(scene, camera).catch(() => renderer.compile(scene, camera));
+await post.compile().catch(() => {}); // for the buffer the room is drawn into (src/post.js): the first frame makes none again
+// The surfaces' small colours (80 kB, asked for by src/main.js before this code arrived) are worth
+// a moment's wait, so the cover lifts on a floor and walls; `just record` waits for every picture
+// of the first frame, so its stills never catch one half way.
+const firstPictures = picturesIn(firstFiles(config, quality, room.day));
+await (recording ? firstPictures : Promise.race([picturesIn(quickFiles()), new Promise((done) => setTimeout(done, 800))]));
+room.settled = Promise.all([room.settled, firstPictures]); // nothing more will change by itself (`just peek`)
 redrawShadows();
+// One whole frame behind the cover: the shadow maps, the passes' own shaders and every texture's
+// upload happen here, so when the cover lifts the room is there and already moving. The room's
+// clock is not touched (no `room.update`): the water's simulation starts at the loop's first frame.
+try { you.follow(camera); live.update(); post.render(0, elapsed, false); } catch { /* the loop will draw it */ }
 loading?.classList.add('done');
-room.furnish(); // the furniture's files, now that the room is on screen (src/furniture.js)
+// The furniture's files, now that the room is on screen (src/furniture.js): what the camera sees
+// first, and each piece's shaders compiled before it takes its stand-in's place.
+room.furnish(recording ? undefined : { camera, prepare: (model) => post.compile(model) });
 performance.mark('room:shown'); // `just mobile` counts the bytes before it
 dispatchEvent(new Event('room:shown')); // the chart's mesh waits for it (src/grid.js)
 

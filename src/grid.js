@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { asset } from './files.js';
+import { strokeMesh } from './chart.js';
 
 // ▲ grid: the tenth view (key 0). The camera lands on the chart on the
 // right wall, and a map opens over the room: the Brazilian coast on a
@@ -25,17 +27,19 @@ const LAYERS = {
 // bytes) and its temperature load only when the map opens (`data`), so a visit that never opens
 // the grid does not download them.
 let meshPromise = null;
+const LATER = { priority: 'low' }; // a hint: the furniture's files, asked for at the same moment, go first
+
 const meshData = (files) => (meshPromise ??= Promise.all([
-  fetch(files.run).then((r) => (r.ok ? r.json() : Promise.reject(new Error('no run')))),
-  fetch(files.mesh).then((r) => r.arrayBuffer()),
+  fetch(asset(files.run), LATER).then((r) => (r.ok ? r.json() : Promise.reject(new Error('no run')))),
+  fetch(asset(files.mesh), LATER).then((r) => r.arrayBuffer()),
 ]).then(([run, mesh]) => ({ run, n: run.nodes, lonlat: new Float32Array(mesh, 0, run.nodes * 2), tris: new Uint16Array(mesh, run.nodes * 8, run.triangles * 3) })));
 
 async function load(files) {
-  const [{ run, n, lonlat, tris }, frames] = await Promise.all([meshData(files), fetch(files.frames).then((r) => r.arrayBuffer())]);
+  const [{ run, n, lonlat, tris }, frames] = await Promise.all([meshData(files), fetch(asset(files.frames)).then((r) => r.arrayBuffer())]);
   // the sea's temperature, when `just grid` could read it; a node without one takes its neighbours'
   let sst = null;
   if (run.sst && files.sst) {
-    const raw = await fetch(files.sst).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
+    const raw = await fetch(asset(files.sst)).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
     if (raw) {
       const u = new Uint16Array(raw); sst = new Float32Array(n);
       for (let i = 0; i < n; i++) sst[i] = u[i] === run.sst.missing ? NaN : u[i] * run.sst.scale;
@@ -62,22 +66,31 @@ export function chartTexture(grid) {
     ctx.font = '400 22px "JetBrains Mono", monospace'; ctx.fillStyle = '#4a5866'; ctx.fillText(grid.hint, 46, 128);
   };
   paper(); tex.needsUpdate = true;
-  // the mesh is drawn on the chart once the room is on screen and the browser is idle: its
-  // 230 kB never stand between the visitor and the room (on the grid's own name the map wants it first anyway)
-  new Promise((done) => addEventListener('room:shown', done, { once: true })).then(() => meshData(grid.files)).then(({ n, lonlat, tris }) => {
-    const [w, s, e, nn] = grid.bbox, x0 = 440, y0 = 160, h = H - 200, sc = h / (nn - s);
-    const px = (i) => x0 + (lonlat[i * 2] - w) * sc * Math.cos(-15 * Math.PI / 180), py = (i) => y0 + (nn - lonlat[i * 2 + 1]) * sc;
-    paper();
-    ctx.strokeStyle = 'rgba(21,94,140,0.55)'; ctx.lineWidth = 0.6; ctx.beginPath();
-    for (let t = 0; t < tris.length; t += 3) {
-      const [a, b, c2] = [tris[t], tris[t + 1], tris[t + 2]];
-      ctx.moveTo(px(a), py(a)); ctx.lineTo(px(b), py(b)); ctx.lineTo(px(c2), py(c2)); ctx.closePath();
-    }
-    ctx.stroke();
+  // The mesh is drawn on the chart once the room is on screen: its 230 kB never stand between the
+  // visitor and the room (on the grid's own name the map wants it first anyway). Its one long
+  // stroke is made in a worker (src/chart.worker.js), so the room keeps moving meanwhile; a
+  // browser with no canvas in a worker strokes it here, when it is idle, and so does `just record`
+  // (`?record`), whose stills are the page's own strokes. `userData.drawn` resolves when the chart
+  // has its mesh, or never will: the stills wait for it (`room.settled`).
+  const recording = new URLSearchParams(location.search).has('record');
+  const style = { color: 'rgba(21,94,140,0.55)', width: 0.6 };
+  const counts = ({ n, tris }) => {
     ctx.font = '400 20px "JetBrains Mono", monospace'; ctx.fillStyle = '#4a5866';
     ctx.fillText(`${n} nodes`, 46, 190); ctx.fillText(`${tris.length / 3} triangles`, 46, 220);
     tex.needsUpdate = true;
-  }).catch(() => {});
+  };
+  const here = (d) => new Promise((done) => (recording ? done() : (self.requestIdleCallback ?? setTimeout)(done, { timeout: 3000 }))).then(() => { paper(); strokeMesh(ctx, { H, lonlat: d.lonlat, tris: d.tris, bbox: grid.bbox, style }); counts(d); });
+  const away = (d) => new Promise((done, fail) => {
+    if (recording || typeof OffscreenCanvas === 'undefined' || typeof Worker === 'undefined') { fail(new Error('no canvas in a worker')); return; }
+    const worker = new Worker(new URL('./chart.worker.js', import.meta.url), { type: 'module' });
+    const end = (fn, v) => { worker.terminate(); fn(v); };
+    worker.onmessage = ({ data }) => (data.bitmap ? end(done, data.bitmap) : end(fail, new Error(data.error)));
+    worker.onerror = (e) => { e.preventDefault?.(); end(fail, new Error('the chart worker failed')); };
+    setTimeout(() => end(fail, new Error('the chart worker did not answer')), 20000); // a browser that takes the worker and never runs it
+    worker.postMessage({ W, H, lonlat: d.lonlat.slice(), tris: d.tris.slice(), bbox: grid.bbox, style }); // copies: the map reads the same arrays
+  }).then((bitmap) => { paper(); ctx.drawImage(bitmap, 0, 0); bitmap.close?.(); counts(d); });
+  tex.userData.drawn = new Promise((done) => addEventListener('room:shown', done, { once: true })).then(() => meshData(grid.files))
+    .then((d) => away(d).catch(() => here(d))).catch(() => {});
   return tex;
 }
 
@@ -393,7 +406,7 @@ export function createGrid(grid, { still = false } = {}) {
       renderWorldCopies: false, dragRotate: false, pitchWithRotate: false, fadeDuration: 0,
       style: {
         version: 8,
-        sources: { land: { type: 'geojson', data: grid.files.land } },
+        sources: { land: { type: 'geojson', data: asset(grid.files.land) } },
         layers: [
           { id: 'sea', type: 'background', paint: { 'background-color': '#08131f' } },
           { id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#1d2029' } },
@@ -432,12 +445,16 @@ export function createGrid(grid, { still = false } = {}) {
     state.map = map; showTime();
   }
 
+  let warmed = false;
   return {
     get open() { return state.open; },
     get ready() { return !!state.ready; }, // the map and the mesh are drawn (`just record` waits for it)
     // fully shown: the room behind can stop drawing
     get covering() { return state.open && el.classList.contains('on'); },
     onBack(fn) { onBack = fn; },
+    // the map's code and its files, asked for ahead of the click that needs them (a pointer on the
+    // shot's button, src/app.js): the camera's move to the chart then ends on a map that is there
+    warm() { if (!state.map && !warmed) { warmed = true; Promise.all([import('maplibre-gl'), data(grid.files), import('maplibre-gl/dist/maplibre-gl.css')]).catch(() => { warmed = false; }); } },
     async show() {
       if (state.open) return;
       state.open = true; el.hidden = false; document.body.classList.add('gridding');
