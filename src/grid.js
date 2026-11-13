@@ -27,9 +27,11 @@ const LAYERS = {
 // bytes) and its temperature load only when the map opens (`data`), so a visit that never opens
 // the grid does not download them.
 let meshPromise = null;
+const LATER = { priority: 'low' }; // a hint: the furniture's files, asked for at the same moment, go first
+
 const meshData = (files) => (meshPromise ??= Promise.all([
-  fetch(asset(files.run)).then((r) => (r.ok ? r.json() : Promise.reject(new Error('no run')))),
-  fetch(asset(files.mesh)).then((r) => r.arrayBuffer()),
+  fetch(asset(files.run), LATER).then((r) => (r.ok ? r.json() : Promise.reject(new Error('no run')))),
+  fetch(asset(files.mesh), LATER).then((r) => r.arrayBuffer()),
 ]).then(([run, mesh]) => ({ run, n: run.nodes, lonlat: new Float32Array(mesh, 0, run.nodes * 2), tris: new Uint16Array(mesh, run.nodes * 8, run.triangles * 3) })));
 
 async function load(files) {

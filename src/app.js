@@ -140,6 +140,7 @@ function load(def) {
   const mesh = tapeMeshes.get(def); if (!mesh) return;
   eject();
   audio.play(config.sfx.click);
+  Promise.resolve().then(() => def.module?.()).catch(() => {}); // the tape's code comes while the cassette flies to the deck (src/tv.js imports it again, from the cache)
   inDeck = { def, mesh, state: 'loading' }; lastTape = def; flash = null;
   const arrived = () => {
     if (inDeck?.def !== def) return; // called back before it got there

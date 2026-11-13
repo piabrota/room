@@ -72,10 +72,10 @@ async function visit(d) {
   await page.addInitScript(() => new MutationObserver((_, obs) => {
     if (document.getElementById('loading')?.classList.contains('done')) { window.__shownAt = performance.now(); obs.disconnect(); }
   }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] }));
-  // when the room is really on the screen: the third frame the browser asks for after the room says it shows
-  // has at least one whole frame of the room behind it (a build that compiles its shaders in that frame stalls there)
+  // when the room is really on the screen: the second frame the browser asks for after the room says it shows
+  // has one whole frame of the room's loop behind it (a build that compiles its shaders in that frame stalls there)
   await page.addInitScript(() => addEventListener('room:shown', () => {
-    let n = 0; const tick = () => { if (++n === 3) window.__drawnAt = performance.now(); else requestAnimationFrame(tick); };
+    let n = 0; const tick = () => { if (++n === 2) window.__drawnAt = performance.now(); else requestAnimationFrame(tick); };
     requestAnimationFrame(tick);
   }, { once: true }));
   // The processor's seconds the browser spends (the page's process and the GPU's, which here is the software
