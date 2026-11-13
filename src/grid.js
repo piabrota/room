@@ -84,6 +84,7 @@ export function chartTexture(grid) {
     const end = (fn, v) => { worker.terminate(); fn(v); };
     worker.onmessage = ({ data }) => (data.bitmap ? end(done, data.bitmap) : end(fail, new Error(data.error)));
     worker.onerror = (e) => { e.preventDefault?.(); end(fail, new Error('the chart worker failed')); };
+    setTimeout(() => end(fail, new Error('the chart worker did not answer')), 20000); // a browser that takes the worker and never runs it
     worker.postMessage({ W, H, lonlat: d.lonlat.slice(), tris: d.tris.slice(), bbox: grid.bbox, style }); // copies: the map reads the same arrays
   }).then((bitmap) => { paper(); ctx.drawImage(bitmap, 0, 0); bitmap.close?.(); counts(d); });
   tex.userData.drawn = new Promise((done) => addEventListener('room:shown', done, { once: true })).then(() => meshData(grid.files))

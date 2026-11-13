@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 import { asset } from './files.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 // The furniture and the props that are files: photographed models (Poly Haven, CC0; CREDITS.md),
 // packed by `just models` into public/models/, one file for the laptop's look and a smaller one
@@ -19,7 +17,8 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 // the default), 'back' (the middle of its back, for a picture on a wall), 'top' (the middle of
 // its top, for a lamp that hangs), 'centre', or 'origin' (the model's own origin, as its author set it).
 export function createFurniture(models, { lite = false, small = lite, anisotropy = 8, onChange = () => {} } = {}) {
-  const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+  const loader = import('./gltf.js').then((m) => m.gltfLoader()); // on its way while the room is built (src/gltf.js)
+  loader.catch(() => {});
   const pending = [];
   // No file is asked for before `start()`: the room shows first, with its stand-ins, and the
   // furniture comes after, four files at a time, so the room's own code and pictures never wait
@@ -32,7 +31,7 @@ export function createFurniture(models, { lite = false, small = lite, anisotropy
   const pump = () => {
     while (started && free > 0 && queue.length) {
       const job = queue.shift(); free--;
-      loader.loadAsync(job.url).then(job.done, job.fail).finally(() => { free++; pump(); });
+      loader.then((l) => l.loadAsync(job.url)).then(job.done, job.fail).finally(() => { free++; pump(); });
     }
   };
   const fetchModel = (url) => new Promise((done, fail) => { queue.push({ url, done, fail }); pump(); });

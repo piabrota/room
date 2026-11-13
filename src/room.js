@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { door as doorText, tapes, hotspots, theme, people, outside, cv, contact, emailText, closedSource, body as bodyLook, grid, playlist, shell as look, models as modelFiles, stack as tapeStack, deck, catalogue } from './config.js';
@@ -61,7 +59,7 @@ export async function loadRoom(scene, url, onProgress = () => {}, quality = { sh
     if (missing(url)) throw 0;
     const head = await fetch(asset(url), { method: 'HEAD' });
     if (!head.ok || !(head.headers.get('content-type') || '').match(/gltf|octet|model/)) throw 0;
-    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    const loader = (await import('./gltf.js')).gltfLoader();
     const gltf = await loader.loadAsync(asset(url), (e) => e.total && onProgress(e.loaded / e.total));
     root = gltf.scene;
     root.userData.cameras = gltf.cameras;
