@@ -29,5 +29,5 @@ export default {
     ctx.fillStyle = '#c2410c'; ctx.font = `13px ${FONT_MONO}`; ctx.fillText(loop.crates[on].line, cx, cy + 6);
     ctx.textAlign = 'left';
   },
-  input() { window.open(loop.url, '_blank', 'noopener'); },
+  input({ type }) { if (type === 'click') window.open(loop.url, '_blank', 'noopener'); },
 };

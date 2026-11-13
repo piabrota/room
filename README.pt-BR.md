@@ -71,7 +71,11 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 34 | 11 nov 15:30 | [#41](https://github.com/piabrota/room/pull/42) a playlist do quarto no topo dos dois READMEs, como um botão do Spotify: o github.com tira um iframe, então o embed colado não mostrava nada | 5 min |
 | 35 | 11 nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) mais cinco peças de lofi na rádio, dez ao todo, escritas em Csound como as cinco primeiras: um violão de nylon e um vibrafone entram na banda (`music/lofi.orc`), e as peças são um tema respondido pelo vibrafone, um violão que acompanha, uma balada, um ciclo de quintas e uma mais clara em ré maior | 45 min |
 | 36 | 11 nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) os dois artigos no aiXiv (2611.01104, "Wave models on GPUs", e 2611.01105, "A decision layer for contextual bandits, proved in Agda") na estante ao lado das obras com DOI, preprints encadernados de capa branca, cada um com um link para a página dele no aiXiv, e na página de trabalho do LOFI; uma fita, "lofi in csound", que toca as peças do rádio uma depois da outra enquanto a partitura em Csound de cada uma sobe pela TV, com a linha da cabeça de leitura acesa, e um clique passa para a próxima | 5 h 15 min |
-| 37 | 12 nov 16:32 | [#47](https://github.com/piabrota/room/pull/47) o LOFI esconde também as camadas do quarto: no mapa do ▲ grid (grid.piabrota.art, ou o plano do grid), o botão LOFI punha `?lofi` mas o mapa ficava sobre a página, porque os estilos do LOFI escondiam o canvas e os botões e não o mapa, a fechadura ou a janela ao vivo | 30 min |
+| 37 | 11 nov 23:44 | [#45](https://github.com/piabrota/room/pull/45) o respingo desenhava quadrados escuros no site no ar: os shaders da cratera, da ondulação e do jato faziam `pow()` de um número negativo, que o renderizador por software das capturas responde com boa vontade e o Direct3D e o Metal respondem com "não é um número"; assim a superfície da água, e tudo por onde o bloom e a oclusão espalham esse valor, fica preta durante o 1,4 s da cratera (mostrado aqui forçando o renderizador por software a responder igual; não visto numa GPU de verdade); os quadrados agora são produtos, e os termos de Fresnel e um alfa têm limite; `just peek --strict` desenha como uma GPU dessas e falha quando um pixel não é um número (519 no respingo antigo, nenhum agora), `just check` recusa `pow(x, 2.0)`, e a skill `room-shaders` tem a regra | 55 min |
+| 38 | 12 nov 20:35 | [#48](https://github.com/piabrota/room/pull/48) um quarto mais cheio e mais velho, feito pelo Fable 5.2 com três subagentes: uma poltrona, uma mesa baixa, um gaveteiro com um aparelho de som, um abajur de pé, um ventilador, um cabideiro, um ar-condicionado de janela e as coisas pequenas que alguém deixa pela casa; umidade, rachaduras, tinta amarelada e um piso gasto (`src/lived.js`); as fitas VHS com etiquetas no tamanho real e a faixa da conta do GitHub de cada uma, um hover que puxa a fita da pilha, as seis teclas do videocassete e o visor dele, e uma fita de índice para cada conta, h0ffmann, marola-dev e piabrota (`src/tapes/index.js`); o fax com o endereço como nome; o email da porta assina a newsletter no Substack, dito no formulário, e a página do Substack abre com o endereço preenchido para o visitante confirmar; um simulador de universos, o microfone dele e um mapa de mundos na parede, uma homenagem a The Midnight Gospel sem copiar nada da série (`src/simulator.js`); e treze livros do Goodreads do dono na estante | 2 h 20 min |
+| 39 | 12 nov 23:53 | [#49](https://github.com/piabrota/room/pull/49) o que o #48 escondeu, e um Nash novo, feito pelo Fable 5.2 com um subagente: o simulador de universos e o mapa dele ficavam atrás da câmera da visão geral e agora ficam na parede esquerda, na visão geral e na tomada dos quadros; os livros do Goodreads ficavam abaixo do quadro da tomada da estante e agora ficam na prateleira de cima; o Nash tem um corpo feito em código (uma malha com esqueleto, 33 ossos, pelo com brilho, olhos em fenda de dia e redondos à noite, `src/catbody.js`), anda com as patas firmes no chão, vagueia ao acaso em vez de fazer a ronda dos poleiros, salta em parábolas sob a gravidade que um gato consegue (no máximo 1,5 m de altura e 5,4 m/s, então o alto da estante não é mais dele) e dorme enrolado; `just cat` observa o gato | 3 h |
+| 40 | 13 nov 00:28 | [#51](https://github.com/piabrota/room/pull/51) a carga do quarto, feita pelo Fable 5.2 com um subagente, sem recodificar nenhuma imagem ou modelo: a página pré-carrega o código, as fontes e as imagens do primeiro quadro, as cores pequenas primeiro (`src/first.js`); todo arquivo de `public/` é pedido com o hash dele, então o servidor pode guardá-lo para sempre e uma segunda visita faz 2 pedidos onde fazia de 24 a 49 (`src/files.js`); cópias Brotli e gzip feitas pelo build; os shaders compilados uma vez, atrás da capa (de 95 programas para 58); os móveis na ordem em que aparecem; o traço do mapa em um worker; um orçamento de carga no `just check` (`scripts/budget.mjs`); as imagens iguais antes e depois | 3 h |
+| 41 | 12 nov 16:32 | [#47](https://github.com/piabrota/room/pull/47) o LOFI esconde também as camadas do quarto: no mapa do ▲ grid (grid.piabrota.art, ou o plano do grid), o botão LOFI punha `?lofi` mas o mapa ficava sobre a página, porque os estilos do LOFI escondiam o canvas e os botões e não o mapa, a fechadura ou a janela ao vivo | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -433,7 +437,54 @@ nas páginas deles no aiXiv. "cmusic code" foi lido como o código em Csound da 
 **37.**
 
 ```text
+user> 'https://room.piabrota.art/ splash animation is causing dark quara frames in any point of
+observation of the splash itself. balloon respawn looks ok'
+```
+
+"dark quara frames" foi lido como quadrados escuros nos quadros do respingo.
+
+**38.**
+
+```text
+user> '1. add more fornitures, make room more complex
+2. bring more realism, this should look like a old room, but no too antiquade
+3. Improve VHS Tapes, proportions, interactions, h0ffmann/marola-dev/piabrota indexing of projects
+4. Fax name should be mhoffmannfs@gmail.com
+5. Make sure everyone that puts the email in the puzzle subscribes to my substack
+6. Add a machine in or 2 objects to remember Midnight Ghospel, at least 1 board in the wall related to it.
+7. Add all books from my goodreads/piabrota to the shelf as well
+8. Use Fable 5.2 use subagents'
+```
+
+"Midnight Ghospel" foi lido como The Midnight Gospel, e "the puzzle" como a fechadura da porta, que pede um email. O Substack não tem um jeito público de assinar alguém, então a página de assinatura dele abre com o endereço preenchido. O Goodreads mostra a um robô 14 dos 24 livros: 13 estão na estante, e um já estava entre os ebooks.
+
+**39.**
+
+```text
+user> 'In a new PR
+
+1 . missing midnight ghospel references I asked before
+
+2. missing goodread on the shelf
+3. Improve drastically the cat appearence, is not realistic, put way more effort in the cat looking and physics over the ambient
+4. The cat jumps are unrealistic, it must have a real brownian realistic movement of a cat, the cat can also do to sleep'
+```
+
+"brownian" foi lido como um vaguear ao acaso: cada próximo ponto é o rumo mais um ruído, a um passo aleatório. As duas coisas "faltando" estavam no quarto, mas fora da vista das tomadas.
+
+**40.**
+
+```text
+user> 'Site looks perfect, after you optmize, please do a huge step for optimizing the site the load, without losing quality, look for optimization kills in the web'
+```
+
+"optimization kills" foi lido como optimization skills: as técnicas vêm de "Preload critical assets" do web.dev, addyosmani/web-quality-skills, emalorenzo/three-agent-skills e "Web texture formats" de Don McCurdy, lidas como ideias, nada copiado (`.claude/skills/room-load/SKILL.md`).
+
+**41.**
+
+```text
 user> 'https://grid.piabrota.art/?lofi broken in room'
+user> 'https://github.com/piabrota/room/pull/47 fix this'
 ```
 
 "broken" foi lido como o que um visitante vê: no mapa, o LOFI acende e o endereço diz `?lofi`,
@@ -485,6 +536,15 @@ sólido; a cratera parece porcelana vista de baixo; há pouco ar e pouca espuma;
 demais; as gotas grandes são anéis; a borracha mais se dissolve do que rasga. Ele achou certos a
 ordem, os tempos e os tamanhos, e o respingo convincente de onde o visitante fica (uns 7 de 10),
 menos de perto (uns 5).
+
+Um defeito que nenhum crítico podia ver, porque os críticos e as capturas olham o quarto
+desenhado por software: os shaders da cratera, da ondulação e do jato faziam `pow()` de um número
+negativo. O GLSL deixa isso indefinido; o renderizador por software responde com boa vontade, e o
+Direct3D e o Metal respondem "não é um número", e o dono viu quadrados escuros no site no ar
+enquanto o respingo durava (11 de novembro de 2026). Forçado a responder como eles, o renderizador
+por software quebra a superfície da água em preto; essa é a prova aqui, porque não havia uma GPU
+de verdade à mão. O `just peek --strict` agora
+desenha como uma GPU dessas e falha quando um pixel não é um número.
 
 ### O que é simulado
 

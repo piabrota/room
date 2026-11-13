@@ -230,6 +230,8 @@ body.guarded #hud, body.guarded #lock, body.guarded #tooltip, body.guarded #ente
 #lock .gate input { font: 15px/1.2 var(--mono); padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: #000; color: var(--fg); min-height: 44px; }
 #lock .gate button { min-height: 44px; background: var(--accent); border-color: var(--accent); }
 #lock .gate .note { margin: 0; color: var(--dim); font-size: 11px; }
+#lock .game .confirm { display: block; margin: 0 0 8px; color: var(--fg); font-size: 12px; text-decoration: underline; }
+#lock .game .confirm[hidden] { display: none; }
 body.guarded #lock .gate input { -webkit-user-select: text; user-select: text; }
 
 /* the credits (src/creditscard.js): a button at the end of the shots' row, and its card above the row */

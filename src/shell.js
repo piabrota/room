@@ -11,8 +11,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 //   curtains from a rod at 2.86 to the floor · rug 2.6 × 1.8
 //
 // The plaster's grain, the wood and the cloth are photographed surfaces (Poly Haven, CC0;
-// CREDITS.md); the colours are `config.shell`; the rug, the mottled paint and the soft shadows
-// under the furniture are drawn here.
+// CREDITS.md); the colours are `config.shell`; the rug, the mottled and yellowed paint and the soft
+// shadows under the furniture are drawn here. The stains, the cracks and the wear are in src/lived.js.
 
 export const ROOM = { x0: -3.0, x1: 3.4, z0: -2.0, z1: 3.8, h: 3.1 };
 // The window: in the back wall, above the desk. `depth` is how far the frame sits behind the wall's face.
@@ -55,8 +55,9 @@ function mulberry(a) {
 const canvas = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
 
 // Old paint: nearly one colour, with soft patches a little lighter and a little darker, as a wall
-// painted by hand many times has. White, so the wall's own colour tints it.
-function mottle(seed = 3, size = 512) {
+// painted by hand many times has. White, so the wall's own colour tints it. `age` (config.shell.wear.amount)
+// adds what the years did: wide patches where it yellowed more, and faint runs where water once came down.
+function mottle(seed = 3, size = 512, age = 0) {
   const [c, ctx] = canvas(size, size), r = mulberry(seed);
   ctx.fillStyle = '#ececec'; ctx.fillRect(0, 0, size, size);
   for (let i = 0; i < 90; i++) {
@@ -66,6 +67,15 @@ function mottle(seed = 3, size = 512) {
       g.addColorStop(0, light ? 'rgba(255,255,255,0.10)' : 'rgba(120,110,95,0.07)'); g.addColorStop(1, 'rgba(128,128,128,0)');
       ctx.fillStyle = g; ctx.fillRect(x + ox - rad, y + oy - rad, rad * 2, rad * 2);
     }
+  }
+  const round = (draw) => { for (const [ox, oy] of [[0, 0], [size, 0], [-size, 0], [0, size], [0, -size]]) draw(ox, oy); }; // round the edges too, so it tiles
+  for (let i = 0; i < 12 && age > 0; i++) {
+    const x = r() * size, y = r() * size, rad = (0.18 + r() * 0.26) * size;
+    round((ox, oy) => { const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, rad); g.addColorStop(0, `rgba(176,146,92,${0.05 * age})`); g.addColorStop(1, 'rgba(176,146,92,0)'); ctx.fillStyle = g; ctx.fillRect(x + ox - rad, y + oy - rad, rad * 2, rad * 2); });
+  }
+  for (let i = 0; i < 22 && age > 0; i++) {
+    const x = r() * size, y = r() * size, len = (0.08 + r() * 0.3) * size, w = 1.5 + r() * 4;
+    round((ox, oy) => { const g = ctx.createLinearGradient(0, y + oy, 0, y + oy + len); g.addColorStop(0, 'rgba(120,100,70,0)'); g.addColorStop(0.2, `rgba(120,100,70,${0.05 * age})`); g.addColorStop(1, 'rgba(120,100,70,0)'); ctx.fillStyle = g; ctx.fillRect(x + ox, y + oy, w, len); });
   }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace;
   return t;
@@ -160,7 +170,7 @@ function curtainGeo(width, height, folds, seed) {
 }
 
 // Builds the shell into the room. `mesh`, `part` and `std` are the room's own helpers
-// (src/room.js); `pbr(name, repeat, rot, maps)` loads a photographed surface; `look` is
+// (src/room.js); `pbr(name, repeat, rot)` loads a photographed surface (its maps are listed in src/first.js); `look` is
 // `config.shell`; `rose` is where the ceiling rose is, `doorGap` where the front wall's
 // skirting stops for the door.
 export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) {
@@ -175,8 +185,8 @@ export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) 
   floor.rotation.x = -Math.PI / 2; floor.castShadow = false;
 
   // ── the walls: painted plaster, the paint a little uneven, the plaster's grain under it ──
-  const paint = mottle(); paint.repeat.set(1 / 3.7, 1 / 3.7);
-  const plaster = (color) => new THREE.MeshStandardMaterial({ color, map: paint, ...pbr('beige_wall_001', [1 / 2.4, 1 / 2.4], 0, ['nor', 'rough']), roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
+  const paint = mottle(3, 512, Math.min(look.wear?.amount ?? 0, 2)); paint.repeat.set(1 / 3.7, 1 / 3.7);
+  const plaster = (color) => new THREE.MeshStandardMaterial({ color, map: paint, ...pbr('beige_wall_001', [1 / 2.4, 1 / 2.4]), roughness: 1, normalScale: new THREE.Vector2(0.6, 0.6) });
   const wallMat = plaster(look.wall);
   const wall = (name, w, holes, pos, rotY, cast = true) => { const m = mesh(name, sheet(w, H, holes), wallMat, pos); m.rotation.y = rotY; m.castShadow = cast; return m; };
   const wx0 = WIN.x - WIN.w / 2, wy0 = WIN.y - WIN.h / 2, top = wy0 + WIN.h;
@@ -235,7 +245,7 @@ export function buildShell({ mesh, part, std, pbr, lite, look, rose, doorGap }) 
 
   // ── the curtains: cotton, drawn back to each side of the window, on a brass rod ──
   const rodY = 2.86, cw = 0.44, cz0 = z0 + 0.1, hem = 0.025;
-  const cloth = new THREE.MeshStandardMaterial({ color: look.curtain, ...pbr('cotton_jersey', [3, 14], 0, ['nor', 'rough']), roughness: 1, side: THREE.DoubleSide, normalScale: new THREE.Vector2(0.6, 0.6) });
+  const cloth = new THREE.MeshStandardMaterial({ color: look.curtain, ...pbr('cotton_jersey', [3, 14]), roughness: 1, side: THREE.DoubleSide, normalScale: new THREE.Vector2(0.6, 0.6) });
   const brass = { opts: { metalness: 0.85, roughness: 0.32 } };
   part(new THREE.CylinderGeometry(0.011, 0.011, WIN.w + 2 * cw + 0.1, 12), [WIN.x, rodY, cz0], look.brass, { rot: [0, 0, Math.PI / 2], ...brass });
   for (const s of [-1, 1]) {

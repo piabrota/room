@@ -12,7 +12,8 @@ export default {
     sig.links.forEach((l, i) => ctx.fillText('> ' + l.label, 28, 190 + i * 30));
     ctx.globalAlpha = 1;
   },
-  input({ y }) {
+  input({ type, y }) {
+    if (type !== 'click') return; // the deck's keys are not clicks
     const i = Math.floor((y - 170) / 30);
     const link = sig.links[i]; if (link) window.open(link.url, '_blank', 'noopener');
   },

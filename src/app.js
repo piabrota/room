@@ -17,8 +17,10 @@ import { createLock } from './lock.js';
 import { createCat } from './cat.js';
 import { buildNav } from './catnav.js';
 import { createCredits } from './creditscard.js';
+import { isDay, firstFiles, quickFiles, arrived as picturesIn } from './first.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
+let elapsed = 0; // the room's clock, in seconds: the loop at the end moves it
 const canvas = document.getElementById('scene');
 // A phone or a weak machine gets the lite look: fewer pixels, frames and passes (src/quality.js).
 const quality = pick();
@@ -73,6 +75,8 @@ rig.names.forEach((name, i) => {
   const k = document.createElement('kbd'); k.textContent = String((i + 1) % 10); // the tenth is 0
   b.append(k, document.createTextNode(` ${config.shots[name]?.label ?? name}`));
   b.onclick = () => rig.go(name); b.dataset.shot = name;
+  // the map's code and files start on their way when the pointer, the finger or the focus reaches its button
+  if (name === 'grid') for (const ev of ['pointerenter', 'focus', 'touchstart']) b.addEventListener(ev, () => gridView?.warm(), { once: true, passive: true });
   nav.appendChild(b);
 });
 // ── ▲ grid: when the camera lands on the chart (key 0), the map opens; any other shot closes it ──
@@ -98,51 +102,116 @@ addEventListener('keydown', (e) => {
 const gridHome = !!gridView && document.body.classList.contains('grid-home');
 rig.go(gridHome ? 'grid' : config.startShot, true);
 
-// ── tapes: hover shows label, click flies it into the VCR ──
+// ── tapes: a hover slides one out of its pile and says what it is, a click flies it into the VCR ──
 const S = (t) => t * t * t * (t * (t * 6 - 15) + 10);
 const tweens = [];
 const tween = (obj, to, dur, done) => tweens.push({ obj, from: obj.position.clone(), to, t: 0, dur, done });
 // The placeholder room's tapes know the way themselves (src/vhs.js: the cassette leaves its sleeve,
 // which stays in the pile, and goes in by the VCR's slot); a tape of a room.glb is a plain mesh, and flies.
-let inDeck = null; // the tape in the VCR, or on its way there
-for (const def of config.tapes) {
-  const mesh = room.find(`tape_${def.id}`); if (!mesh) continue;
-  mesh.userData.home = mesh.position.clone();
-  ui.add(mesh, {
-    label: def.label, hint: def.text,
-    onClick: () => {
-      if (inDeck?.def === def) { if (tv.playing?.def === def) eject(); return; } // its empty sleeve: the tape comes back
-      eject();
-      audio.play(config.sfx.click);
-      inDeck = { def, mesh };
-      const arrived = async () => {
-        if (inDeck?.def !== def) return; // called back before it got there
-        mesh.visible = !!mesh.userData.load; redrawShadows();
-        audio.play(config.sfx.insert);
-        await tv.insert(def);
-        if (inDeck?.def !== def) { if (tv.playing?.def === def) tv.eject(); return; }
-        room.tvLight.color.set(def.color); room.tvLight.intensity = 3;
-      };
-      if (mesh.userData.load) mesh.userData.load(room.vcr, arrived);
-      else tween(mesh, room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2)), 0.7, arrived);
-      rig.go('desk');
-    },
-  });
+// The deck (config.deck): its six keys work, by a click on them or by their letter on the keyboard, and
+// its display shows what it does, the tape's name and a counter. A tape in the deck is `loading` (on its
+// way in), `playing`, or `stopped` (in the deck, the screen blue; PLAY starts it again).
+const deckWords = config.deck?.words ?? {}, deckKeys = config.deck?.keys ?? [], modes = deckWords.modes ?? {};
+const accounts = config.catalogue?.accounts ?? {};
+const tapeMeshes = new Map();
+let inDeck = null;   // { def, mesh, state }: the tape in the VCR, or on its way there
+let lastTape = null; // the last one that went in: PLAY on an empty deck takes the one after it
+let flash = null;    // { mode, until }: what the display says for a moment (REW, FF, NO REC, EJECT)
+const nameOf = (def) => def.label;
+const mmss = (s) => `${String(Math.floor(s / 60) % 100).padStart(2, '0')}:${String(Math.floor(s) % 60).padStart(2, '0')}`;
+let deckShown = null;
+function showDeck() { // the display, from what the deck is doing now; drawn again only when it changes
+  const show = room.vcr?.userData.show; if (!show) return;
+  if (flash && elapsed >= flash.until) flash = null;
+  const state = inDeck?.state, s = Math.floor(state === 'playing' ? tv.time : inDeck?.at ?? 0);
+  const mode = flash?.mode ?? (inDeck ? modes[state === 'playing' ? 'play' : state === 'stopped' ? 'stop' : 'load'] : null);
+  const name = inDeck ? nameOf(inDeck.def) : flash?.name ?? '', now = mode ? `${mode}|${name}|${s}` : '';
+  if (now === deckShown) return; deckShown = now;
+  show(mode ? { mode, name, digits: inDeck ? mmss(s) : config.deck.clock } : null);
+}
+const say = (mode, name) => { flash = { mode: modes[mode], name, until: elapsed + 0.9 }; };
+async function start(def) { // the tape is in: it plays
+  await tv.insert(def);
+  if (inDeck?.def !== def || inDeck.state === 'stopped') { if (tv.playing?.def === def) tv.eject(); return; }
+  inDeck.state = 'playing'; tv.standby = null;
+  room.tvLight.color.set(def.color); room.tvLight.intensity = 3;
+}
+function load(def) {
+  const mesh = tapeMeshes.get(def); if (!mesh) return;
+  eject();
+  audio.play(config.sfx.click);
+  Promise.resolve().then(() => def.module?.()).catch(() => {}); // the tape's code comes while the cassette flies to the deck (src/tv.js imports it again, from the cache)
+  inDeck = { def, mesh, state: 'loading' }; lastTape = def; flash = null;
+  const arrived = () => {
+    if (inDeck?.def !== def) return; // called back before it got there
+    mesh.visible = !!mesh.userData.load; redrawShadows();
+    audio.play(config.sfx.insert);
+    start(def);
+  };
+  if (mesh.userData.load) mesh.userData.load(room.vcr, arrived);
+  else tween(mesh, room.vcr.position.clone().add(new THREE.Vector3(0, 0.02, 0.2)), 0.7, arrived);
+  rig.go('desk');
 }
 function eject() {
   const cur = inDeck; if (!cur) return; inDeck = null;
-  tv.eject(); room.tvLight.intensity = 0;
+  tv.eject(); tv.standby = null; room.tvLight.intensity = 0;
   if (cur.mesh.userData.unload) cur.mesh.userData.unload(redrawShadows);
   else { cur.mesh.visible = true; tween(cur.mesh, cur.mesh.userData.home, 0.7, redrawShadows); }
   redrawShadows();
+  say('eject', nameOf(cur.def));
   audio.play(config.sfx.eject ?? config.sfx.insert);
 }
-ui.add(room.vcr, { label: () => (tv.playing ? 'eject' : 'VCR'), hint: () => (tv.playing ? tv.playing.def.label : 'pick a tape beside it'), onClick: eject });
-ui.add(room.screen, { label: () => (tv.playing ? null : 'insert a tape'), onClick: (hit) => hit.uv && tv.input(hit.uv) });
+// One key of the deck, by its id. Each does one thing, and the display says it.
+function pressKey(id) {
+  const i = deckKeys.findIndex((k) => k.id === id); if (i < 0) return;
+  room.vcr?.userData.press?.(i);
+  if (id === 'eject') { if (inDeck) eject(); else audio.play(config.sfx.click); return; }
+  audio.play(config.sfx.click);
+  if (id === 'play') {
+    if (!inDeck) { const all = config.tapes.filter((t) => tapeMeshes.has(t)); if (all.length) load(all[(all.indexOf(lastTape) + 1) % all.length]); }
+    else if (inDeck.state === 'stopped') { inDeck.state = 'loading'; start(inDeck.def); }
+  } else if (id === 'stop') {
+    if (inDeck?.state === 'playing') { inDeck.at = tv.time; inDeck.state = 'stopped'; tv.eject(); tv.standby = [...(deckWords.stopped ?? []), inDeck.def.label]; room.tvLight.intensity = 0; }
+  } else if (id === 'rew' || id === 'ff') {
+    if (inDeck?.state === 'playing') tv.key(id); // a step back or on, for the tape to take as it knows (src/tv.js)
+    say(id);
+  } else say(id); // `rec`: this deck only plays
+}
+for (const def of config.tapes) {
+  const mesh = room.find(`tape_${def.id}`); if (!mesh) continue;
+  mesh.userData.home = mesh.position.clone(); tapeMeshes.set(def, mesh);
+  const account = accounts[def.account]?.name;
+  ui.add(mesh, {
+    label: def.label,
+    hint: () => (inDeck?.def === def ? (inDeck.state === 'loading' ? deckWords.loading : deckWords.inDeck) : account && deckWords.tape ? deckWords.tape(account, def.text) : def.text),
+    onHover: (on) => mesh.userData.hover?.(on),
+    onClick: () => {
+      if (inDeck?.def === def) { if (inDeck.state !== 'loading') eject(); return; } // its empty sleeve: the tape comes back
+      load(def);
+    },
+  });
+}
+const pile = room.find('tapes'); if (pile) pile.userData.onSettle = redrawShadows;
+// the VCR: a key under the pointer says what it does and does it; anywhere else on it, a click ejects
+const keyUnder = (hit) => (hit?.point ? deckKeys[room.vcr.userData.keyAt?.(hit.point) ?? -1] : null);
+ui.add(room.vcr, {
+  label: (hit) => keyUnder(hit)?.label ?? (inDeck ? deckWords.slot : deckWords.vcr),
+  hint: (hit) => { const k = keyUnder(hit); return k ? [k.hint, k.key && deckWords.key?.(k.key)].filter(Boolean).join(' · ') : inDeck ? inDeck.def.label : deckWords.empty; },
+  onClick: (hit) => { const k = keyUnder(hit); if (k) pressKey(k.id); else eject(); },
+});
+ui.add(room.screen, {
+  label: () => (tv.playing ? tv.playing.def.label : inDeck ? null : deckWords.screen),
+  hint: () => (tv.playing ? tv.playing.def.hint ?? deckWords.screenHint : null),
+  onClick: (hit) => hit?.uv && tv.input(hit.uv),
+});
+addEventListener('keydown', (e) => { // the deck's keys, on the keyboard
+  if (paused || e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.target instanceof HTMLInputElement || gridView?.covering) return;
+  const k = deckKeys.find((d) => d.key && d.key === e.key.toLowerCase()); if (k) pressKey(k.id);
+});
 
 // ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
-// On the full look he reads the room first, to walk around things and leap clear of them (src/catnav.js);
-// on the lite look (phones) he keeps the cheap life, with nothing to compute.
+// On the full look he is given a map of the room, to walk around things and leap onto them (src/catnav.js);
+// on the lite look (phones) he has none, and keeps to the open floor of `config.cat.roam`.
 // The furniture that is files (src/furniture.js). The room opens at once with the stand-ins, on
 // every look, and each piece takes its place as it arrives: nothing the visitor waits for is a
 // photographed chair. A piece that comes late, or never, leaves its stand-in (invariant 8).
@@ -152,17 +221,15 @@ if (recording) { room.furnish(); await room.ready; }
 room.root.updateMatrixWorld(true);
 const catStill = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const smartCat = quality.name === 'full' && !catStill;
-const makeCat = (nav) => createCat(config.cat, { still: catStill, nav });
-let nash = config.cat ? makeCat(recording && smartCat ? buildNav(room.root, { radius: 0.2 }) : null) : null;
+// one cat: he is given the room's map when there is one (`setNav`), and the camera, to look at you
+const nash = config.cat ? createCat(config.cat, { still: catStill, lite: quality.name === 'lite', watch: camera.position, nav: recording && smartCat ? buildNav(room.root, { radius: 0.2 }) : null }) : null;
 if (nash) room.root.add(nash.group);
-// On the full look Nash first lives the cheap life; once the real furniture is in, he reads the
-// room (src/catnav.js) while the browser is idle, and starts walking around it from his home perch.
+// On the full look Nash first keeps to the open floor; once the real furniture is in, the room is
+// read (src/catnav.js) while the browser is idle, and from then on he goes round it and leaps.
 if (nash && smartCat && !recording) {
   room.ready.then(() => new Promise((done) => (self.requestIdleCallback ?? setTimeout)(done, { timeout: 4000 }))).then(() => {
     room.root.updateMatrixWorld(true);
-    const next = makeCat(buildNav(room.root, { radius: 0.2 }));
-    room.root.remove(nash.group); room.root.add(next.group); ui.move(nash.group, next.group);
-    nash = next; window.__room.nash = next;
+    nash.setNav(buildNav(room.root, { radius: 0.2 }));
   });
 }
 
@@ -207,6 +274,15 @@ for (const h of config.hotspots) {
       if (h.action === 'splash') splash?.burst(hit?.point);
       if (h.action === 'door') { if (doorOpen()) { openDoor(false); try { localStorage.removeItem(DOOR_KEY); } catch { /* fine */ } } else lock.open(); }
     },
+  });
+}
+
+// ── the universe simulator (src/simulator.js): a click tunes its next world, and its card names the one in the port ──
+const simulator = room.root.userData.simulator;
+if (simulator) for (const h of config.hotspots.filter((x) => x.action === 'simulate')) {
+  ui.add(room.find(h.name), {
+    label: simulator.label, hint: simulator.hint,
+    onClick: () => { audio.play(config.sfx.click); audio.play(config.sfx[config.simulator.sfx], 0.5); simulator.next(); },
   });
 }
 
@@ -273,9 +349,7 @@ function setDay(on) {
   dayBtn.title = on ? words.toNight : words.toDay;
 }
 dayBtn.onclick = () => setDay(!room.day);
-const hour = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: config.place.timeZone }).format(new Date()));
-const [dawn, dusk] = config.outside?.dayHours ?? [6, 18];
-setDay(new URLSearchParams(location.search).has('day') || (!new URLSearchParams(location.search).has('night') && hour >= dawn && hour < dusk));
+setDay(isDay(config)); // `?day`, `?night`, or the hour where the room is (src/first.js, which src/main.js asks too)
 
 // ── piabrota RADIO: the button at the top and the radio on the sill ──
 const radioBtn = document.getElementById('radio'), radioNext = document.getElementById('radio-next');
@@ -329,16 +403,28 @@ scene.traverse((o) => {
   for (const m of [o.material].flat()) for (const k of ['map', 'emissiveMap']) if (m?.[k]) renderer.initTexture(m[k]);
 });
 rig.update(0);
-await renderer.compileAsync(scene, camera).catch(() => renderer.compile(scene, camera));
+await post.compile().catch(() => {}); // for the buffer the room is drawn into (src/post.js): the first frame makes none again
+// The surfaces' small colours (80 kB, asked for by src/main.js before this code arrived) are worth
+// a moment's wait, so the cover lifts on a floor and walls; `just record` waits for every picture
+// of the first frame, so its stills never catch one half way.
+const firstPictures = picturesIn(firstFiles(config, quality, room.day));
+await (recording ? firstPictures : Promise.race([picturesIn(quickFiles()), new Promise((done) => setTimeout(done, 800))]));
+room.settled = Promise.all([room.settled, firstPictures]); // nothing more will change by itself (`just peek`)
 redrawShadows();
+// One whole frame behind the cover: the shadow maps, the passes' own shaders and every texture's
+// upload happen here, so when the cover lifts the room is there and already moving. The room's
+// clock is not touched (no `room.update`): the water's simulation starts at the loop's first frame.
+try { you.follow(camera); live.update(); post.render(0, elapsed, false); } catch { /* the loop will draw it */ }
 loading?.classList.add('done');
-room.furnish(); // the furniture's files, now that the room is on screen (src/furniture.js)
+// The furniture's files, now that the room is on screen (src/furniture.js): what the camera sees
+// first, and each piece's shaders compiled before it takes its stand-in's place.
+room.furnish(recording ? undefined : { camera, prepare: (model) => post.compile(model) });
 performance.mark('room:shown'); // `just mobile` counts the bytes before it
 dispatchEvent(new Event('room:shown')); // the chart's mesh waits for it (src/grid.js)
 
 // ── loop ──
 const clock = new THREE.Clock();
-let elapsed = 0, frames = 0, since = 0;
+let frames = 0, since = 0;
 const minDt = quality.fps ? 1 / quality.fps - 0.004 : 0; // a little early, so a 60 Hz screen gives every other frame
 function frame() {
   since += clock.getDelta();
@@ -361,7 +447,7 @@ function tick(dt, measure) {
     room.setDoor?.(S(doorState.k)); if (doorState.k === doorState.to) redrawShadows();
   }
   const moving = rig.moving;
-  rig.update(dt); you.follow(camera); room.update(elapsed); tv.update(dt); nash?.update(dt);
+  rig.update(dt); you.follow(camera); showDeck(); room.update(elapsed); tv.update(dt); nash?.update(dt);
   if (tv.playing && room.tvLight.intensity) room.tvLight.intensity = 0.8 + 4.5 * tv.brightness; // the room flickers with the picture
   ui.update(moving || tweens.length > 0 || ++frames % 3 === 0); // things on the wheel and the waves move too
   if (gridView) {
@@ -389,7 +475,7 @@ export function resume() {
   radio.resume();
 }
 // handy for debugging in the console; `step` drives the room by hand for `just record`
-window.__room = { rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, lock, quality, nash, grid: gridView, step: (dt) => {
+window.__room = { config, rig, tv, radio, room, renderer, camera, ui, post, scene, setDay, lock, quality, nash, grid: gridView, deck: { press: pressKey, get tape() { return inDeck; } }, step: (dt) => {
   if (!stepping) { stepping = true; renderer.setAnimationLoop(() => {}); } // frames keep coming, the room only moves on step
   tick(dt, false);
 } };

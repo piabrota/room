@@ -8,7 +8,9 @@
 //   GET /live/health  "ok"
 //   POST /live/door   the room's door (src/lock.js): {"email": "..."} from a visitor who wants
 //                     to try its lock. The address is appended, with the time, to DOOR_FILE
-//                     (a TSV); nothing else about the visitor is kept. 204 when kept, 400 for
+//                     (a TSV); nothing else about the visitor is kept. With "newsletter": true (the
+//                     form said the email subscribes to the owner's newsletter) the row ends in a
+//                     third cell, `newsletter`: only those rows may be imported there. 204 when kept, 400 for
 //                     a body that is not an email, 413 past 1 kB, 429 past LIMIT a minute.
 //
 // For the radio it keeps nothing: no log of who listened, no address, no cookie. Run it
@@ -31,10 +33,10 @@ function door(req, res) {
   req.on('data', (c) => { if (big) return; body += c; if (body.length > 1024) { big = true; res.writeHead(413, { connection: 'close' }); res.end(); } });
   req.on('end', async () => {
     if (big) return;
-    let email = '';
-    try { email = String(JSON.parse(body).email ?? '').trim(); } catch { /* not JSON */ }
+    let email = '', letter = false;
+    try { const b = JSON.parse(body); email = String(b.email ?? '').trim(); letter = b.newsletter === true; } catch { /* not JSON */ }
     if (!EMAIL.test(email)) { res.writeHead(400); res.end(); return; }
-    try { await appendFile(DOOR_FILE, `${new Date().toISOString()}\t${email.toLowerCase()}\n`); res.writeHead(204); res.end(); }
+    try { await appendFile(DOOR_FILE, `${new Date().toISOString()}\t${email.toLowerCase()}${letter ? '\tnewsletter' : ''}\n`); res.writeHead(204); res.end(); }
     catch { res.writeHead(500); res.end(); }
   });
 }

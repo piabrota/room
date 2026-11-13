@@ -15,7 +15,8 @@ export default {
     for (const n of notes) { ctx.globalAlpha = n.life; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(n.x, n.y, 30 * (1.5 - n.life), 0, 7); ctx.fill(); }
     ctx.globalAlpha = 1; ctx.fillStyle = '#e8b33a'; ctx.font = '18px monospace'; ctx.fillText('click a key', 24, 36);
   },
-  input({ x, y }) {
+  input({ type, x, y }) {
+    if (type !== 'click') return;
     const i = Math.min(scale.length - 1, Math.floor(x / (W / scale.length)));
     const ctx = audio.ctx, o = ctx.createOscillator(), g = ctx.createGain();
     o.type = 'triangle'; o.frequency.value = 220 * Math.pow(2, scale[i] / 12);

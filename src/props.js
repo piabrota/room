@@ -117,7 +117,7 @@ export function buildSea(g, mesh, std, part, furniture, { lite = false, still = 
         if (rain > 0.01) n = normalize(n + rain * 0.2 * vec3(vnoise(vW.xz * 170.0 + since * 31.0) - 0.5, 0.0, vnoise(vW.zx * 170.0 - since * 27.0) - 0.5));
         float k = smoothstep(-0.01, 0.012, vH);
         vec3 c = mix(uDeep, uShallow, k) * (0.55 + 0.45 * n.y);
-        c += vec3(0.5, 0.8, 1.0) * min(1.0, pow(1.0 - n.y, 2.0) * 2.0); // the glints
+        c += vec3(0.5, 0.8, 1.0) * min(1.0, (1.0 - n.y) * (1.0 - n.y) * 2.0); // the glints (a product, not pow(): its base can fall under 0 by a rounding)
         // where the balloon's water fell the tank's water is churned white for a second or two
         float white = 0.0;
         if (splashed > 0.5 && since < 4.0) {

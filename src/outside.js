@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { image, whenLoaded, photoFile } from './first.js';
 
 // Rio outside the window, in depth: a sky, far hills, the sugarloaf and
 // its sister, the city's lights along the shore and the bay below, each
@@ -127,8 +128,7 @@ export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2)
   const photos = {};
   const aim = new THREE.Vector2(...aimAt); // where the landmark sits, from the middle of the window, 25 m out
   function loadPhoto(kind, { photo, anchor = [0.5, 0.5] }) {
-    const img = new Image();
-    img.onload = () => {
+    const onload = (img) => {
       const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H;
       const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
       if (kind === 'night') { // a darker sky at the top
@@ -166,9 +166,9 @@ export function buildOutside(parent, { center = new THREE.Vector3(2.35, 1.7, -2)
       show();
     };
     // the small file (1280 px) on a phone, a small screen or a slow line (src/quality.js); the large one if it is missing
-    const lite = photo.replace(/\.(jpe?g|webp)$/, '.lite.$1');
-    img.onerror = () => { if (img.src.endsWith(lite)) img.src = photo; };
-    img.src = small && lite !== photo ? lite : photo;
+    // src/main.js has asked for it already, when it could tell which one the first frame shows (src/first.js)
+    const lite = photoFile(photo, true), take = (file, fail) => whenLoaded(image(file), onload, fail);
+    if (small && lite !== photo) take(lite, () => take(photo)); else take(photo);
   }
   // night: the night photograph (or the drawn view while it loads), the
   // moon's sky, dark trees with lit windows; day: the day photograph,

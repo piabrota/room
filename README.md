@@ -71,7 +71,11 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 34 | 11 Nov 15:30 | [#42](https://github.com/piabrota/room/pull/42) the room's playlist at the top of both READMEs, as a Spotify button: github.com strips an iframe, so the embed that was pasted showed nothing | 5 min |
 | 35 | 11 Nov 15:31 | [#43](https://github.com/piabrota/room/pull/43) five more lofi pieces on the radio, ten in all, written in Csound like the first five: a nylon guitar and a vibraphone join the band (`music/lofi.orc`), and the pieces are a tune answered by vibes, a guitar that comps, a ballad, a round of fifths and a bright one in D | 45 min |
 | 36 | 11 Nov 11:12 | [#44](https://github.com/piabrota/room/pull/44) the two papers on aiXiv (2611.01104, "Wave models on GPUs", and 2611.01105, "A decision layer for contextual bandits, proved in Agda") on the bookcase beside the works with a DOI, bound preprints with white covers, each a link to its aiXiv page, and on the LOFI work page; a tape, "lofi in csound", that plays the radio's pieces one after another while each one's Csound score runs up the TV, the line at the reading head lit, a click for the next | 5 h 15 min |
-| 37 | 12 Nov 16:32 | [#47](https://github.com/piabrota/room/pull/47) LOFI hides the room's overlays too: on the ▲ grid map (grid.piabrota.art, or the grid shot), the LOFI button set `?lofi` but the map stayed over the page, since the LOFI styles hid the canvas and the buttons and not the map, the lock or the live window | 30 min |
+| 37 | 11 Nov 23:44 | [#45](https://github.com/piabrota/room/pull/45) the splash drew dark squares on the live site: the crater's, the swell's and the jet's shaders took `pow()` of a negative number, which the software renderer of the stills answers kindly and Direct3D and Metal answer with "not a number", so the water's surface, and whatever the bloom and the occlusion spread it over, goes black for the 1.4 s of the crater (shown here by forcing the software renderer to answer the same; not seen on a real GPU); the squares are products now, the Fresnel terms and an alpha are clamped; `just peek --strict` draws as such a GPU does and fails when a pixel is not a number (519 on the old splash, none now), `just check` refuses `pow(x, 2.0)`, and the `room-shaders` skill has the rule | 55 min |
+| 38 | 12 Nov 20:35 | [#48](https://github.com/piabrota/room/pull/48) a fuller, older room, by Fable 5.2 with three subagents: an armchair, a low table, a card cabinet with a hi-fi, a standing lamp, a fan, a coat rack, a window air conditioner and the small things someone leaves about; damp, cracks, yellowed paint and a worn floor (`src/lived.js`); the VHS tapes with real labels and the band of their GitHub account, a hover that slides a tape out, the recorder's six keys and its display, and an index tape for each of h0ffmann, marola-dev and piabrota (`src/tapes/index.js`); the fax named by its address; the door's email subscribes to the newsletter on Substack, said on the form, and Substack's page opens with the address filled in for the visitor to confirm; a universe simulator, its microphone and a chart of worlds on the wall, an homage to The Midnight Gospel with nothing of the series copied (`src/simulator.js`); and thirteen books of the owner's Goodreads on the bookcase | 2 h 20 min |
+| 39 | 12 Nov 23:53 | [#49](https://github.com/piabrota/room/pull/49) what #48 hid, and a new Nash, by Fable 5.2 with a subagent: the universe simulator and its chart stood behind the overview's camera and now stand against the left wall, in the overview and in the fabric shot; the Goodreads books sat under the shelf shot's frame and now stand on the top shelf; Nash has a body built in code (one skinned mesh, 33 bones, fur with a sheen, eyes that are slits by day and round by night, `src/catbody.js`), walks on planted feet, wanders at random instead of touring his perches, leaps on parabolas under gravity that a cat can do (at most 1.5 m up and 5.4 m/s, so the top of the bookcase is no longer his), and sleeps curled up; `just cat` watches him | 3 h |
+| 40 | 13 Nov 00:28 | [#51](https://github.com/piabrota/room/pull/51) the room's load, by Fable 5.2 with a subagent, with no picture or model re-encoded: the page preloads its code, its fonts and the first frame's pictures, small colours first (`src/first.js`); every file of `public/` is asked for with its hash, so the host can keep it for good and a second visit makes 2 requests where it made 24 to 49 (`src/files.js`); Brotli and gzip copies made by the build; the shaders compiled once, behind the cover (95 programs to 58); the furniture in order of sight; the chart's stroke in a worker; a load budget in `just check` (`scripts/budget.mjs`); stills the same before and after | 3 h |
+| 41 | 12 Nov 16:32 | [#47](https://github.com/piabrota/room/pull/47) LOFI hides the room's overlays too: on the ▲ grid map (grid.piabrota.art, or the grid shot), the LOFI button set `?lofi` but the map stayed over the page, since the LOFI styles hid the canvas and the buttons and not the map, the lock or the live window | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -433,7 +437,54 @@ their aiXiv pages. "cmusic code" was read as the Csound code of the radio's musi
 **37.**
 
 ```text
+user> 'https://room.piabrota.art/ splash animation is causing dark quara frames in any point of
+observation of the splash itself. balloon respawn looks ok'
+```
+
+"dark quara frames" was read as dark squares in the frames of the splash.
+
+**38.**
+
+```text
+user> '1. add more fornitures, make room more complex
+2. bring more realism, this should look like a old room, but no too antiquade
+3. Improve VHS Tapes, proportions, interactions, h0ffmann/marola-dev/piabrota indexing of projects
+4. Fax name should be mhoffmannfs@gmail.com
+5. Make sure everyone that puts the email in the puzzle subscribes to my substack
+6. Add a machine in or 2 objects to remember Midnight Ghospel, at least 1 board in the wall related to it.
+7. Add all books from my goodreads/piabrota to the shelf as well
+8. Use Fable 5.2 use subagents'
+```
+
+"Midnight Ghospel" was read as The Midnight Gospel, and "the puzzle" as the door's lock, which asks for an email. Substack has no public way to subscribe someone, so its subscribe page opens with the address filled in. Goodreads shows a robot 14 of the 24 books: 13 stand on the shelf, and one was already among the ebooks.
+
+**39.**
+
+```text
+user> 'In a new PR
+
+1 . missing midnight ghospel references I asked before
+
+2. missing goodread on the shelf
+3. Improve drastically the cat appearence, is not realistic, put way more effort in the cat looking and physics over the ambient
+4. The cat jumps are unrealistic, it must have a real brownian realistic movement of a cat, the cat can also do to sleep'
+```
+
+"brownian" was read as a random wander: each next spot is the heading plus noise, a random step away. Both "missing" things were in the room but out of the shots' sight.
+
+**40.**
+
+```text
+user> 'Site looks perfect, after you optmize, please do a huge step for optimizing the site the load, without losing quality, look for optimization kills in the web'
+```
+
+"optimization kills" was read as optimization skills: the techniques come from web.dev's "Preload critical assets", addyosmani/web-quality-skills, emalorenzo/three-agent-skills and Don McCurdy's "Web texture formats", read as ideas, nothing copied (`.claude/skills/room-load/SKILL.md`).
+
+**41.**
+
+```text
 user> 'https://grid.piabrota.art/?lofi broken in room'
+user> 'https://github.com/piabrota/room/pull/47 fix this'
 ```
 
 "broken" was read as what a visitor sees: on the map, LOFI is lit and the address says `?lofi`,
@@ -485,6 +536,14 @@ like a solid; the crater looks like porcelain from below; there is too little ai
 jet is too neat; the big drops are rings; the rubber dissolves more than it tears. It found the
 order, the times and the sizes right, and the splash convincing from where a visitor stands
 (about 7 of 10), less so from close by (about 5).
+
+One fault no critic could see, because critics and stills alike look at the room drawn in
+software: the crater's, the swell's and the jet's shaders took `pow()` of a negative number.
+GLSL leaves that undefined; the software renderer answers it kindly, and Direct3D and Metal
+answer "not a number", and the owner saw dark squares on the live site for as long as the splash
+lasted (11 November 2026). Forced to answer as they do, the software renderer breaks the water's
+surface in black; that is the proof here, since no real GPU was at hand. `just peek --strict` now draws as such a GPU does and fails
+when a pixel is not a number.
 
 ### What is simulated
 

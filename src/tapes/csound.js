@@ -1,8 +1,10 @@
 // The code of the music: one of the radio's lofi pieces plays, and its Csound score (music/<name>.sco)
 // runs up the screen while it plays, the line at the reading head lit. The pieces are the radio's
 // own tracks (config.radio, through this tape's `pieces` in config.tapes); the score's file is the
-// track's name. A click on the screen goes to the next piece. The sound plays through audio.bus(),
+// track's name. A click on the screen or the deck's FF goes to the next piece, REW to the one before.
+// The sound plays through audio.bus(),
 // so the sound button mutes it, and stop() releases every node, fetch and timer it made.
+import { asset } from '../files.js';
 import { FACES } from '../art.js';
 
 let W, H, audio, bus, def;
@@ -23,7 +25,7 @@ async function load(i) {
   const track = def.pieces[i], key = Object.keys(scores).find((k) => name(k) === name(track.src));
   try { lines = key ? (await scores[key]()).split('\n') : []; } catch { lines = []; }
   try {
-    const res = await fetch(track.src);
+    const res = await fetch(asset(track.src));
     if (!res.ok) throw new Error(res.status);
     const b = await audio.ctx.decodeAudioData(await res.arrayBuffer());
     if (my !== token || stopped) return;
@@ -38,7 +40,7 @@ async function load(i) {
   }
 }
 
-function next() { piece = (piece + 1) % def.pieces.length; load(piece); }
+function next(by = 1) { piece = (piece + by + def.pieces.length) % def.pieces.length; load(piece); }
 
 // a line of Csound, in colour: comments, statements, instrument names and numbers
 function drawLine(ctx, text, x, y, lit) {
@@ -59,7 +61,7 @@ function drawLine(ctx, text, x, y, lit) {
 export default {
   mount(deps) {
     ({ width: W, height: H, audio } = deps);
-    def = deps.config.tapes.find((t) => t.id === 'csound');
+    def = deps.tape;
     scores = import.meta.glob('../../music/*.sco', { query: '?raw', import: 'default' });
     stopped = false; piece = 0;
     bus = audio.bus(); bus.gain.value = 0.9;
@@ -100,7 +102,7 @@ export default {
     ctx.fillStyle = '#6f6a58'; ctx.textAlign = 'right'; ctx.fillText(def.hint, W - 12, 22); ctx.textAlign = 'left';
   },
 
-  input() { next(); },
+  input({ type }) { if (type === 'click' || type === 'ff') next(); else if (type === 'rew') next(-1); },
 
   stop() {
     stopped = true; token++; silence();

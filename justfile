@@ -33,6 +33,7 @@ preview: build
 check: _deps
     node scripts/check.mjs
     npx vite build --logLevel warn
+    node scripts/budget.mjs
     @echo "✓ just check"
 
 # the ▲ grid view's files in public/grid/: the coast's triangle mesh and 24 h of GFS wind and sea (just grid --offline reuses the fetched wind)
@@ -55,6 +56,10 @@ stills: build
 peek *args: _deps
     node scripts/peek.mjs {{args}}
 
+# Nash, watched: stills every few frames from a camera that follows him, a contact sheet, a clip, or ten minutes of his life checked (just cat --act desk --secs 14 --out /tmp/cat; just cat --check 600)
+cat *args: _deps
+    node scripts/catwatch.mjs {{args}}
+
 # stills of every shot and a video of the four walls by night into docs/record/ (headless Chrome, ffmpeg); every pull request carries them
 record: build
     node scripts/record.mjs
@@ -71,9 +76,13 @@ record-grid: build
 record-splash: build
     node scripts/record.mjs --splash
 
-# what the room costs a phone and a laptop: bytes, time to show, pixels drawn, ms a frame (just mobile --device phone)
+# what the room costs a phone and a laptop: bytes and requests before it shows, time to show and to furnish, pixels drawn, ms a frame (just mobile --device phone --load --net 4g)
 mobile *args: build
     node scripts/mobile.mjs {{args}}
+
+# what loads before the room shows, counted from the build against scripts/budget.json (just load-budget --write sets today's numbers as the limits, with 8 % of room)
+load-budget *args: build
+    node scripts/budget.mjs {{args}}
 
 # is the light of a video or a still under control? (no frame burns to white)
 blow-light +files="docs/record/room.mp4":
