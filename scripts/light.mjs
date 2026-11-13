@@ -14,6 +14,7 @@ import { mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { preview } from 'vite';
 import { chromium } from 'playwright-core';
+import { holdFrames } from './hold.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const out = join(root, 'node_modules/.light');
@@ -40,6 +41,7 @@ const url = server.resolvedUrls.local[0];
 const browser = await chromium.launch({ executablePath: chrome(), args: gl });
 const page = await browser.newPage({ viewport: { width: 960, height: 540 }, deviceScaleFactor: 1 });
 page.setDefaultTimeout(180000);
+await holdFrames(page); // the room's clock starts at the first step, the same on every run
 
 const rows = []; let worst = 0;
 for (const mode of modes) {

@@ -31,6 +31,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { preview } from 'vite';
 import { chromium } from 'playwright-core';
+import { holdFrames } from './hold.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const out = join(root, 'docs/record');
@@ -58,6 +59,7 @@ const browser = await chromium.launch({
 });
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 page.setDefaultTimeout(120000);
+await holdFrames(page); // the room's clock starts at the first step, the same on every run
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 

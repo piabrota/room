@@ -25,6 +25,7 @@ import { existsSync, readdirSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { createServer } from 'vite';
 import { chromium } from 'playwright-core';
+import { holdFrames } from './hold.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -57,6 +58,7 @@ const browser = await chromium.launch({
 // --still: a visitor who asked for reduced motion (invariant 8)
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: flag('phone') ? 2 : 1, isMobile: flag('phone'), hasTouch: flag('phone'), reducedMotion: flag('still') ? 'reduce' : 'no-preference' });
 page.setDefaultTimeout(180000);
+await holdFrames(page); // the room's clock starts at the first step, the same on every run
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
