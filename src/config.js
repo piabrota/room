@@ -806,7 +806,7 @@ export const guard = { screenshots: true };
 // universe simulator and interviews the beings of dying worlds. This corner is an homage, in the
 // room's own shapes and words (src/simulator.js). Nothing of the series is here: no character,
 // no drawing, no lettering, no sound and no line of it (AGENTS.md, invariant 1); `homage` names it.
-// The machine stands on the floor by the front wall: a home-made console with a round glass port
+// The machine stands on the floor against the left wall, between the sofa and the armchair: a home-made console with a round glass port
 // in which a small world turns. A click tunes the next of `worlds`, each named after a thing of
 // this room: its `colors` are the dark, the main and the light of the planet, `ring` is 1 for a
 // ringed one, `moons` how many go round it (none on the phone's look). `tune` is the seconds a

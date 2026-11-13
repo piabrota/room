@@ -7,7 +7,7 @@ import { FONT_TITLE, FONT_MONO, FACES, texture } from './art.js';
 // Pendleton Ward and Duncan Trussell (config.simulator.homage). It is an homage in this room's own
 // shapes: nothing of the series is drawn, quoted or played here (AGENTS.md, invariant 1).
 //
-//   the machine   a home-made console by the front wall: walnut cheeks, an enamelled face, a desk
+//   the machine   a home-made console against a wall: walnut cheeks, an enamelled face, a desk
 //                 of knobs and toggle switches, a cable to the wall, and a round glass port in
 //                 which a small world turns. One mesh with one atlas drawn on a canvas, and one
 //                 more for the port: its world, its ring, its moons and the row of pilot lamps
@@ -24,7 +24,7 @@ import { FONT_TITLE, FONT_MONO, FACES, texture } from './art.js';
 //
 //   buildSimulator(g, { at: [x, y, z], lite, still, anisotropy })
 //
-// `at` is the point of the front wall's foot that the machine stands against, in metres. It
+// `at` is the point of a wall's foot that the machine stands against, in metres. It
 // returns the function that moves it, and leaves `g.userData.simulator` (`next`, `label`, `hint`).
 
 const A = 1024;          // the atlas, in its own pixels (the phone's is drawn at half of them)

@@ -214,7 +214,7 @@ burst and the splash, are synthesized in `src/audio.js`.
 
 ## The universe simulator
 
-The corner by the front wall (`src/simulator.js`, `config.simulator`) is an homage to
+The corner by the left wall (`src/simulator.js`, `config.simulator`) is an homage to
 [The Midnight Gospel](https://en.wikipedia.org/wiki/The_Midnight_Gospel), the animated series by
 Pendleton Ward and Duncan Trussell (Netflix, 2020), in which a man enters a universe simulator to
 interview the beings of dying worlds. The console with its glass port, the worlds that turn in it,
