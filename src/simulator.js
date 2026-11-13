@@ -7,7 +7,7 @@ import { FONT_TITLE, FONT_MONO, FACES, texture } from './art.js';
 // Pendleton Ward and Duncan Trussell (config.simulator.homage). It is an homage in this room's own
 // shapes: nothing of the series is drawn, quoted or played here (AGENTS.md, invariant 1).
 //
-//   the machine   a home-made console by the front wall: walnut cheeks, an enamelled face, a desk
+//   the machine   a home-made console against a wall: walnut cheeks, an enamelled face, a desk
 //                 of knobs and toggle switches, a cable to the wall, and a round glass port in
 //                 which a small world turns. One mesh with one atlas drawn on a canvas, and one
 //                 more for the port: its world, its ring, its moons and the row of pilot lamps
@@ -24,7 +24,7 @@ import { FONT_TITLE, FONT_MONO, FACES, texture } from './art.js';
 //
 //   buildSimulator(g, { at: [x, y, z], lite, still, anisotropy })
 //
-// `at` is the point of the front wall's foot that the machine stands against, in metres. It
+// `at` is the point of a wall's foot that the machine stands against, in metres. It
 // returns the function that moves it, and leaves `g.userData.simulator` (`next`, `label`, `hint`).
 
 const A = 1024;          // the atlas, in its own pixels (the phone's is drawn at half of them)
@@ -436,11 +436,11 @@ function chartArt(lite) {
   return texture(c);
 }
 
-export function buildSimulator(g, { at = [2.26, 0, 3.8], lite = false, still = false, anisotropy = 4 } = {}) {
+export function buildSimulator(g, { at = [2.26, 0, 3.8], turn = Math.PI, lite = false, still = false, anisotropy = 4 } = {}) {
   const spot = hotspots.find((h) => h.action === 'simulate'), worlds = cfg?.worlds ?? [];
   if (!spot || !worlds.length) return () => {};
   const n = worlds.length;
-  const holder = new THREE.Group(); holder.position.set(at[0], at[1], at[2] - BACK); holder.rotation.y = Math.PI; g.add(holder); // its back to the wall
+  const holder = new THREE.Group(); holder.position.set(at[0] + Math.sin(turn) * BACK, at[1], at[2] + Math.cos(turn) * BACK); holder.rotation.y = turn; g.add(holder); // its back to the wall: `at` is on the wall, `turn` the way it faces (π: from the front wall; π/2: from the left wall)
 
   // the machine: the body and the port
   const machine = new THREE.Group(); machine.name = spot.name; holder.add(machine);

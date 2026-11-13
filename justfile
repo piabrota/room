@@ -55,6 +55,10 @@ stills: build
 peek *args: _deps
     node scripts/peek.mjs {{args}}
 
+# Nash, watched: stills every few frames from a camera that follows him, a contact sheet, a clip, or ten minutes of his life checked (just cat --act desk --secs 14 --out /tmp/cat; just cat --check 600)
+cat *args: _deps
+    node scripts/catwatch.mjs {{args}}
+
 # stills of every shot and a video of the four walls by night into docs/record/ (headless Chrome, ffmpeg); every pull request carries them
 record: build
     node scripts/record.mjs

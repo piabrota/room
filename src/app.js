@@ -206,8 +206,8 @@ addEventListener('keydown', (e) => { // the deck's keys, on the keyboard
 });
 
 // ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
-// On the full look he reads the room first, to walk around things and leap clear of them (src/catnav.js);
-// on the lite look (phones) he keeps the cheap life, with nothing to compute.
+// On the full look he is given a map of the room, to walk around things and leap onto them (src/catnav.js);
+// on the lite look (phones) he has none, and keeps to the open floor of `config.cat.roam`.
 // The furniture that is files (src/furniture.js). The room opens at once with the stand-ins, on
 // every look, and each piece takes its place as it arrives: nothing the visitor waits for is a
 // photographed chair. A piece that comes late, or never, leaves its stand-in (invariant 8).
@@ -217,17 +217,15 @@ if (recording) { room.furnish(); await room.ready; }
 room.root.updateMatrixWorld(true);
 const catStill = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const smartCat = quality.name === 'full' && !catStill;
-const makeCat = (nav) => createCat(config.cat, { still: catStill, nav });
-let nash = config.cat ? makeCat(recording && smartCat ? buildNav(room.root, { radius: 0.2 }) : null) : null;
+// one cat: he is given the room's map when there is one (`setNav`), and the camera, to look at you
+const nash = config.cat ? createCat(config.cat, { still: catStill, lite: quality.name === 'lite', watch: camera.position, nav: recording && smartCat ? buildNav(room.root, { radius: 0.2 }) : null }) : null;
 if (nash) room.root.add(nash.group);
-// On the full look Nash first lives the cheap life; once the real furniture is in, he reads the
-// room (src/catnav.js) while the browser is idle, and starts walking around it from his home perch.
+// On the full look Nash first keeps to the open floor; once the real furniture is in, the room is
+// read (src/catnav.js) while the browser is idle, and from then on he goes round it and leaps.
 if (nash && smartCat && !recording) {
   room.ready.then(() => new Promise((done) => (self.requestIdleCallback ?? setTimeout)(done, { timeout: 4000 }))).then(() => {
     room.root.updateMatrixWorld(true);
-    const next = makeCat(buildNav(room.root, { radius: 0.2 }));
-    room.root.remove(nash.group); room.root.add(next.group); ui.move(nash.group, next.group);
-    nash = next; window.__room.nash = next;
+    nash.setNav(buildNav(room.root, { radius: 0.2 }));
   });
 }
 

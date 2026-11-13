@@ -507,7 +507,7 @@ export function buildLived({ g, part, mesh, wood, woodPer, look, words, lite, an
     mark('ring', 'floor', 1.93, -1.12, 0.46, 0.46, 0.55); mark('ring', 'floor', -2.45, 1.95, 0.3, 0.3, 0.5);
     // the soft shadow under each new thing: [x, z, width, depth, strength]
     for (const [x, z, w, d, a] of [[LAMP[0], LAMP[1], 0.5, 0.5, 0.45], [1.72, -1.28, 0.6, 0.6, 0.4], [RACK[0], RACK[1], 0.6, 0.6, 0.35], [1.52, -1.66, 0.44, 0.44, 0.45],
-      [-1.72, 0.95, 0.75, 1.15, 0.42], [-2.36, 2.78, 1.15, 1.15, 0.5], [3.05, 1.3, 0.95, 1.6, 0.5], [-1.9, 2.27, 0.42, 0.4, 0.4], [-1.55, 3.4, 0.74, 0.5, 0.25], [-0.27, 3.57, 0.34, 0.36, 0.3], [-1.75, 1.61, 0.5, 0.56, 0.4]]) {
+      [-1.72, 0.95, 0.75, 1.15, 0.42], [-2.36, 2.98, 1.15, 1.15, 0.5], [3.05, 1.3, 0.95, 1.6, 0.5], [-1.9, 2.27, 0.42, 0.4, 0.4], [-1.55, 3.4, 0.74, 0.5, 0.25], [-0.27, 3.57, 0.34, 0.36, 0.3], [-1.75, 1.61, 0.5, 0.56, 0.4]]) {
       mark('blob', 'floor', x, z, w, d, a, { off: 0.003 });
     }
     const how = { map: marksAtlas(look, lite ? 512 : 1024), transparent: true, depthWrite: false, vertexColors: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 };

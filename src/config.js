@@ -138,7 +138,7 @@ export const outside = {
 export const shots = {
   overview: { position: [3.1, 2.15, 3.3], target: [-0.4, 1.05, -0.6], fov: 50 },
   desk:     { position: [0.32, 1.36, 0.02], target: [0.2, 1.1, -1.5], fov: 46 },
-  fabric:   { position: [-0.75, 1.55, 1.25], target: [-3.0, 1.5, 0.45], fov: 52 },
+  fabric:   { position: [-0.55, 1.5, 1.5], target: [-3.0, 1.38, 0.95], fov: 54 }, // the projects' frames, and the universe simulator under its chart
   shelf:    { position: [-1.75, 1.55, 0.4], target: [-2.1, 1.8, -1.9], fov: 52 }, // the works with a DOI, and tyler-durden-bot's board above them
   board:    { position: [2.55, 1.8, 0.25], target: [2.55, 1.82, -2.0], fov: 50 },
   window:   { position: [0.2, 1.62, 0.7], target: [0.2, 2.12, -2.0], fov: 56 },
@@ -577,7 +577,7 @@ export const reads = {
   ],
 };
 
-// ── what I read: the books of the owner's Goodreads, on the bookcase under "how I read". Titles and
+// ── what I read: the books of the owner's Goodreads, on the bookcase's top shelf, over the works with a DOI. Titles and
 // authors as his profile listed them on 12 November 2026: the three he is reading and the eleven
 // of the twenty he has read that the profile shows (the other nine, and the one he wants to read,
 // are on pages Goodreads keeps from a robot: add them here when the owner lists them). Certainty by
@@ -775,26 +775,60 @@ export const door = {
   beyond: ['you found', 'the way out.', '', 'it was a flat circle', 'all along.'],
 };
 
-// ── Nash, the black cat: he wanders the room on his own, from the top of the shelf to the
-// monitor, the sill, the chair, the crate and the rug; a click calls him: he stops, looks at
-// you and meows (src/cat.js). `perches` are where he sits: a name, the point he sits on
-// [x, y, z] in metres, the way he faces (radians, 0 is toward the window), and `via`, a perch
-// he leaps from when it is too high to jump to from the floor (the shelf from the desk).
+// ── Nash, the black cat (src/cat.js, his body is src/catbody.js). He has no route: he wanders
+// the floor at random, visits the places he likes, pauses to look, sniff, sit, wash and loaf, and
+// sleeps when he has been up long enough. A click calls him: he stops, or lifts his head from his
+// sleep, looks at you and meows.
+//   his body  `length` from nose to rump and `tail`, in metres; `color` is the coat, `sheen` the
+//             light a short coat gives back at its edge and `rim` how much of it; `eyes` the iris,
+//             `pupil` how round by day and by night (0 a slit, 1 round), `glow` how bright the eyes
+//             are; `shadow` how dark the blot under him is.
+//   `perches` the places he likes: a name, the point [x, y, z] in metres (a high one is set on
+//             the real top under it), the way he faces (radians, 0 is toward the window), `via`,
+//             a perch he leaps from when it is too high for one leap, `like` (how much, 1 if not
+//             said), `rest` (what he does there: 'sit', 'loaf'), `sleep` (how good a bed it is;
+//             none: he does not sleep there) and `sun` (a bed by day only).
+//   `roam`    the open floor he keeps to when he has no map of the room (phones): a box
+//             [x0, z0, x1, z1] with nothing in it, and its height. `home` is where he starts,
+//             `still` where he sleeps for a visitor who asked for reduced motion.
+//   `looks`   the things he looks at, besides you.
+//   `habits`  how often he does each thing, one against the other; `pause` is how long he stays,
+//             in seconds, about; `fickle` every how many seconds of walking he changes his mind.
+//   `restless` above 1 he stays less long everywhere. `sleep`: the seconds he is up (`awake`) and
+//             asleep (`asleep`), each drawn between two, and `again`, how often a click leaves him
+//             asleep after he has looked.
+//   `gait`    metres a second at a walk and at a run, the speed where the walk becomes a trot, the
+//             stride (metres, and metres more per m/s), how hard he pushes and brakes (m/s²), and
+//             `step`, the mean length of a wandering step.
+//   `jump`    what a cat can do: the take-off speed (m/s) and the rise (m) he never passes. A
+//             perch that asks for more is not his.
 export const cat = {
-  name: 'Nash', hint: 'a black cat. he goes where he wants', color: '#0c0c0f', eyes: '#d9e84a',
+  name: 'Nash', hint: 'a black cat. he goes where he wants',
+  length: 0.46, tail: 0.28, color: '#0c0c0f', sheen: '#8d94a6', rim: 0.45, shadow: 0.5,
+  eyes: '#d9e84a', pupil: { day: 0.12, night: 0.8 }, glow: { day: 0.55, night: 0.8 },
+  home: 'rug', still: 'rug',
   perches: [
-    { id: 'rug', at: [0.2, 0.013, 0.3], face: 2.6 },
-    { id: 'rug2', at: [1.0, 0.013, 0.2], face: -2.2 },
-    { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8 },
-    { id: 'sofa', at: [-2.5, 0.42, 0.15], face: 1.6 },
-    { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8 },
-    { id: 'deskLeft', at: [-0.82, 0.805, -1.17], face: 2.4 },
-    { id: 'monitor', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk' },
-    { id: 'sill', at: [0.72, 1.015, -2.03], face: 2.9, via: 'desk' },
-    { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2 },
-    { id: 'shelf', at: [-2.4, 1.9, -1.8], face: 3.14, via: 'deskLeft' },
+    { id: 'rug', at: [0.2, 0.013, 0.3], face: 2.6, like: 2, rest: ['sit', 'loaf'], sleep: 1 },
+    { id: 'rug2', at: [1.0, 0.013, 0.2], face: -2.2, rest: ['sit', 'loaf'] },
+    { id: 'sun', at: [-0.5, 0.013, -0.35], face: 0.6, like: 0.6, rest: ['loaf', 'sit'], sleep: 1.5, sun: true },
+    { id: 'floor', at: [-0.95, 0, 1.4], face: 0.8, rest: ['sit'] },
+    { id: 'boards', at: [0.9, 0, 1.5], face: -2.4, rest: ['sit', 'loaf'], sleep: 0.4 },
+    { id: 'sofa', at: [-2.5, 0.42, 0.15], face: -1.6, like: 2, rest: ['loaf', 'sit'], sleep: 4 },
+    { id: 'armchair', at: [-2.36, 0.42, 2.98], face: -1.2, like: 1.5, rest: ['loaf', 'sit'], sleep: 3 },
+    { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8, rest: ['sit', 'loaf'] },
+    { id: 'deskLeft', at: [-0.82, 0.805, -1.17], face: 2.4, rest: ['sit'] },
+    { id: 'monitor', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk', like: 0.7, rest: ['loaf', 'sit'] },
+    { id: 'sill', at: [0.72, 1.015, -2.03], face: 2.9, via: 'desk', like: 1.5, rest: ['sit', 'loaf'] },
+    { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2, rest: ['sit', 'loaf'] },
+    { id: 'shelf', at: [-2.4, 1.9, -1.8], face: 3.14, via: 'deskLeft', like: 0.5, rest: ['loaf', 'sit'] },
   ],
-
+  roam: { box: [-1.05, 0.9, 2.15, 1.95], y: 0 },
+  looks: [{ id: 'fish', at: [3.08, 1.0, -0.45] }, { id: 'window', at: [0.2, 1.9, -2.2] }, { id: 'tv', at: [0.0, 1.0, -1.5] }],
+  habits: { wander: 5, dash: 0.3, perch: 2.2, look: 1.3, sniff: 1, sit: 1.3, groom: 1, stretch: 0.4, loaf: 0.8, pause: 9, fickle: 16 },
+  restless: 1,
+  sleep: { awake: [200, 420], asleep: [90, 240], again: 0.5 },
+  gait: { walk: 0.36, run: 1.05, trot: 0.62, stride: [0.25, 0.3], push: 0.9, brake: 1.1, step: 0.9 },
+  jump: { speed: 5.4, rise: 1.5 },
 };
 
 // ── the screen guard (src/guard.js): the page goes black on PrintScreen and while the window is
@@ -806,7 +840,7 @@ export const guard = { screenshots: true };
 // universe simulator and interviews the beings of dying worlds. This corner is an homage, in the
 // room's own shapes and words (src/simulator.js). Nothing of the series is here: no character,
 // no drawing, no lettering, no sound and no line of it (AGENTS.md, invariant 1); `homage` names it.
-// The machine stands on the floor by the front wall: a home-made console with a round glass port
+// The machine stands on the floor against the left wall, between the sofa and the armchair: a home-made console with a round glass port
 // in which a small world turns. A click tunes the next of `worlds`, each named after a thing of
 // this room: its `colors` are the dark, the main and the light of the planet, `ring` is 1 for a
 // ringed one, `moons` how many go round it (none on the phone's look). `tune` is the seconds a
@@ -980,7 +1014,7 @@ export const grid = {
 export const hotspots = [
   { name: 'chart', label: grid.label, hint: grid.hint, action: 'shot', value: 'grid' },
   { name: 'window', label: 'Rio at night', hint: 'where piabrota is made', action: 'shot', value: 'window' },
-  { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI, and the papers on aiXiv', action: 'shot', value: 'shelf' },
+  { name: 'shelf',  label: 'the shelf',    hint: 'what I read (Goodreads), the works with a DOI, the papers on aiXiv', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },
   { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
   { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'playlist', art: { kind: 'mixtape' } },
