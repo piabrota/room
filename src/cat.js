@@ -495,7 +495,7 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
     // the feet, then the tail, then every bone
     group.position.copy(pos); group.rotation.y = yaw;
     out.ground = flying ? -10 : 0;
-    feet(dt, step?.k === 'pose' ? step.tol ?? (step.name === 'stand' || step.name === 'alert' || step.name === 'sniff' ? 0.075 : 0.022) : 0.05);
+    feet(dt, step?.k === 'pose' ? step.tol ?? (step.name === 'stand' || step.name === 'alert' || step.name === 'sniff' ? 0.045 : 0.022) : 0.05);
     if (groomK > 0.001 && groomSide === 1) { // the fore paw on the side he leans to comes up to his mouth
       const i = mirror > 0 ? 0 : 1, o = i * 3, f = groomK;
       const tx = out.neck1[0] * 0.5 + out.hip[o] * 0.5, ty = out.hip[o + 1] + 0.035 + 0.012 * lick, tz = out.hip[o + 2] + 0.085;

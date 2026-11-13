@@ -61,7 +61,24 @@ if (opt('act')) await page.evaluate((a) => window.__room.nash.act(a), opt('act')
 if (warm) await run(Math.round(warm * 30));
 
 if (opt('eval')) console.log(JSON.stringify(await page.evaluate((code) => (0, eval)(code), opt('eval')), null, 1));
-if (opt('check')) {
+if (opt('poses')) { // one still of each thing he does, side by side
+  mkdirSync(out, { recursive: true });
+  const names = opt('poses').split(',');
+  for (const [i, name] of names.entries()) {
+    await page.evaluate((a) => window.__room.nash.act(a), name); await run(Math.round((warm || 3) * 30));
+    await page.evaluate(({ dist, turn, high, close }) => {
+      const r = window.__room, cat = r.nash; r.scene.updateMatrixWorld();
+      const g = cat.group.position, e = cat.body.bones[5].matrixWorld.elements, a = cat.group.rotation.y + Math.PI + turn;
+      const to = close ? [e[12], e[13] + 0.01, e[14]] : [g.x, g.y + 0.14, g.z];
+      r.camera.position.set(to[0] + Math.sin(a) * dist, to[1] + high, to[2] + Math.cos(a) * dist); r.camera.lookAt(...to); r.camera.fov = 32; r.camera.updateProjectionMatrix(); r.camera.updateMatrixWorld();
+      r.post.render(0, 1, false);
+    }, { dist, turn, high, close: flag('close') });
+    await page.screenshot({ path: join(out, `p${String(i).padStart(2, '0')}.jpg`), type: 'jpeg', quality: 88 });
+  }
+  const cols = Math.min(4, names.length), sheet = join(out, 'poses.jpg');
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', '1', '-start_number', '0', '-i', join(out, 'p%02d.jpg'), '-vf', `scale=${Math.round(1920 / cols)}:-1,tile=${cols}x${Math.ceil(names.length / cols)}`, '-frames:v', '1', '-q:v', '3', sheet]);
+  console.log(`✓ ${sheet}`);
+} else if (opt('check')) {
   const res = await page.evaluate((secs) => {
     const r = window.__room, cat = r.nash, nav = cat.nav, render = r.post.render; r.post.render = () => {};
     const did = {}, jumps = [], inside = {}; let bad = 0, n = 0, far = 0, slide = 0, was = null, lastJump = null;

@@ -35,15 +35,15 @@ const base = {
 // `free` 1 they are held in the body's own frame (`ffA` along it, `ffB` across it, from the joint).
 export const POSES = {
   stand: { ...base },
-  walk: { ...base, neckP: 0.5, headP: -0.08, tailP: -0.35, tailC: 0.1 },
+  walk: { ...base, neckP: 0.5, headP: -0.08, tailP: -0.62, tailC: 0.17 },
   trot: { ...base, hipY: 0.186, neckP: 0.36, headP: -0.02, p0: 0.04, tailP: -0.1, tailC: 0.04, ears: 0.15 },
   sniff: { ...base, hipY: 0.185, p0: -0.06, p1: -0.3, neckP: -0.55, headP: -1.05, fF: 0.03, tailP: -0.5, tailC: 0.08 },
   alert: { ...base, neckP: 0.95, headP: -0.05, tailP: -0.55, lid: 0.02 },
-  sit: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.12, p1: 0.62, neckP: 1.2, headP: -0.1, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.062, hPhi: 0.12, splayH: 0.55, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.3 },
+  sit: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.25, p1: 0.2, neckP: 0.9, headP: -0.1, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.078, hPhi: 0.12, splayH: 1.0, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.3 },
   loaf: { ...base, hipF: -0.118, hipY: 0.07, p0: 0.06, p1: 0.02, neckP: 0.85, headP: -0.05, free: 1, ffA: 0.03, ffB: -0.045, hfA: 0.07, hfB: -0.055, fPhi: 2.6, hPhi: 0.1, splayF: 0.5, splayH: 0.7, tailP: -0.2, tailC: 0.03, tailW: 0.36, lid: 0.3 },
   // curled up: the spine is an arc about the middle of the nest, the head comes round to the hips
-  curl: { ...base, hipF: -0.092, hipX: -0.056, hipY: 0.062, yaw0: -1.02, bend: 2.05, p0: 0, p1: -0.02, roll0: 0.5, roll1: 0.35, neckP: -0.1, neckY: 0.6, headP: -0.25, headY: 0.55, headR: 0.5,
-    free: 1, ffA: 0.035, ffB: -0.04, hfA: 0.075, hfB: -0.04, fPhi: 2.7, hPhi: 0.1, splayF: 0.4, splayH: 0.5, tailP: -0.12, tailC: 0, tailW: 0.335, lid: 1, ears: 0.25 },
+  curl: { ...base, hipF: -0.089, hipX: -0.03, hipY: 0.064, yaw0: -1.25, bend: 2.5, p0: 0, p1: -0.02, roll0: 0.45, roll1: 0.3, neckP: -0.22, neckY: 0.5, headP: -0.3, headY: 0.4, headR: 0.25,
+    free: 1, ffA: 0.035, ffB: -0.04, hfA: 0.075, hfB: -0.04, fPhi: 2.7, hPhi: 0.1, splayF: 0.4, splayH: 0.5, tailP: -0.12, tailC: 0, tailW: 0.24, lid: 1, ears: 0.25 },
   rouse: null,
   crouch: { ...base, hipF: -0.128, hipY: 0.118, p0: 0.2, p1: 0.02, neckP: 0.75, headP: 0.05, fF: 0.0, hF: 0.035, hPhi: 0.75, splayH: 0.3, tailP: -0.5, tailC: 0.04, lid: 0.02 },
   push: { ...base, hipF: -0.1, hipY: 0.235, p0: 0.75, p1: 0.6, neckP: 0.8, headP: 0.3, free: 0, hF: -0.11, hPhi: 1.5, fF: 0.05, tailP: -0.3, tailC: 0.02, lid: 0.02 },
@@ -53,7 +53,7 @@ export const POSES = {
   absorb: { ...base, hipY: 0.125, p0: 0.12, p1: -0.1, neckP: 0.7, headP: 0.05, hF: 0.03, hPhi: 0.8, splayH: 0.3, tailP: -0.1, tailC: 0.08 },
   peer: { ...base, hipF: -0.12, hipY: 0.14, p0: -0.25, p1: -0.55, neckP: -0.5, headP: -0.9, fF: 0.035, hF: 0.02, hPhi: 0.8, splayH: 0.3, tailP: -0.3, tailC: 0.05, lid: 0.02 },
   bow: { ...base, hipF: -0.135, hipY: 0.205, p0: -0.5, p1: -0.3, neckP: 0.55, headP: 0.25, fF: 0.13, fPhi: 0.75, hF: -0.045, tailP: 0.5, tailC: 0.12, lid: 0.7, ears: 0.4 },
-  yawn: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.12, p1: 0.62, neckP: 1.25, headP: 0.4, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.062, hPhi: 0.12, splayH: 0.55, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.3, lid: 0.95, ears: 0.7, jaw: 1 },
+  yawn: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.25, p1: 0.2, neckP: 1.0, headP: 0.4, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.078, hPhi: 0.12, splayH: 1.0, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.3, lid: 0.95, ears: 0.7, jaw: 1 },
 };
 POSES.rouse = { ...POSES.curl, neckP: 0.6, neckY: 0.3, headP: 0.05, headY: 0.05, headR: 0, lid: 0.22, ears: 0 }; // woken, still curled: the head up
 for (const p of Object.values(POSES)) for (const k of KEYS) if (typeof p[k] !== 'number') throw new Error(`a pose lacks ${k}`);
@@ -144,9 +144,9 @@ export function createBody(cfg, { lite = false } = {}) {
   // Every bone from the pose. `m` mirrors the pose (he curls to either side). The feet are asked
   // for in `foot` (src/cat.js plants them); the tail's angles in `tailYaw` and `tailPitch`.
   function solve(P, m = 1) {
-    const ground = out.ground, br = 1 + out.breath;
+    const ground = out.ground, br = 1 + out.breath, down = clamp((0.17 - (P.hipY - ground)) / 0.09, 0, 1) * clamp(1 - Math.abs(P.bend), 0, 1), round = 0.24 * clamp(Math.abs(P.bend) - 0.8, 0, 1); // sitting he spreads at the hips; curled up he is rounder all along
     spine(P, m);
-    for (let k = 0; k < 4; k++) setBone(k, J[k * 3], J[k * 3 + 1], J[k * 3 + 2], D[k * 3], D[k * 3 + 1], D[k * 3 + 2], L[k * 3], L[k * 3 + 1], L[k * 3 + 2], k === 0 ? 1 : k === 3 ? 1 + out.breath * 0.6 : br);
+    for (let k = 0; k < 4; k++) setBone(k, J[k * 3], J[k * 3 + 1], J[k * 3 + 2], D[k * 3], D[k * 3 + 1], D[k * 3 + 2], L[k * 3], L[k * 3 + 1], L[k * 3 + 2], (k === 3 ? 1 + out.breath * 0.6 : k ? br : 1) * (1 + down * (k === 0 ? 0.3 : k === 1 ? 0.22 : k === 2 ? 0.08 : 0) + round));
     // the neck and the head
     const cy = (P.yaw0 + P.bend) * m, c3 = 9;
     const ux = D[c3 + 1] * L[c3 + 2] - D[c3 + 2] * L[c3 + 1], uy = D[c3 + 2] * L[c3] - D[c3] * L[c3 + 2], uz = D[c3] * L[c3 + 1] - D[c3 + 1] * L[c3];
@@ -287,8 +287,8 @@ export function createBody(cfg, { lite = false } = {}) {
       tube([
         { c: rump, a: 0.026, b: 0.03, bones: [0] },
         { c: at(0).addScaledVector(fw, -0.04).addScaledVector(up, 0.002), a: 0.047, b: 0.052, b2: 0.05, bones: [0] },
-        ring(0, 0.057, 0.06, 0.062), ring(0.5, 0.058, 0.059, 0.06), ring(1, 0.057, 0.057, 0.058), ring(1.5, 0.058, 0.057, 0.06), ring(2, 0.06, 0.058, 0.066),
-        ring(2.5, 0.06, 0.059, 0.073), ring(3, 0.058, 0.06, 0.078), ring(3.5, 0.054, 0.06, 0.079), ring(4, 0.048, 0.058, 0.074, 0.002),
+        ring(0, 0.061, 0.06, 0.064), ring(0.5, 0.063, 0.059, 0.064), ring(1, 0.063, 0.057, 0.063), ring(1.5, 0.064, 0.057, 0.065), ring(2, 0.065, 0.058, 0.07),
+        ring(2.5, 0.064, 0.059, 0.075), ring(3, 0.061, 0.06, 0.079), ring(3.5, 0.056, 0.06, 0.079), ring(4, 0.05, 0.058, 0.074, 0.002),
         { c: mixV(sp[4], n0, 0.9).addScaledVector(up, 0.004), a: 0.042, b: 0.05, b2: 0.058, bones: [3, 4], w: 0.35 },
         { c: mixV(n0, n1, 0.4), a: 0.037, b: 0.04, b2: 0.045, bones: [3, 4], w: 0.75 },
         { c: mixV(n0, n1, 0.8), a: 0.036, b: 0.037, b2: 0.04, bones: [4, 5], w: 0.4 },
@@ -313,8 +313,8 @@ export function createBody(cfg, { lite = false } = {}) {
         { c: g.clone().addScaledVector(up, 0.012).addScaledVector(fw, 0.004), a: 0.0185, b: 0.02, bones: [b + 2, b + 3], w: 0.7 },
       ], n, 0.4, 0.2);
       else tube([
-        { c: h.clone().addScaledVector(up, 0.05).addScaledVector(fw, -0.012).addScaledVector(side, -0.014), a: 0.016, b: 0.04, bones: [0, b], w: 0.5 },
-        { c: h.clone().addScaledVector(up, 0.02).addScaledVector(fw, 0.0).addScaledVector(side, -0.004), a: 0.03, b: 0.058, bones: [0, b], w: 0.65 },
+        { c: h.clone().addScaledVector(up, 0.05).addScaledVector(fw, -0.012).addScaledVector(side, -0.028), a: 0.008, b: 0.03, bones: [0, b], w: 0.5 },
+        { c: h.clone().addScaledVector(up, 0.022).addScaledVector(fw, 0.0).addScaledVector(side, -0.012), a: 0.026, b: 0.054, bones: [0, b], w: 0.65 },
         { c: mixV(h, k, 0.3).addScaledVector(fw, -0.006), a: 0.033, b: 0.058, bones: [b] },
         { c: mixV(h, k, 0.68).addScaledVector(fw, -0.008), a: 0.03, b: 0.046, bones: [b] },
         { c: k.clone().addScaledVector(fw, -0.012), a: 0.024, b: 0.032, bones: [b, b + 1], w: 0.5 },
@@ -388,10 +388,8 @@ export function createBody(cfg, { lite = false } = {}) {
       // whiskers: four a side, each a sliver seen from both sides
       if (!lite) for (const sg of [1, -1]) for (let w = 0; w < 4; w++) {
         const from = inHead(0.046, -0.016 - w * 0.0028, sg * 0.014), to = inHead(0.05 - w * 0.006, -0.008 - w * 0.012 + 0.012, sg * (0.075 - w * 0.004));
-        for (const flip of [0, 1]) {
-          const a = vert(from.clone().addScaledVector(HU, 0.0007), B.head, B.head, 0, WHISK), b2 = vert(from.clone().addScaledVector(HU, -0.0007), B.head, B.head, 0, WHISK), c = vert(to, B.head, B.head, 0, WHISK);
-          if (flip) idx.push(a, c, b2); else idx.push(a, b2, c);
-        }
+        const a = vert(from.clone().addScaledVector(HU, 0.0007), B.head, B.head, 0, WHISK), b2 = vert(from.clone().addScaledVector(HU, -0.0007), B.head, B.head, 0, WHISK), c = vert(to, B.head, B.head, 0, WHISK);
+        idx.push(a, b2, c);
       }
     }
     const g = new THREE.BufferGeometry();
@@ -413,7 +411,7 @@ export function createBody(cfg, { lite = false } = {}) {
 
   // ── the fur ──
   const uSheen = { value: new THREE.Color(cfg.sheen ?? '#8f96a8') }, uRim = { value: cfg.rim ?? 0.55 };
-  const fur = new THREE.MeshStandardMaterial({ color: cfg.color, roughness: 0.62, metalness: 0, vertexColors: true });
+  const fur = new THREE.MeshStandardMaterial({ color: cfg.color, roughness: 0.62, metalness: 0, vertexColors: true, side: THREE.DoubleSide }); // both sides: the ears are one sheet
   fur.onBeforeCompile = (sh) => {
     sh.uniforms.uSheen = uSheen; sh.uniforms.uRim = uRim;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 rest;\nvarying vec3 vRest;')
@@ -492,14 +490,15 @@ void main() {
   eyes.matrixAutoUpdate = false; eyes.matrix.copy(bones[B.head].matrix).invert(); bones[B.head].add(eyes); eyes.renderOrder = 2;
 
   // ── the blot of shadow under him ──
-  const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, depthWrite: false, fog: false, opacity: 0.5, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
-  {
-    const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
-    const gr = x.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, '#fff'); gr.addColorStop(0.45, 'rgba(255,255,255,0.6)'); gr.addColorStop(0.8, 'rgba(255,255,255,0.12)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = '#000'; x.fillRect(0, 0, 64, 64); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
-    shadowMat.alphaMap = new THREE.CanvasTexture(c);
+  const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, vertexColors: true, transparent: true, depthWrite: false, fog: false, opacity: 0.5, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+  const shadowGeo = new THREE.BufferGeometry();
+  { // a disc, dark in the middle and gone at its edge
+    const p = [0, 0, 0], c = [0, 0, 0, 1], ix = [], n = 16, rings = [[0.45, 0.62], [0.75, 0.16], [1, 0]];
+    rings.forEach(([r, a2], k) => { for (let j = 0; j < n; j++) { const th = (j / n) * Math.PI * 2; p.push(Math.cos(th) * r * 0.5, 0, Math.sin(th) * r * 0.5); c.push(0, 0, 0, a2); } if (k) for (let j = 0; j < n; j++) { const a0 = 1 + (k - 1) * n + j, b0 = 1 + (k - 1) * n + (j + 1) % n; ix.push(a0, a0 + n, b0, b0, a0 + n, b0 + n); } });
+    for (let j = 0; j < n; j++) ix.push(0, 1 + (j + 1) % n, 1 + j);
+    shadowGeo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); shadowGeo.setAttribute('color', new THREE.Float32BufferAttribute(c, 4)); shadowGeo.setIndex(ix);
   }
-  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), shadowMat);
+  const shadow = new THREE.Mesh(shadowGeo, shadowMat);
   shadow.name = 'cat_shadow'; shadow.userData.proxy = true; shadow.userData.baseMat = shadowMat; shadow.raycast = () => {}; shadow.renderOrder = 1; shadow.castShadow = shadow.receiveShadow = false;
   group.add(shadow);
 
