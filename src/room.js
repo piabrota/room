@@ -20,19 +20,30 @@ import { buildLived } from './lived.js';
 
 // Photographed surfaces (Poly Haven, CC0; CREDITS.md): colour, normal and roughness, or only
 // some of them (`maps`). The small files (a phone, a small screen, a slow line) are the colour alone, at 512 px.
-const loader = new THREE.TextureLoader();
 let anisotropy = 8, lite = false, small = false; // the quality's look and files (src/quality.js), set by loadRoom before anything is built
 // `maps` comes from the list of src/first.js, which src/main.js reads too: it asks for these same
 // pictures while the room's code is still on its way, and `image` hands them over here.
+//
+// A surface is never drawn with a map that has not arrived: until its file is here a map is one
+// neutral pixel (a mid grey, a flat normal, a roughness of one), so the floor is the floor's
+// colour and not black and shining. On a large screen the colour shows first in its small file
+// (512 px), which arrives early, and the full maps take its place as they come; the surface ends
+// exactly as it would have with the full maps alone.
+const pixels = {};
+const pixel = (kind) => (pixels[kind] ??= (() => { const c = document.createElement('canvas'); c.width = c.height = 1; const x = c.getContext('2d'); x.fillStyle = { diff: '#808080', nor: '#8080ff', rough: '#ffffff' }[kind]; x.fillRect(0, 0, 1, 1); return c; })());
 function pbr(name, repeat = [1, 1], rot = 0, maps) {
-  const map = (file, srgb) => {
-    const t = new THREE.Texture(); whenLoaded(image(file), (img) => { t.image = img; t.needsUpdate = true; });
+  const map = (kind, file, srgb, quick) => {
+    const t = new THREE.Texture(pixel(kind)); t.needsUpdate = true;
+    let full = false;
+    const put = (img) => { t.dispose(); t.image = img; t.needsUpdate = true; }; // a picture of another size is a new texture on the GPU
+    whenLoaded(image(file), (img) => { full = true; put(img); });
+    if (quick && quick !== file) whenLoaded(image(quick), (img) => { if (!full) put(img); });
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.rotation = rot; t.anisotropy = anisotropy; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t;
   };
   const files = surfaceFiles(name, small, maps), out = {};
-  if (files.diff) out.map = map(files.diff, true);
-  if (files.nor) out.normalMap = map(files.nor);
-  if (files.rough) out.roughnessMap = map(files.rough);
+  if (files.diff) out.map = map('diff', files.diff, true, surfaceFiles(name, true, maps).diff);
+  if (files.nor) out.normalMap = map('nor', files.nor);
+  if (files.rough) out.roughnessMap = map('rough', files.rough);
   return out;
 }
 
@@ -411,7 +422,8 @@ function placeholderRoom() {
     const BW = 0.72, BH = 0.72;
     const board = named(h.name); board.position.set(-2.15, 2.47, -1.975);
     mesh('', new THREE.BoxGeometry(BW + 0.08, BH + 0.08, 0.035), std('#2a1d16', { roughness: 0.7 }), [0, 0, 0], board);
-    const logo = loader.load(asset(h.art.logo)); logo.colorSpace = THREE.SRGBColorSpace; logo.magFilter = THREE.NearestFilter; logo.anisotropy = anisotropy;
+    const logo = new THREE.Texture(); whenLoaded(image(h.art.logo), (img) => { logo.image = img; logo.needsUpdate = true; }); // asked for by src/main.js already (src/first.js)
+    logo.colorSpace = THREE.SRGBColorSpace; logo.magFilter = THREE.NearestFilter; logo.anisotropy = anisotropy;
     const face = mesh('', new THREE.PlaneGeometry(BW, BH), new THREE.MeshStandardMaterial({ map: logo, roughness: 0.85, emissive: h.art.lights?.color ?? '#ff2a1a', emissiveIntensity: 0 }), [0, 0, 0.018], board);
     face.castShadow = false;
     const n = h.art.lights?.count ?? 26, red = new THREE.Color(h.art.lights?.color ?? '#ff2a1a');

@@ -16,7 +16,7 @@ import * as config from './config.js';
 import { renderLofi } from './lofi.js';
 import { guard } from './guard.js';
 import { pick } from './quality.js';
-import { firstFiles, warm } from './first.js';
+import { firstFiles, quickFiles, warm } from './first.js';
 
 function hasWebGL() {
   try {
@@ -62,7 +62,7 @@ async function show(next, remember) {
   }
   if (mode === 'hifi') {
     // the pictures of the first frame are asked for now, while the room's code is still on its way (src/first.js)
-    if (!room) { try { warm(firstFiles(config, pick())); } catch { /* the room asks for them itself */ } }
+    if (!room) { try { warm(quickFiles(), 'high'); warm(firstFiles(config, pick()), 'low'); } catch { /* the room asks for them itself */ } }
     room ??= await import('./app.js');
     // The visitor may have switched back while the room was loading.
     if (mode === 'hifi') room.resume(); else room.pause();

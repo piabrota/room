@@ -17,7 +17,7 @@ import { createLock } from './lock.js';
 import { createCat } from './cat.js';
 import { buildNav } from './catnav.js';
 import { createCredits } from './creditscard.js';
-import { isDay } from './first.js';
+import { isDay, firstFiles, quickFiles, arrived } from './first.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 let elapsed = 0; // the room's clock, in seconds: the loop at the end moves it
@@ -405,6 +405,12 @@ scene.traverse((o) => {
 });
 rig.update(0);
 await post.compile().catch(() => {}); // for the buffer the room is drawn into (src/post.js): the first frame makes none again
+// The surfaces' small colours (80 kB, asked for by src/main.js before this code arrived) are worth
+// a moment's wait, so the cover lifts on a floor and walls; `just record` waits for every picture
+// of the first frame, so its stills never catch one half way.
+const firstPictures = arrived(firstFiles(config, quality, room.day));
+await (recording ? firstPictures : Promise.race([arrived(quickFiles()), new Promise((done) => setTimeout(done, 800))]));
+room.settled = Promise.all([room.settled, firstPictures]); // nothing more will change by itself (`just peek`)
 redrawShadows();
 // One whole frame behind the cover: the shadow maps, the passes' own shaders and every texture's
 // upload happen here, so when the cover lifts the room is there and already moving.

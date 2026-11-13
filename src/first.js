@@ -37,18 +37,27 @@ export function isDay(config, search = location.search) {
 export function firstFiles(config, quality, day = isDay(config)) {
   const small = quality.files === 'lite';
   const photo = config.outside?.[day ? 'day' : 'night']?.photo;
-  return [...Object.keys(surfaces).flatMap((name) => Object.values(surfaceFiles(name, small))), ...(photo ? [photoFile(photo, small)] : [])];
+  const board = config.wip?.logo; // the portrait on the square board above the bookshelf
+  return [...Object.keys(surfaces).flatMap((name) => Object.values(surfaceFiles(name, small))), ...(photo ? [photoFile(photo, small)] : []), ...(board ? [board] : [])];
 }
+
+// The small colour of every surface (512 px, 80 kB for all of them): what a phone shows, and what a
+// laptop shows for the moment its full maps (1.4 MB) take to arrive. The room waits a moment for
+// these and for nothing else, so its first frame has a floor and walls on any line.
+export const quickFiles = () => Object.keys(surfaces).flatMap((name) => Object.values(surfaceFiles(name, true)));
 
 // One <img> for each address, made the first time it is asked for. A picture that fails stays
 // broken here, and whoever took it sees its `error` and does what it did before (invariant 8).
+// `priority` ('high', 'low') is a hint to the browser on which to fetch first, where it takes one.
 const images = new Map();
-export function image(path) {
+export function image(path, priority) {
   let img = images.get(path);
-  if (!img) { img = new Image(); img.src = asset(path); images.set(path, img); }
+  if (!img) { img = new Image(); if (priority) img.fetchPriority = priority; img.src = asset(path); images.set(path, img); }
   return img;
 }
-export const warm = (paths) => { for (const p of paths) image(p); };
+export const warm = (paths, priority) => { for (const p of paths) image(p, priority); };
+// resolves when each of them has loaded or failed
+export const arrived = (paths) => Promise.all(paths.map((p) => new Promise((done) => whenLoaded(image(p), done, done))));
 // `then(img)` once it has loaded (at once when it already has), `fail()` when it cannot
 export function whenLoaded(img, then, fail = () => {}) {
   if (img.complete && img.naturalWidth > 0) { then(img); return; }
