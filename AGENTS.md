@@ -100,7 +100,8 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just dev` | the room at http://localhost:5173 |
 | `just build` | the static site in `dist/` |
 | `just preview` | serves `dist/` |
-| `just check` | `scripts/check.mjs` (the invariants), then a build |
+| `just check` | `scripts/check.mjs` (the invariants), then a build, then `scripts/budget.mjs` (the load budget) |
+| `just load-budget [--write]` | what loads before the room shows, counted from the build against `scripts/budget.json`: code, fonts, the small colours, the first frame's pictures, requests; that the page preloads them, that maplibre and the chart's worker are not in the start, that the `.br` and `.gz` copies exist; `--write` sets today's numbers as the limits, with 8 % of room (`scripts/budget.mjs`) |
 | `just record` | stills of every shot (and `shot-splash.jpg`, the water balloon just burst) and a video of the four walls by night, each 5 s or more, navigating and clicking (`room.mp4`, and `room.webp` for the READMEs), into `docs/record/`; on the GPU on macOS, in software at 960×540 elsewhere |
 | `just stills` | only the stills, into `docs/record/` (fast; use it while working) |
 | `just record-splash` | only `splash.mp4`, a clip of the water balloon's burst over the aquarium: at real speed from the sea shot, then from close by, four times slower, into `docs/record/` |
@@ -112,7 +113,7 @@ test (`scripts/check.mjs`); the rest is on the reviewer.
 | `just blow-light [files]` | whether the light of a video or a still is under control: fails when a frame has more than 0.25 % of its area near white (above 230) or 1 % glowing (above 200), thin text left out (`scripts/blow_light.sh`); `just record` runs it on `room.mp4` (the owner, 7 November 2026) |
 | `just fish` | the aquarium's fish, Microsoft's Barramundi from the Khronos glTF sample assets (CC0), pinned to a commit, as `public/models/fish.glb` and `fish.lite.glb` (`scripts/fish.mjs`) |
 | `just cat [--act <thing>] [--secs n] [--every n] [--poses a,b] [--close] [--click s] [--day] [--lite] [--still] [--ao] [--video f.mp4] [--check secs]` | Nash watched by a camera that follows him: stills, a contact sheet, a clip, or his life run undrawn and checked against the room's voxels (`scripts/catwatch.mjs`) |
-| `just mobile [--device phone\|laptop] [--url <site>] [--bytes]` | what the room costs a phone (390×844, ratio 3, touch, CPU 4× slower) and a laptop: the look (`lite` or `full`) and the files (`lite` or `full`), bytes before it shows (`--bytes` lists the biggest), time to show, pixels drawn, ms a frame (`scripts/mobile.mjs`); compare builds, in software here |
+| `just mobile [--device phone\|laptop] [--url <site>] [--dist <dir>] [--load] [--net 4g\|slow4g] [--runs <n>] [--host today\|proposed] [--again] [--budget] [--bytes] [--json <file>]` | bytes and requests before the room shows, when its code and its first pictures arrived, first frame, every model in; `--load` skips the frame timing, `--net` a line's speed, `--runs` the spread, `--host` the host as nix-os has it or as the room asks, `--again` a second visit, `--budget` fails over `scripts/budget.json`; served by `scripts/serve.mjs`; and what the room costs a phone (390×844, ratio 3, touch, CPU 4× slower) and a laptop: the look (`lite` or `full`) and the files (`lite` or `full`), bytes before it shows (`--bytes` lists the biggest), time to show, pixels drawn, ms a frame (`scripts/mobile.mjs`); compare builds, in software here |
 | `just audio <file> <name>` | normalizes a sound into `public/audio/<name>.mp3` |
 | `just lofi [names]` | renders the radio's lofi pieces, written in Csound (`music/`), into `public/audio/radio/` (`scripts/lofi.sh`); it needs csound and the FluidR3 GM soundfont at `ROOM_SF2`, both in `nix develop` |
 | `just listeners` | the radio's live listeners count on :8787, and the door's email gate (`POST /live/door`, kept in `DOOR_FILE`); `just dev` passes `/live/` to it |
@@ -165,6 +166,14 @@ csound with the soundfont of `just lofi`. On macOS without Nix, `brew install no
 | `src/signature.js` | renders the signature as text |
 | `src/creditscard.js` | the credits as text, from `config.credits`: the HUD's credits button and its card (shown on hover, on focus and on a click or a tap; closed by Esc, its ×, or a click outside), and the same nodes for the LOFI page (invariant 2) |
 | `src/credits.js` | the credits plate in the room: a brass plate engraved on a canvas, one mesh, with its position, turn and size as parameters; a click on it opens the credits card |
+| `src/files.js` | `asset(path)`, the address of a file of `public/` with its hash (`?v=`), and `missing(path)`; from the build's list, plain paths in `just dev` |
+| `src/first.js` | the pictures of the first frame (surfaces, the window's photograph, the board's logo), started with the page, the small colours first; one shared image per file |
+| `src/gltf.js` | the glTF loader with meshopt, a chunk of its own |
+| `src/chart.js`, `src/chart.worker.js` | the grid chart's mesh stroke, and the worker that draws it off the main thread |
+| `vite.config.js` | the hashes of `public/`, the preloads in the page's head, the `.br` and `.gz` copies |
+| `scripts/serve.mjs` | a static server that serves a build as the host does (`today`, `proposed`) |
+| `scripts/budget.mjs`, `scripts/budget.json` | what `just load-budget` counts, and its limits |
+| `scripts/hold.mjs` | for peek, record and light: no frame runs before the first step, so two runs give the same pixels |
 | `scripts/check.mjs` | what `just check` tests |
 | `scripts/record.mjs` | what `just record`, `just record-grid` and `just record-splash` make: the stills and the video for a pull request |
 | `scripts/grid.mjs` | what `just grid` makes: `public/grid/` (land, mesh, frames, sst, run); `scripts/blosc.mjs` reads Copernicus Marine's zarr chunks (Blosc, LZ4) |
@@ -226,4 +235,7 @@ shot, `Esc` for `startShot`, the deck's keys `E`, `R`, `P`, `F`, `S`, and a drag
 - Every pull request that changes the site adds its prompt to the replay in `README.md` and
   `README.pt-BR.md`: a row in the table (prompt time in UTC, the pull request and what it did,
   how long it took) and the prompt as typed, in a `text` block (the owner, 6 November 2026).
+- A file of `public/` is loaded through `asset()` (`src/files.js`), never by a bare path, and
+  shaders are compiled only through `post.compile()` (`src/post.js`); the check asks for both.
+  What loads before the room shows has a budget (`scripts/budget.json`); `just check` fails over it.
 - Work on a branch and open a pull request; do not push to `main`.
