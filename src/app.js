@@ -206,8 +206,8 @@ addEventListener('keydown', (e) => { // the deck's keys, on the keyboard
 });
 
 // ── Nash, the black cat: he lives in the room's tree, so the pointer finds him (src/cat.js) ──
-// On the full look he reads the room first, to walk around things and leap clear of them (src/catnav.js);
-// on the lite look (phones) he keeps the cheap life, with nothing to compute.
+// On the full look he is given a map of the room, to walk around things and leap onto them (src/catnav.js);
+// on the lite look (phones) he has none, and keeps to the open floor of `config.cat.roam`.
 // The furniture that is files (src/furniture.js). The room opens at once with the stand-ins, on
 // every look, and each piece takes its place as it arrives: nothing the visitor waits for is a
 // photographed chair. A piece that comes late, or never, leaves its stand-in (invariant 8).

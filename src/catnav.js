@@ -7,8 +7,8 @@
 //   ground   the height of the floor under each cell (the rug is 1.7 cm thick);
 //   solid    the voxels anything fills, so a leap can be tried before he takes it.
 // A walk is an A* path over the free cells, pulled straight where he can see through, then
-// rounded into a curve. A leap is a true parabola whose top is raised until it clears the room,
-// from a take-off spot chosen around the perch.
+// rounded into a curve. A leap is a parabola (`arc`) tried against the voxels (`leapClear`);
+// src/cat.js raises its top until it clears the room and times it by gravity.
 import * as THREE from 'three';
 
 export function buildNav(root, { cell = 0.06, layer = 0.05, top = 2.6, lo = 0.03, hi = 0.32, radius = 0.12 } = {}) {

@@ -343,12 +343,12 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
       if (n.t > n.crouch) { n.ph = 'push'; n.t = 0; }
     } else if (n.ph === 'push') {
       set(n.down ? 'reach' : 'push', n.down ? 14 : 26); foreLiftTo = 1; looking = true; lookAt.copy(n.to);
-      flyPitch += ((n.down ? -0.5 : Math.atan2(n.j.vy, n.j.vh) * 0.5) - flyPitch) * ease(dt, 20);
+      flyPitch += ((n.down ? -0.3 : Math.atan2(n.j.vy, n.j.vh) * 0.5) - flyPitch) * ease(dt, 20);
       if (n.t > (n.down ? 0.14 : 0.1)) { n.ph = 'fly'; n.t = 0; flying = true; }
     } else if (n.ph === 'fly') {
       const u = Math.min(1, n.t / n.j.T); arc(n.from, n.to, n.j.lift, u, pos);
       const vy = n.j.vy - G * n.t, a = Math.atan2(vy, n.j.vh);
-      flyPitch += (clamp(a * 0.85, -1.1, 1.1) - flyPitch) * ease(dt, 16);
+      flyPitch += (clamp(a * 0.85, n.down && u > 0.7 ? -0.35 : -0.75, 1.0) - flyPitch) * ease(dt, n.down ? 9 : 16); // down, he levels out to meet the floor
       set(u < (n.down ? 0.5 : 0.32) ? 'reach' : u < (n.down ? 0.5 : 0.62) ? 'tuck' : 'alight', 13);
       looking = true; lookAt.copy(n.to); foreLiftTo = 1;
       if (u >= 1) { n.ph = 'land'; n.t = 0; flying = false; pos.copy(n.to); here = n.perch; landed(); heading = yaw; }
