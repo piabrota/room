@@ -506,13 +506,13 @@ function placeholderRoom() {
     b.castShadow = true; rx += th + 0.003;
   });
   // the rest of it: two runs of an encyclopaedia, a clock, a vase, records and boxes at the bottom
-  for (const [dx, lv, turn] of [[0.33, 4, 0], [-0.36, 5, 0]]) F.place('books', g, { at: [sx + dx, levels[lv], sz + 0.02], rot: turn, fit: { h: 0.235 } });
-  F.place('vase', g, { at: [sx + 0.36, levels[5], sz], fit: { h: 0.3 } });
+  for (const [dx, lv, turn] of [[0.33, 4, 0], [0.22, 2, 0]]) F.place('books', g, { at: [sx + dx, levels[lv], sz + 0.02], rot: turn, fit: { h: 0.235 } });
+  F.place('vase', g, { at: [sx + 0.4, sh, sz], fit: { h: 0.3 } });
   F.place('alarm', g, { at: [sx + 0.36, levels[3], sz + 0.04], rot: 0.35, fit: { h: 0.15 } });
   for (let i = 0; i < 14; i++) box([0.005, 0.24, 0.3], [sx - 0.5 + i * 0.016 + (i % 4) * 0.002, levels[1] + 0.12, sz + 0.01], i % 3 ? '#1b1b1b' : '#3a2d2a'); // records, on edge
   const card = (size, pos, color) => part(new RoundedBoxGeometry(...size, 2, 0.008), pos, color, { opts: { roughness: 0.92 } }); // a card box: square, its corners a little worn
   card([0.34, 0.2, 0.26], [sx + 0.3, levels[1] + 0.1, sz], '#7a6448'); card([0.335, 0.02, 0.255], [sx + 0.3, levels[1] + 0.205, sz], '#6b563d');
-  // one shelf down, "what I read" (config.goodreads): the books of the owner's Goodreads, paper
+  // on the top shelf, in the middle of the shelf shot, "what I read" (config.goodreads): the books of the owner's Goodreads, paper
   // books of many sizes, the ones he is reading lying on the pile at the end. One draw call each,
   // like the reads; a card box closes the row
   let gx = sx - 0.53, lying = 0;
@@ -525,13 +525,13 @@ function placeholderRoom() {
     b.castShadow = true;
     if (reading) { // on its side, spine out, on the pile at the right end of the shelf
       b.rotation.z = -Math.PI / 2; b.rotation.y = lying ? 0.09 : -0.05;
-      b.position.set(sx + 0.36, levels[2] + 0.071 + lyingH + th / 2, sz + 0.05); lyingH += th; lying++;
+      b.position.set(sx + 0.36, levels[5] + 0.071 + lyingH + th / 2, sz + 0.05); lyingH += th; lying++;
     } else {
       const lean = i % 6 === 4 ? -0.1 : 0; // one or two lean on their neighbour
-      b.rotation.z = lean; b.position.set(gx + th / 2 + (lean ? 0.012 : 0), levels[2] + hgt / 2, sz + 0.06 - (i % 3) * 0.006); gx += th + 0.003 + (lean ? 0.02 : 0);
+      b.rotation.z = lean; b.position.set(gx + th / 2 + (lean ? 0.012 : 0), levels[5] + hgt / 2, sz + 0.06 - (i % 3) * 0.006); gx += th + 0.003 + (lean ? 0.02 : 0);
     }
   });
-  card([0.4, 0.07, 0.24], [sx + 0.36, levels[2] + 0.035, sz + 0.005], '#7c2a22');
+  card([0.4, 0.07, 0.24], [sx + 0.36, levels[5] + 0.035, sz + 0.005], '#7c2a22');
   card([0.46, 0.21, 0.28], [sx - 0.22, levels[0] + 0.105, sz], '#6d5a44');
   card([0.36, 0.17, 0.27], [sx + 0.32, levels[0] + 0.085, sz], '#3d3530');
 
@@ -560,11 +560,11 @@ function placeholderRoom() {
   } });
   F.place('pillows', g, { at: [SOFA.x + 0.04, 0.4, SOFA.z + 0.46], rot: Math.PI / 2 - 0.1, fit: { w: 0.66 } });
   // beside it: a tall table with a fern in a clay pot, a ukulele against the wall, a painting above
-  F.place('sideTable', g, { at: [-2.7, 0, 1.76], fit: { h: 0.7 }, standin: (s) => { sbox(s, [0.34, 0.03, 0.34], [0, 0.685, 0], dark); for (const kx of [-1, 1]) for (const kz of [-1, 1]) sbox(s, [0.03, 0.67, 0.03], [kx * 0.13, 0.335, kz * 0.13], dark); } });
-  F.place('pot', g, { at: [-2.7, 0.7, 1.76], fit: { h: 0.19 } });
-  F.place('fern', g, { at: [-2.7, 0.84, 1.76], rot: 0.9, fit: { w: 0.82 }, shadow: false });
-  F.place('ukulele', g, { at: [-2.88, 0, 2.2], rot: [-0.19, Math.PI / 2, 0.06], fit: { h: 0.6 } });
-  F.place('painting', g, { at: [ROOM.x0 + 0.004, 1.72, 2.62], rot: Math.PI / 2, anchor: 'back', fit: { w: 0.9 } });
+  F.place('sideTable', g, { at: [2.3, 0, 3.5], fit: { h: 0.7 }, standin: (s) => { sbox(s, [0.34, 0.03, 0.34], [0, 0.685, 0], dark); for (const kx of [-1, 1]) for (const kz of [-1, 1]) sbox(s, [0.03, 0.67, 0.03], [kx * 0.13, 0.335, kz * 0.13], dark); } });
+  F.place('pot', g, { at: [2.3, 0.7, 3.5], fit: { h: 0.19 } });
+  F.place('fern', g, { at: [2.3, 0.84, 3.5], rot: 0.9, fit: { w: 0.82 }, shadow: false });
+  F.place('ukulele', g, { at: [1.86, 0, ROOM.z1 - 0.12], rot: [-0.19, Math.PI, 0.06], fit: { h: 0.6 } });
+  F.place('painting', g, { at: [2.3, 1.78, ROOM.z1 - 0.004], rot: Math.PI, anchor: 'back', fit: { w: 0.9 } });
   // the long-case clock in the corner by the door
   F.place('clock', g, { at: [-2.6, 0, ROOM.z1 - 0.24], rot: Math.PI, fit: { h: 2.12 }, standin: (s) => { sbox(s, [0.5, 2.1, 0.32], [0, 1.05, 0], '#6b3f2a'); } });
   // a big plant under the people's board, a suitcase and a box in the far corner, a box under the desk
@@ -580,7 +580,7 @@ function placeholderRoom() {
 
   // ── lived in: an armchair under the painting with a hat stand near it, a low table before the sofa with a thermos,
   // a cabinet of card drawers under the chart; the rest is built in src/lived.js, with the marks of the years ──
-  F.place('armchair', g, { at: [-2.36, 0, 2.78], rot: Math.PI / 2 + 0.4, fit: { h: 0.88 }, standin: (s) => {
+  F.place('armchair', g, { at: [-2.36, 0, 2.98], rot: Math.PI / 2 + 0.4, fit: { h: 0.88 }, standin: (s) => {
     sbox(s, [0.6, 0.14, 0.6], [0, 0.36, 0.02], '#1d1c1b'); sbox(s, [0.6, 0.5, 0.12], [0, 0.63, -0.3], '#1d1c1b');
     for (const kx of [-1, 1]) sbox(s, [0.05, 0.56, 0.7], [kx * 0.33, 0.28, 0], '#7a5a3c');
   } });
@@ -596,16 +596,16 @@ function placeholderRoom() {
   g.add(contactShadows([
     [DESK.x, DESK.z + 0.05, DESK.w + 0.5, DESK.d + 0.6, 0.34],
     [-0.62, -0.5, 0.95, 0.95, 0.42, 0.014],
-    [SOFA.x + 0.05, SOFA.z, 1.05, SOFA.w + 0.35, 0.5], [-2.7, 1.76, 0.6, 0.6, 0.4], [-2.6, ROOM.z1 - 0.26, 0.95, 0.75, 0.5],
+    [SOFA.x + 0.05, SOFA.z, 1.05, SOFA.w + 0.35, 0.5], [2.3, 3.5, 0.6, 0.6, 0.4], [-2.6, ROOM.z1 - 0.26, 0.95, 0.75, 0.5],
     [CASE.x, CASE.z + 0.06, CASE.w + 0.3, CASE.d + 0.42, 0.5], [-2.2, -1.15, 0.72, 0.8, 0.45],
-    [2.32, -1.6, 0.7, 0.7, 0.45], [3.08, -0.45, 0.95, 2.1, 0.5], [3.08, 2.86, 0.75, 0.8, 0.42], [3.03, 3.62, 0.95, 0.5, 0.4], [2.26, 3.5, 0.95, 0.85, 0.5], [1.02, -1.62, 0.6, 0.7, 0.3],
+    [2.32, -1.6, 0.7, 0.7, 0.45], [3.08, -0.45, 0.95, 2.1, 0.5], [3.08, 2.86, 0.75, 0.8, 0.42], [3.03, 3.62, 0.95, 0.5, 0.4], [ROOM.x0 + 0.3, 2.22, 0.85, 0.95, 0.5], [1.02, -1.62, 0.6, 0.7, 0.3],
   ]));
 
   // ── the other walls: marola-dev's sea, ouroboric-dev's loop, the slipbox ──
   animated.push(buildSea(g, mesh, std, part, F, { lite, still, hang: [ROSE[0], ROOM.h - 0.75, ROSE[1]] }), buildLoop(g, mesh, std), buildRecords(g, mesh, std, part));
 
   // the universe simulator by the front wall, its microphone and the chart over it: an homage to The Midnight Gospel (src/simulator.js)
-  animated.push(buildSimulator(g, { at: [2.26, 0, ROOM.z1], lite, still, anisotropy }));
+  animated.push(buildSimulator(g, { at: [ROOM.x0, 0, 2.22], turn: Math.PI / 2, lite, still, anisotropy }));
 
   // the leaves sway a little in the air of the room (the vertex shader; still under reduced motion)
   const sway = std('#2f6b3a', LEAF);

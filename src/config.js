@@ -138,7 +138,7 @@ export const outside = {
 export const shots = {
   overview: { position: [3.1, 2.15, 3.3], target: [-0.4, 1.05, -0.6], fov: 50 },
   desk:     { position: [0.32, 1.36, 0.02], target: [0.2, 1.1, -1.5], fov: 46 },
-  fabric:   { position: [-0.75, 1.55, 1.25], target: [-3.0, 1.5, 0.45], fov: 52 },
+  fabric:   { position: [-0.55, 1.5, 1.5], target: [-3.0, 1.38, 0.95], fov: 54 }, // the projects' frames, and the universe simulator under its chart
   shelf:    { position: [-1.75, 1.55, 0.4], target: [-2.1, 1.8, -1.9], fov: 52 }, // the works with a DOI, and tyler-durden-bot's board above them
   board:    { position: [2.55, 1.8, 0.25], target: [2.55, 1.82, -2.0], fov: 50 },
   window:   { position: [0.2, 1.62, 0.7], target: [0.2, 2.12, -2.0], fov: 56 },
@@ -577,7 +577,7 @@ export const reads = {
   ],
 };
 
-// ── what I read: the books of the owner's Goodreads, on the bookcase under "how I read". Titles and
+// ── what I read: the books of the owner's Goodreads, on the bookcase's top shelf, over the works with a DOI. Titles and
 // authors as his profile listed them on 12 November 2026: the three he is reading and the eleven
 // of the twenty he has read that the profile shows (the other nine, and the one he wants to read,
 // are on pages Goodreads keeps from a robot: add them here when the owner lists them). Certainty by
@@ -980,7 +980,7 @@ export const grid = {
 export const hotspots = [
   { name: 'chart', label: grid.label, hint: grid.hint, action: 'shot', value: 'grid' },
   { name: 'window', label: 'Rio at night', hint: 'where piabrota is made', action: 'shot', value: 'window' },
-  { name: 'shelf',  label: 'the shelf',    hint: 'the works with a DOI, and the papers on aiXiv', action: 'shot', value: 'shelf' },
+  { name: 'shelf',  label: 'the shelf',    hint: 'what I read (Goodreads), the works with a DOI, the papers on aiXiv', action: 'shot', value: 'shelf' },
   { name: 'lamp',   label: 'lamp',         hint: 'on, off', action: 'toggleLamp' },
   { name: 'radio',  label: 'piabrota RADIO', hint: 'lofi, on and off', action: 'toggleRadio' },
   { name: 'mixtape', label: playlist.label, hint: playlist.hint, action: 'playlist', art: { kind: 'mixtape' } },

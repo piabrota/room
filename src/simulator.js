@@ -436,11 +436,11 @@ function chartArt(lite) {
   return texture(c);
 }
 
-export function buildSimulator(g, { at = [2.26, 0, 3.8], lite = false, still = false, anisotropy = 4 } = {}) {
+export function buildSimulator(g, { at = [2.26, 0, 3.8], turn = Math.PI, lite = false, still = false, anisotropy = 4 } = {}) {
   const spot = hotspots.find((h) => h.action === 'simulate'), worlds = cfg?.worlds ?? [];
   if (!spot || !worlds.length) return () => {};
   const n = worlds.length;
-  const holder = new THREE.Group(); holder.position.set(at[0], at[1], at[2] - BACK); holder.rotation.y = Math.PI; g.add(holder); // its back to the wall
+  const holder = new THREE.Group(); holder.position.set(at[0] + Math.sin(turn) * BACK, at[1], at[2] + Math.cos(turn) * BACK); holder.rotation.y = turn; g.add(holder); // its back to the wall: `at` is on the wall, `turn` the way it faces (π: from the front wall; π/2: from the left wall)
 
   // the machine: the body and the port
   const machine = new THREE.Group(); machine.name = spot.name; holder.add(machine);
