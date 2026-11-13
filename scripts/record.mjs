@@ -71,7 +71,7 @@ await page.context().route(/substack\.com/, (r) => r.fulfill({ status: 200, cont
 await page.goto(`${url}?hifi&night&record`); // the same light on every run; no ambient occlusion
 await page.waitForSelector('#loading.done', { timeout: 120000 });
 // the furniture that is files: in software the room opens before the last piece has arrived, so wait for it
-await page.evaluate(async () => { await window.__room.room.ready; window.__room.step(1 / 30); });
+await page.evaluate(async () => { await (window.__room.room.settled ?? window.__room.room.ready); window.__room.step(1 / 30); });
 await page.click('#enter button');
 await page.addStyleTag({ content: '#enter{display:none!important}' }); // skip its fade
 rmSync(frames, { recursive: true, force: true }); mkdirSync(frames, { recursive: true });

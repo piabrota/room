@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { asset } from './files.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
@@ -22,19 +23,27 @@ export function createFurniture(models, { lite = false, small = lite, anisotropy
   const pending = [];
   // No file is asked for before `start()`: the room shows first, with its stand-ins, and the
   // furniture comes after, four files at a time, so the room's own code and pictures never wait
-  // behind a chair on a slow line.
-  let go; const started = new Promise((done) => { go = done; });
-  const slots = { free: 4, wait: [] };
-  const take = () => (slots.free > 0 ? (slots.free--, Promise.resolve()) : new Promise((done) => slots.wait.push(done)));
-  const give = () => { const next = slots.wait.shift(); if (next) next(); else slots.free++; };
-  const fetchModel = (url) => started.then(take).then(() => loader.loadAsync(url)).finally(give);
+  // behind a chair on a slow line. They come in the order the visitor would miss them: what the
+  // camera looks at before what is behind it, the near before the far (`start({ camera })`), and
+  // each model's shaders are made ready before it is shown, so a piece that arrives never makes
+  // the room stutter (`start({ prepare })`: `renderer.compileAsync`, src/app.js).
+  const queue = [], holders = new Map(); // url -> the holders it will stand in
+  let started = false, free = 4, prepare = null;
+  const pump = () => {
+    while (started && free > 0 && queue.length) {
+      const job = queue.shift(); free--;
+      loader.loadAsync(job.url).then(job.done, job.fail).finally(() => { free++; pump(); });
+    }
+  };
+  const fetchModel = (url) => new Promise((done, fail) => { queue.push({ url, done, fail }); pump(); });
+  const ready = (model) => (prepare ? Promise.race([Promise.resolve().then(() => prepare(model)).catch(() => {}), new Promise((done) => setTimeout(done, 4000))]) : Promise.resolve());
   const cache = new Map(); // one download for a file that stands in two places
   const base = models?.base ?? '/models/';
   const fileOf = (key) => {
     const def = models?.files?.[key]; if (!def) return null;
     const { file, phone = true } = typeof def === 'string' ? { file: def } : def;
     if (lite && !phone) return null; // a prop the phone's look leaves out
-    return `${base}${file}${small ? '.lite' : ''}.glb`; // the small file on a phone, a small screen or a slow line (src/quality.js)
+    return asset(`${base}${file}${small ? '.lite' : ''}.glb`); // the small file on a phone, a small screen or a slow line (src/quality.js)
   };
   const box = new THREE.Box3(), size = new THREE.Vector3(), centre = new THREE.Vector3();
 
@@ -75,9 +84,12 @@ export function createFurniture(models, { lite = false, small = lite, anisotropy
       const url = fileOf(key);
       if (url) {
         if (!cache.has(url)) cache.set(url, fetchModel(url));
-        pending.push(cache.get(url).then((gltf) => {
+        if (!holders.has(url)) holders.set(url, []);
+        holders.get(url).push(holder);
+        pending.push(cache.get(url).then(async (gltf) => {
           const model = settle(gltf.scene.clone(true), how); // a copy: a file can stand in two places
           model.name = key;
+          await ready(model); // its shaders, compiled while the stand-in still stands
           holder.remove(placeholder);
           placeholder.traverse((o) => { if (o.isMesh) o.geometry.dispose(); });
           holder.add(model); onLoad?.(model, holder); onChange();
@@ -92,7 +104,21 @@ export function createFurniture(models, { lite = false, small = lite, anisotropy
       if (!cache.has(url)) cache.set(url, fetchModel(url));
       const p = cache.get(url).catch(() => null); pending.push(p); return p;
     },
-    start() { go(); },
+    // `camera`: the files are asked for in the order of what it sees; `prepare(model)`: a promise
+    // that the model can be drawn without a stall. Both are optional.
+    start({ camera = null, prepare: prep = null } = {}) {
+      if (started) return;
+      prepare = prep;
+      if (camera) {
+        camera.updateMatrixWorld(); camera.updateProjectionMatrix?.();
+        const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+        const eye = camera.getWorldPosition(new THREE.Vector3()), at = new THREE.Vector3();
+        const rank = (url) => Math.min(...(holders.get(url) ?? []).map((h) => { h.getWorldPosition(at); return (frustum.containsPoint(at) ? 0 : 100) + at.distanceTo(eye); }), 99); // a file with no holder (the fish): after what is in view
+        for (const job of queue) job.rank = rank(job.url);
+        queue.sort((a, b) => a.rank - b.rank);
+      }
+      started = true; pump();
+    },
     get ready() { return Promise.all(pending); },
     get count() { return pending.length; },
   };

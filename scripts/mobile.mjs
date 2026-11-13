@@ -1,8 +1,8 @@
 // `just mobile` runs this: it opens the built room as a phone would (390×844 CSS pixels, a
 // pixel ratio of 3, touch, Chrome's CPU slowed 4×) and as a laptop would (1280×720, ratio 2),
 // and prints for each what the visitor pays: the bytes and the requests before the room shows,
-// the time until it shows, the time until every model has arrived, everything transferred by
-// then, the size of the picture drawn (the drawing buffer), and the time one frame of the room
+// the time until it shows and until its first frame is drawn, the time until every model has
+// arrived, everything transferred by then, the size of the picture drawn (the drawing buffer), and the time one frame of the room
 // takes, the GPU's work included (a pixel is read back after each frame).
 //
 //   just mobile --device phone --bytes     the 12 biggest files before the room shows
@@ -65,12 +65,18 @@ async function visit(d) {
   await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
   if (net) await cdp.send('Network.emulateNetworkConditions', { offline: false, downloadThroughput: nets[net][0], uploadThroughput: nets[net][1], latency: nets[net][2] });
   cdp.on('Network.requestWillBeSent', (e) => urls.set(e.requestId, e.request.url));
-  cdp.on('Network.loadingFinished', (e) => { files.push([e.encodedDataLength, urls.get(e.requestId)]); });
+  cdp.on('Network.loadingFinished', (e) => { const u = urls.get(e.requestId); if (/^https?:/.test(u ?? '')) files.push([e.encodedDataLength, u]); }); // not the blob: pictures inside a model
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
   // when #loading gets `done`, for a build older than the `room:shown` mark
   await page.addInitScript(() => new MutationObserver((_, obs) => {
     if (document.getElementById('loading')?.classList.contains('done')) { window.__shownAt = performance.now(); obs.disconnect(); }
   }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] }));
+  // when the room is really on the screen: the third frame the browser asks for after the room says it shows
+  // has at least one whole frame of the room behind it (a build that compiles its shaders in that frame stalls there)
+  await page.addInitScript(() => addEventListener('room:shown', () => {
+    let n = 0; const tick = () => { if (++n === 3) window.__drawnAt = performance.now(); else requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }, { once: true }));
   await page.goto(`${url}?hifi&night${query}`);
   await page.waitForSelector('#loading.done');
   // every file that had arrived when the room showed (performance.mark in src/app.js), and when it showed
@@ -80,6 +86,7 @@ async function visit(d) {
   });
   const html = files.find(([, u]) => u === page.url())?.[0] ?? 0;
   const shown = before.reduce((a, [b]) => a + b, 0) + html;
+  const drawnAt = await page.waitForFunction(() => window.__drawnAt).then((h) => h.jsonValue());
   // every model in its place (room.ready), then a moment for what follows it
   const modelsAt = await page.evaluate(async () => { await window.__room.room.ready; return performance.now(); });
   await page.waitForTimeout(net ? 3000 : 1500);
@@ -95,16 +102,16 @@ async function visit(d) {
     return { w: gl.drawingBufferWidth, h: gl.drawingBufferHeight, ratio: renderer.getPixelRatio(), median: ts[ts.length >> 1], profile: post.profile ?? 'full', files: window.__room.quality.files ?? window.__room.quality.name, paint, textures: renderer.info.memory.textures };
   }, !process.argv.includes('--load'));
   await ctx.close();
-  return { ...r, shown, requests: before.length + 1, shownAt: shownAt / 1000, modelsAt: modelsAt / 1000, total, totalRequests: files.length, before, all: files };
+  return { ...r, shown, requests: before.length + 1, shownAt: shownAt / 1000, drawnAt: drawnAt / 1000, modelsAt: modelsAt / 1000, total, totalRequests: files.length, before, all: files };
 }
 
 for (const [name, d] of Object.entries(devices)) {
   if (only && only !== name) continue;
   const all = []; for (let i = 0; i < runs; i++) all.push(await visit(d));
   const r = all[0], of = (k) => all.map((x) => x[k]);
-  console.log(`${name.padEnd(6)} ${r.profile.padEnd(5)} ${r.files.padEnd(4)} files${net ? `, on ${net}` : ''}, downloaded ${(median(of('shown')) / 1e6).toFixed(2)} MB in ${median(of('requests'))} requests before the room shows, shown in ${median(of('shownAt')).toFixed(1)} s${spread(of('shownAt'))}, every model in at ${median(of('modelsAt')).toFixed(1)} s${spread(of('modelsAt'))}, ${(median(of('total')) / 1e6).toFixed(2)} MB in ${median(of('totalRequests'))} requests in all, drawn at ${r.w}×${r.h} (ratio ${r.ratio}), ${process.argv.includes('--load') ? 'frames not timed' : `a frame ${median(of('median')).toFixed(0)} ms`}`);
+  console.log(`${name.padEnd(6)} ${r.profile.padEnd(5)} ${r.files.padEnd(4)} files${net ? `, on ${net}` : ''}, downloaded ${(median(of('shown')) / 1e6).toFixed(2)} MB in ${median(of('requests'))} requests before the room shows, shown in ${median(of('shownAt')).toFixed(1)} s${spread(of('shownAt'))}, its first frame drawn at ${median(of('drawnAt')).toFixed(1)} s${spread(of('drawnAt'))}, every model in at ${median(of('modelsAt')).toFixed(1)} s${spread(of('modelsAt'))}, ${(median(of('total')) / 1e6).toFixed(2)} MB in ${median(of('totalRequests'))} requests in all, drawn at ${r.w}×${r.h} (ratio ${r.ratio}), ${process.argv.includes('--load') ? 'frames not timed' : `a frame ${median(of('median')).toFixed(0)} ms`}`);
   if (process.argv.includes('--bytes')) for (const [b, u] of r.before.sort((a, z) => z[0] - a[0]).slice(0, 12)) console.log(`  ${(b / 1e3).toFixed(0).padStart(6)} kB  ${new URL(u).pathname}`);
-  report[name] = { look: r.profile, files: r.files, net: net ?? 'local', bytesBefore: median(of('shown')), requestsBefore: median(of('requests')), shown: of('shownAt'), models: of('modelsAt'), paint: of('paint'), bytes: median(of('total')), requests: median(of('totalRequests')), frame: median(of('median')), before: r.before.map(([b, u]) => [b, new URL(u).pathname]), all: r.all.map(([b, u]) => [b, new URL(u).pathname]) };
+  report[name] = { look: r.profile, files: r.files, net: net ?? 'local', bytesBefore: median(of('shown')), requestsBefore: median(of('requests')), shown: of('shownAt'), drawn: of('drawnAt'), models: of('modelsAt'), paint: of('paint'), bytes: median(of('total')), requests: median(of('totalRequests')), frame: median(of('median')), before: r.before.map(([b, u]) => [b, new URL(u).pathname]), all: r.all.map(([b, u]) => [b, new URL(u).pathname]) };
 }
 if (arg('--json')) writeFileSync(arg('--json'), JSON.stringify(report, null, 1));
 await browser.close();

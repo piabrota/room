@@ -88,7 +88,7 @@ await page.addStyleTag({ content: `#enter{display:none!important}${flag('hud') ?
 
 const look = (o) => page.evaluate(async ({ list, shot, from, to, fov, steps, code }) => {
   const r = window.__room;
-  if (r.room.ready) await r.room.ready; // the models, when the room loads them after its first frame
+  if (r.room.ready) await (r.room.settled ?? r.room.ready); // the models, when the room loads them after its first frame, and the chart's mesh
   r.rig.go(shot ?? Object.keys(r.rig.names)[0] ?? r.rig.names[0], true);
   for (let i = 0; i < steps; i++) r.step(1 / 30);
   if (code) { await (0, eval)(code); r.renderer.shadowMap.needsUpdate = true; r.step(1 / 30); }

@@ -32,7 +32,7 @@ export function createRadio(audio, { stations, volume = 0.6, listeners: liveUrl 
   function start() {
     release();
     const t = station.tracks[i];
-    el = new Audio(); el.preload = 'auto'; el.src = t.src;
+    el = new Audio(); el.preload = 'auto'; el.src = asset(t.src);
     node = audio.ctx.createMediaElementSource(el); node.connect(out);
     el.onended = () => next();
     el.onerror = () => fallback(t);

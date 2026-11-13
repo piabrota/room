@@ -17,6 +17,7 @@ import { createLock } from './lock.js';
 import { createCat } from './cat.js';
 import { buildNav } from './catnav.js';
 import { createCredits } from './creditscard.js';
+import { isDay } from './first.js';
 
 let paused = false, wasRunning = false; // see pause() and resume() at the end
 let elapsed = 0; // the room's clock, in seconds: the loop at the end moves it
@@ -74,6 +75,8 @@ rig.names.forEach((name, i) => {
   const k = document.createElement('kbd'); k.textContent = String((i + 1) % 10); // the tenth is 0
   b.append(k, document.createTextNode(` ${config.shots[name]?.label ?? name}`));
   b.onclick = () => rig.go(name); b.dataset.shot = name;
+  // the map's code and files start on their way when the pointer, the finger or the focus reaches its button
+  if (name === 'grid') for (const ev of ['pointerenter', 'focus', 'touchstart']) b.addEventListener(ev, () => gridView?.warm(), { once: true, passive: true });
   nav.appendChild(b);
 });
 // ── ▲ grid: when the camera lands on the chart (key 0), the map opens; any other shot closes it ──
@@ -347,9 +350,7 @@ function setDay(on) {
   dayBtn.title = on ? words.toNight : words.toDay;
 }
 dayBtn.onclick = () => setDay(!room.day);
-const hour = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: config.place.timeZone }).format(new Date()));
-const [dawn, dusk] = config.outside?.dayHours ?? [6, 18];
-setDay(new URLSearchParams(location.search).has('day') || (!new URLSearchParams(location.search).has('night') && hour >= dawn && hour < dusk));
+setDay(isDay(config)); // `?day`, `?night`, or the hour where the room is (src/first.js, which src/main.js asks too)
 
 // ── piabrota RADIO: the button at the top and the radio on the sill ──
 const radioBtn = document.getElementById('radio'), radioNext = document.getElementById('radio-next');
@@ -403,10 +404,15 @@ scene.traverse((o) => {
   for (const m of [o.material].flat()) for (const k of ['map', 'emissiveMap']) if (m?.[k]) renderer.initTexture(m[k]);
 });
 rig.update(0);
-await renderer.compileAsync(scene, camera).catch(() => renderer.compile(scene, camera));
+await post.compile().catch(() => {}); // for the buffer the room is drawn into (src/post.js): the first frame makes none again
 redrawShadows();
+// One whole frame behind the cover: the shadow maps, the passes' own shaders and every texture's
+// upload happen here, so when the cover lifts the room is there and already moving.
+try { you.follow(camera); room.update(elapsed); live.update(); post.render(0, elapsed, false); } catch { /* the loop will draw it */ }
 loading?.classList.add('done');
-room.furnish(); // the furniture's files, now that the room is on screen (src/furniture.js)
+// The furniture's files, now that the room is on screen (src/furniture.js): what the camera sees
+// first, and each piece's shaders compiled before it takes its stand-in's place.
+room.furnish(recording ? undefined : { camera, prepare: (model) => post.compile(model) });
 performance.mark('room:shown'); // `just mobile` counts the bytes before it
 dispatchEvent(new Event('room:shown')); // the chart's mesh waits for it (src/grid.js)
 

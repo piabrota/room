@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { asset, missing } from './files.js';
 
 // Browsers only allow audio after a user gesture, so call unlock()
 // from the "enter" click. Every sound tries your file first and falls
@@ -16,7 +17,8 @@ export function createAudio(camera) {
     const key = src + fallback;
     if (buffers.has(key)) return buffers.get(key);
     let b;
-    try { b = await loader.loadAsync(src); } catch { b = synth(ctx, fallback); }
+    // a sound the build did not find is not asked for: its fallback plays at once (src/files.js)
+    try { if (missing(src)) throw 0; b = await loader.loadAsync(asset(src)); } catch { b = synth(ctx, fallback); }
     buffers.set(key, b); return b;
   }
 
