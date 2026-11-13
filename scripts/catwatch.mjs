@@ -48,7 +48,7 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.route('**/live/**', (r) => r.fulfill({ status: 204 }));
-await page.goto(`${server.resolvedUrls.local[0]}?hifi&${flag('day') ? 'day' : 'night'}&${flag('lite') ? 'lite' : 'record'}`);
+await page.goto(`${server.resolvedUrls.local[0]}?hifi&${flag('day') ? 'day' : 'night'}&${flag('lite') ? 'lite' : flag('ao') ? 'full' : 'record'}`);
 await page.waitForSelector('#loading.done');
 await page.addStyleTag({ content: '#enter,#hud,#view,#tooltip{display:none!important}' });
 await page.evaluate(async () => { const r = window.__room; if (r.room.ready) await r.room.ready; r.step(1 / 30); });

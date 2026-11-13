@@ -40,7 +40,7 @@ export const POSES = {
   sniff: { ...base, hipY: 0.185, p0: -0.06, p1: -0.3, neckP: -0.55, headP: -1.05, fF: 0.03, tailP: -0.5, tailC: 0.08 },
   alert: { ...base, neckP: 0.95, headP: -0.05, tailP: -0.55, lid: 0.02 },
   sit: { ...base, hipF: -0.15, hipY: 0.074, p0: 1.25, p1: 0.2, neckP: 0.9, headP: -0.1, fF: 0.03, fS: 0.03, hF: 0.085, hS: 0.078, hPhi: 0.12, splayH: 1.0, splayF: 0.02, tailP: -0.3, tailC: 0.06, tailW: 0.42 },
-  loaf: { ...base, hipF: -0.118, hipY: 0.07, p0: 0.06, p1: 0.02, neckP: 0.85, headP: -0.05, free: 1, ffA: 0.035, ffB: -0.05, hfA: 0.07, hfB: -0.055, fPhi: 2.75, hPhi: 0.1, splayF: 0.12, splayH: 0.7, tailP: -0.2, tailC: 0.03, tailW: 0.42, lid: 0.3 },
+  loaf: { ...base, hipF: -0.118, hipY: 0.07, p0: 0.06, p1: 0.02, neckP: 0.85, headP: -0.05, free: 1, ffA: 0.1, ffB: -0.052, hfA: 0.07, hfB: -0.055, fPhi: 3.05, hPhi: 0.1, splayF: 0, splayH: 0.7, tailP: -0.2, tailC: 0.03, tailW: 0.42, lid: 0.3 },
   // curled up: the spine is an arc about the middle of the nest, the head comes round to the hips
   curl: { ...base, hipF: -0.089, hipX: -0.03, hipY: 0.064, yaw0: -1.25, bend: 2.5, p0: 0, p1: -0.02, roll0: 0.45, roll1: 0.3, neckP: -0.22, neckY: 0.5, headP: -0.3, headY: 0.4, headR: 0.25,
     free: 1, ffA: 0.035, ffB: -0.04, hfA: 0.075, hfB: -0.04, fPhi: 2.7, hPhi: 0.1, splayF: 0.4, splayH: 0.5, tailP: -0.12, tailC: 0, tailW: 0.28, lid: 1, ears: 0.25 },

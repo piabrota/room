@@ -804,7 +804,7 @@ export const door = {
 //             perch that asks for more is not his.
 export const cat = {
   name: 'Nash', hint: 'a black cat. he goes where he wants',
-  length: 0.46, tail: 0.28, color: '#0c0c0f', sheen: '#8d94a6', rim: 0.6, shadow: 0.5,
+  length: 0.46, tail: 0.28, color: '#0c0c0f', sheen: '#8d94a6', rim: 0.45, shadow: 0.5,
   eyes: '#d9e84a', pupil: { day: 0.12, night: 0.8 }, glow: { day: 0.55, night: 0.8 },
   home: 'rug', still: 'rug',
   perches: [
@@ -813,7 +813,7 @@ export const cat = {
     { id: 'sun', at: [-0.5, 0.013, -0.35], face: 0.6, like: 0.6, rest: ['loaf', 'sit'], sleep: 1.5, sun: true },
     { id: 'floor', at: [-0.95, 0, 1.4], face: 0.8, rest: ['sit'] },
     { id: 'boards', at: [0.9, 0, 1.5], face: -2.4, rest: ['sit', 'loaf'], sleep: 0.4 },
-    { id: 'sofa', at: [-2.5, 0.42, 0.15], face: 1.6, like: 2, rest: ['loaf', 'sit'], sleep: 4 },
+    { id: 'sofa', at: [-2.5, 0.42, 0.15], face: -1.6, like: 2, rest: ['loaf', 'sit'], sleep: 4 },
     { id: 'armchair', at: [-2.36, 0.42, 2.98], face: -1.2, like: 1.5, rest: ['loaf', 'sit'], sleep: 3 },
     { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8, rest: ['sit', 'loaf'] },
     { id: 'deskLeft', at: [-0.82, 0.805, -1.17], face: 2.4, rest: ['sit'] },

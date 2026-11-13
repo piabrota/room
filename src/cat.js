@@ -81,7 +81,7 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
   const chain = (p) => { const c = [p]; while (c.at(-1).via && perches.get(c.at(-1).via)) c.push(perches.get(c.at(-1).via)); return c; };
   const fwd = (a, o = tmp) => o.set(-Math.sin(a), 0, -Math.cos(a));
   // how much of him, sitting, is inside something: hips, back, chest, head
-  const hits = (p, a) => { const f = fwd(a, tmp2); let n = 0; for (const [al, up] of [[-0.14, 0.09], [-0.03, 0.15], [0.07, 0.23], [0.11, 0.31]]) if (nav.solidAt(p.x + f.x * al, p.y + up, p.z + f.z * al)) n++; return n; };
+  const hits = (p, a) => { const f = fwd(a, tmp2); let n = 0; for (const [al, up] of [[-0.17, 0.07], [-0.1, 0.14], [0, 0.2], [0.08, 0.28], [0.12, 0.34]]) if (nav.solidAt(p.x + f.x * al, p.y + up, p.z + f.z * al)) n++; return n; };
   const held = (p, a) => { const f = fwd(a, tmp2); return [-0.11, 0.07].every((al) => nav.solidAt(p.x + f.x * al, p.y - 0.025, p.z + f.z * al)); };
   const turns = [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4, 1.75, -1.75, 2.1, -2.1, 2.45, -2.45, Math.PI];
   const roomy = (x, z, r = 0.12) => nav.free(x, z) && nav.free(x + r, z) && nav.free(x - r, z) && nav.free(x, z + r) && nav.free(x, z - r) && reach(x, z);
@@ -107,7 +107,7 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
           }
           if (found) break;
         }
-        if (found) { p.pos.copy(found[0]); p.face = found[1]; } else p.tight = true;
+        if (found) { p.pos.copy(found[0]); p.face = found[1]; } else { p.tight = true; p.out = true; } // nowhere on it holds him: it is not his
         // lying down he is longer: is there room for that, along him?
         const f = fwd(p.face, tmp2);
         if (p.tight || [-0.2, -0.1, 0.1, 0.2, 0.28].some((al) => nav.solidAt(p.pos.x + f.x * al, p.pos.y + 0.1, p.pos.z + f.z * al) || nav.solidAt(p.pos.x + f.x * al, p.pos.y + 0.16, p.pos.z + f.z * al))) p.tight = true;
@@ -118,9 +118,9 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
     reach = nav.region(home.pos.x, home.pos.z);
     // a high place he cannot get to and from by leaps a cat can do is not his
     for (const p of [...perches.values()]) if (high(p)) {
-      const c = chain(p); let ok = !!takeoff(c.at(-1));
+      const c = chain(p); let ok = !p.out && !!takeoff(c.at(-1));
       for (let i = 0; i + 1 < c.length && ok; i++) ok = !!hop(c[i + 1].pos, c[i].pos) && !!hop(c[i].pos, c[i + 1].pos);
-      if (!ok) { p.out = true; }
+      if (!ok) p.out = true;
     }
     for (const p of [...perches.values()]) if (p.out || chain(p).some((c) => c.out)) perches.delete(p.id);
     // he starts over from where he is, on the floor; the first time, at home
@@ -214,7 +214,7 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
   }
   function goSleep() {
     const day = !!group.parent?.userData.day, table = {};
-    for (const p of perches.values()) if (p.sleep && !p.tight) table[p.id] = p.sleep * (p.sun ? (day ? 4 : 0.2) : 1) * (p === here ? 2 : 1);
+    for (const p of perches.values()) if (p.sleep) table[p.id] = p.sleep * (p.sun ? (day ? 4 : 0.2) : 1) * (p === here ? 2 : 1);
     const p = perches.get(draw(table)) ?? here ?? home;
     if (p !== here) goTo(p);
     plan.push({ k: 'spin', turns: (rnd() < 0.5 ? 1 : -1) * (0.8 + rnd() * 0.7) });
@@ -268,7 +268,7 @@ export function createCat(cfg, { still = false, seed = 7, nav: firstNav = null, 
     const a = w.at[i - 1], b = w.at[i], u = b > a ? (d - a) / (b - a) : 0;
     return o.lerpVectors(w.line[i - 1], w.line[i], u);
   }
-  const headingAt = (w, d) => { along(w, d, tmp); const x = tmp.x, z = tmp.z; along(w, d + 0.14, tmp); return Math.atan2(-(tmp.x - x), -(tmp.z - z)); };
+  const headingAt = (w, d) => { d = Math.max(0, Math.min(d, w.len - 0.14)); along(w, d, tmp); const x = tmp.x, z = tmp.z; along(w, d + 0.14, tmp); return Math.atan2(-(tmp.x - x), -(tmp.z - z)); };
   function turnToward(a, dt, max = 2.6) {
     const d = wrap(a - yaw), lim = max * dt;
     yaw += clamp(d * ease(dt, 6), -lim, lim);
