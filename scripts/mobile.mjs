@@ -14,8 +14,11 @@
 //   just mobile --load --budget            fails when more was downloaded before the room showed than scripts/budget.json allows
 //   just mobile --url https://room.piabrota.art/   a running site
 //
-// The build is served here as the host serves it (scripts/serve.mjs): a `.br` or `.gz` file that
-// lies beside a file is sent in its place, text is gzipped otherwise, on HTTP/1.1.
+//   just mobile --host today               as nix-os serves the room now: gzip, and no file of public/ kept by the browser
+//   just mobile --load --again             and a second visit: what still reaches the host, with the browser's cache
+//
+// The build is served here as the host serves it (scripts/serve.mjs): by default as the room asks
+// nix-os to (`--host proposed`: Brotli copies, `?v=` addresses kept for good), on HTTP/1.1.
 //
 // In this container Chrome draws in software (SwiftShader), so the times are not a phone's; they
 // compare one build with another, on the same machine. Trust the bytes, the requests and their order.
@@ -36,7 +39,7 @@ function chrome() {
   }
   return undefined;
 }
-const server = arg('--url') ? null : await serve(resolve(arg('--dist') ?? `${root}dist`), { plain: process.argv.includes('--plain') });
+const server = arg('--url') ? null : await serve(resolve(arg('--dist') ?? `${root}dist`), { host: arg('--host') ?? 'proposed' });
 const url = arg('--url') ?? server.url;
 const gpu = process.platform === 'darwin';
 const browser = await chromium.launch({ executablePath: chrome(), args: gpu ? [] : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -63,7 +66,8 @@ async function visit(d) {
   const urls = new Map(), files = [];
   const cdp = await ctx.newCDPSession(page);
   await cdp.send('Network.enable');
-  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+  const again = process.argv.includes('--again'); // a second visit needs the first one's cache
+  await cdp.send('Network.setCacheDisabled', { cacheDisabled: !again });
   if (net) await cdp.send('Network.emulateNetworkConditions', { offline: false, downloadThroughput: nets[net][0], uploadThroughput: nets[net][1], latency: nets[net][2] });
   cdp.on('Network.requestWillBeSent', (e) => urls.set(e.requestId, e.request.url));
   cdp.on('Network.loadingFinished', (e) => { const u = urls.get(e.requestId); if (/^https?:/.test(u ?? '')) files.push([e.encodedDataLength, u]); }); // not the blob: pictures inside a model
@@ -114,8 +118,21 @@ async function visit(d) {
     const paint = performance.getEntriesByType('paint').find((e) => e.name === 'first-contentful-paint')?.startTime ?? null;
     return { w: gl.drawingBufferWidth, h: gl.drawingBufferHeight, ratio: renderer.getPixelRatio(), median: ts[ts.length >> 1], profile: post.profile ?? 'full', files: window.__room.quality.files ?? window.__room.quality.name, paint, textures: renderer.info.memory.textures };
   }, !process.argv.includes('--load'));
+  // a second visit, a moment later: what still reaches the host (a file kept for good never does; one with only an
+  // ETag is asked about again, and answered "not changed" in a few hundred bytes and one round trip)
+  let second = null;
+  if (again) {
+    const asked = new Map(), served = new Set(); let bytes = 0;
+    cdp.on('Network.requestWillBeSent', (e) => { if (/^https?:/.test(e.request.url)) asked.set(e.requestId, e.request.url); });
+    cdp.on('Network.requestServedFromCache', (e) => served.add(e.requestId));
+    cdp.on('Network.loadingFinished', (e) => { if (asked.has(e.requestId) && !served.has(e.requestId)) bytes += e.encodedDataLength; });
+    asked.clear();
+    await page.reload(); await page.waitForSelector('#loading.done');
+    await page.evaluate(() => window.__room.room.ready); await page.waitForTimeout(1500);
+    second = { requests: [...asked.keys()].filter((id) => !served.has(id)).length, bytes };
+  }
   await ctx.close();
-  return { ...r, shown, requests: before.length + 1, shownAt: shownAt / 1000, codeAt: codeAt / 1000, filesAt: filesAt / 1000, drawnAt: drawnAt / 1000, modelsAt: modelsAt / 1000, cpuDrawn, cpuModels, total, totalRequests: files.length, before, all: files };
+  return { ...r, second, shown, requests: before.length + 1, shownAt: shownAt / 1000, codeAt: codeAt / 1000, filesAt: filesAt / 1000, drawnAt: drawnAt / 1000, modelsAt: modelsAt / 1000, cpuDrawn, cpuModels, total, totalRequests: files.length, before, all: files };
 }
 
 for (const [name, d] of Object.entries(devices)) {
@@ -123,8 +140,9 @@ for (const [name, d] of Object.entries(devices)) {
   const all = []; for (let i = 0; i < runs; i++) all.push(await visit(d));
   const r = all[0], of = (k) => all.map((x) => x[k]);
   console.log(`${name.padEnd(6)} ${r.profile.padEnd(5)} ${r.files.padEnd(4)} files${net ? `, on ${net}` : ''}, downloaded ${(median(of('shown')) / 1e6).toFixed(2)} MB in ${median(of('requests'))} requests before the room shows, its code and fonts in at ${median(of('codeAt')).toFixed(1)} s${spread(of('codeAt'))} and its first pictures at ${median(of('filesAt')).toFixed(1)} s${spread(of('filesAt'))}, shown in ${median(of('shownAt')).toFixed(1)} s${spread(of('shownAt'))}, its first frame drawn at ${median(of('drawnAt')).toFixed(1)} s${spread(of('drawnAt'))} after ${median(of('cpuDrawn')).toFixed(1)} s of processor${spread(of('cpuDrawn'))}, every model in at ${median(of('modelsAt')).toFixed(1)} s${spread(of('modelsAt'))} after ${median(of('cpuModels')).toFixed(1)} s of processor${spread(of('cpuModels'))}, ${(median(of('total')) / 1e6).toFixed(2)} MB in ${median(of('totalRequests'))} requests in all, drawn at ${r.w}×${r.h} (ratio ${r.ratio}), ${process.argv.includes('--load') ? 'frames not timed' : `a frame ${median(of('median')).toFixed(0)} ms`}`);
+  if (r.second) console.log(`       a second visit: ${r.second.requests} requests reach the host, ${(r.second.bytes / 1e3).toFixed(0)} kB`);
   if (process.argv.includes('--bytes')) for (const [b, u] of r.before.sort((a, z) => z[0] - a[0]).slice(0, 12)) console.log(`  ${(b / 1e3).toFixed(0).padStart(6)} kB  ${new URL(u).pathname}`);
-  report[name] = { look: r.profile, files: r.files, net: net ?? 'local', bytesBefore: median(of('shown')), requestsBefore: median(of('requests')), code: of('codeAt'), pictures: of('filesAt'), shown: of('shownAt'), drawn: of('drawnAt'), models: of('modelsAt'), cpuDrawn: of('cpuDrawn'), cpuModels: of('cpuModels'), paint: of('paint'), bytes: median(of('total')), requests: median(of('totalRequests')), frame: median(of('median')), before: r.before.map(([b, u]) => [b, new URL(u).pathname]), all: r.all.map(([b, u]) => [b, new URL(u).pathname]) };
+  report[name] = { second: r.second, look: r.profile, files: r.files, net: net ?? 'local', bytesBefore: median(of('shown')), requestsBefore: median(of('requests')), code: of('codeAt'), pictures: of('filesAt'), shown: of('shownAt'), drawn: of('drawnAt'), models: of('modelsAt'), cpuDrawn: of('cpuDrawn'), cpuModels: of('cpuModels'), paint: of('paint'), bytes: median(of('total')), requests: median(of('totalRequests')), frame: median(of('median')), before: r.before.map(([b, u]) => [b, new URL(u).pathname]), all: r.all.map(([b, u]) => [b, new URL(u).pathname]) };
 }
 if (arg('--json')) writeFileSync(arg('--json'), JSON.stringify(report, null, 1));
 // --budget: what was measured, against the limits `just check` counts from the files (scripts/budget.json)
