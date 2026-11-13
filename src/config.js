@@ -775,26 +775,59 @@ export const door = {
   beyond: ['you found', 'the way out.', '', 'it was a flat circle', 'all along.'],
 };
 
-// ── Nash, the black cat: he wanders the room on his own, from the top of the shelf to the
-// monitor, the sill, the chair, the crate and the rug; a click calls him: he stops, looks at
-// you and meows (src/cat.js). `perches` are where he sits: a name, the point he sits on
-// [x, y, z] in metres, the way he faces (radians, 0 is toward the window), and `via`, a perch
-// he leaps from when it is too high to jump to from the floor (the shelf from the desk).
+// ── Nash, the black cat (src/cat.js, his body is src/catbody.js). He has no route: he wanders
+// the floor at random, visits the places he likes, pauses to look, sniff, sit, wash and loaf, and
+// sleeps when he has been up long enough. A click calls him: he stops, or lifts his head from his
+// sleep, looks at you and meows.
+//   his body  `length` from nose to rump and `tail`, in metres; `color` is the coat, `sheen` the
+//             light a short coat gives back at its edge and `rim` how much of it; `eyes` the iris,
+//             `pupil` how round by day and by night (0 a slit, 1 round), `glow` how bright the eyes
+//             are; `shadow` how dark the blot under him is.
+//   `perches` the places he likes: a name, the point [x, y, z] in metres (a high one is set on
+//             the real top under it), the way he faces (radians, 0 is toward the window), `via`,
+//             a perch he leaps from when it is too high for one leap, `like` (how much, 1 if not
+//             said), `rest` (what he does there: 'sit', 'loaf'), `sleep` (how good a bed it is;
+//             none: he does not sleep there) and `sun` (a bed by day only).
+//   `roam`    the open floor he keeps to when he has no map of the room (phones): a box
+//             [x0, z0, x1, z1] with nothing in it, and its height. `home` is where he starts,
+//             `still` where he sleeps for a visitor who asked for reduced motion.
+//   `looks`   the things he looks at, besides you.
+//   `habits`  how often he does each thing, one against the other; `pause` is how long he stays,
+//             in seconds, about; `fickle` every how many seconds of walking he changes his mind.
+//   `restless` above 1 he stays less long everywhere. `sleep`: the seconds he is up (`awake`) and
+//             asleep (`asleep`), each drawn between two, and `again`, how often a click leaves him
+//             asleep after he has looked.
+//   `gait`    metres a second at a walk and at a run, the speed where the walk becomes a trot, the
+//             stride (metres, and metres more per m/s), how hard he pushes and brakes (m/s²), and
+//             `step`, the mean length of a wandering step.
+//   `jump`    what a cat can do: the take-off speed (m/s) and the rise (m) he never passes. A
+//             perch that asks for more is not his.
 export const cat = {
-  name: 'Nash', hint: 'a black cat. he goes where he wants', color: '#0c0c0f', eyes: '#d9e84a',
+  name: 'Nash', hint: 'a black cat. he goes where he wants',
+  length: 0.46, tail: 0.28, color: '#0c0c0f', sheen: '#8d94a6', rim: 0.6, shadow: 0.5,
+  eyes: '#d9e84a', pupil: { day: 0.12, night: 0.8 }, glow: { day: 0.55, night: 0.8 },
+  home: 'rug', still: 'rug',
   perches: [
-    { id: 'rug', at: [0.2, 0.013, 0.3], face: 2.6 },
-    { id: 'rug2', at: [1.0, 0.013, 0.2], face: -2.2 },
-    { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8 },
-    { id: 'sofa', at: [-2.5, 0.42, 0.15], face: 1.6 },
-    { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8 },
-    { id: 'deskLeft', at: [-0.82, 0.805, -1.17], face: 2.4 },
-    { id: 'monitor', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk' },
-    { id: 'sill', at: [0.72, 1.015, -2.03], face: 2.9, via: 'desk' },
-    { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2 },
-    { id: 'shelf', at: [-2.4, 1.9, -1.8], face: 3.14, via: 'deskLeft' },
+    { id: 'rug', at: [0.2, 0.013, 0.3], face: 2.6, like: 2, rest: ['sit', 'loaf'], sleep: 1 },
+    { id: 'rug2', at: [1.0, 0.013, 0.2], face: -2.2, rest: ['sit', 'loaf'] },
+    { id: 'sun', at: [-0.5, 0.013, -0.35], face: 0.6, like: 0.6, rest: ['loaf', 'sit'], sleep: 1.5, sun: true },
+    { id: 'floor', at: [-1.2, 0, 1.4], face: 0.8, rest: ['sit'] },
+    { id: 'sofa', at: [-2.5, 0.42, 0.15], face: 1.6, like: 2, rest: ['loaf', 'sit'], sleep: 4 },
+    { id: 'armchair', at: [-2.36, 0.42, 2.98], face: -1.2, like: 1.5, rest: ['loaf', 'sit'], sleep: 3 },
+    { id: 'desk', at: [1.12, 0.805, -1.22], face: 2.8, rest: ['sit', 'loaf'] },
+    { id: 'deskLeft', at: [-0.82, 0.805, -1.17], face: 2.4, rest: ['sit'] },
+    { id: 'monitor', at: [0.0, 1.55, -1.56], face: 3.14, via: 'desk', like: 0.7, rest: ['loaf', 'sit'] },
+    { id: 'sill', at: [0.72, 1.015, -2.03], face: 2.9, via: 'desk', like: 1.5, rest: ['sit', 'loaf'] },
+    { id: 'crate', at: [-2.2, 0.28, -1.15], face: 2.2, rest: ['sit', 'loaf'] },
+    { id: 'shelf', at: [-2.4, 1.9, -1.8], face: 3.14, via: 'deskLeft', like: 0.5, rest: ['loaf', 'sit'] },
   ],
-
+  roam: { box: [-0.9, -0.55, 1.2, 0.55], y: 0.012 },
+  looks: [{ id: 'fish', at: [3.08, 1.0, -0.45] }, { id: 'window', at: [0.2, 1.9, -2.2] }, { id: 'tv', at: [0.0, 1.0, -1.5] }],
+  habits: { wander: 5, dash: 0.3, perch: 1.6, look: 1.3, sniff: 1, sit: 1.3, groom: 1, stretch: 0.4, loaf: 0.8, pause: 9, fickle: 16 },
+  restless: 1,
+  sleep: { awake: [200, 420], asleep: [90, 240], again: 0.5 },
+  gait: { walk: 0.36, run: 1.05, trot: 0.62, stride: [0.25, 0.3], push: 0.9, brake: 1.1, step: 0.9 },
+  jump: { speed: 5.4, rise: 1.5 },
 };
 
 // ── the screen guard (src/guard.js): the page goes black on PrintScreen and while the window is

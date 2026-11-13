@@ -165,7 +165,7 @@ export function buildNav(root, { cell = 0.06, layer = 0.05, top = 2.6, lo = 0.03
     }
     return (px, pz) => { const i = ix(px), k = iz(pz); return i >= 0 && k >= 0 && i < nx && k < nz && seen[k * nx + i] === 1; };
   }
-  return { path, clear, region, free: (x, z) => free(ix(x), iz(z)), nearest: (x, z) => centre(...nearest(x, z)), groundAt, solidAt, surface, cell };
+  return { box: [x0, z0, x0 + nx * cell, z0 + nz * cell], path, clear, region, free: (x, z) => free(ix(x), iz(z)), nearest: (x, z) => centre(...nearest(x, z)), groundAt, solidAt, surface, cell };
 }
 
 // A leap from a to b: a parabola, its top `lift` above the higher end. Does it clear the room?
