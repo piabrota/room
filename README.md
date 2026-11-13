@@ -75,6 +75,7 @@ Times are UTC. "Took" runs from the prompt to the pull request being ready for r
 | 38 | 12 Nov 20:35 | [#48](https://github.com/piabrota/room/pull/48) a fuller, older room, by Fable 5.2 with three subagents: an armchair, a low table, a card cabinet with a hi-fi, a standing lamp, a fan, a coat rack, a window air conditioner and the small things someone leaves about; damp, cracks, yellowed paint and a worn floor (`src/lived.js`); the VHS tapes with real labels and the band of their GitHub account, a hover that slides a tape out, the recorder's six keys and its display, and an index tape for each of h0ffmann, marola-dev and piabrota (`src/tapes/index.js`); the fax named by its address; the door's email subscribes to the newsletter on Substack, said on the form, and Substack's page opens with the address filled in for the visitor to confirm; a universe simulator, its microphone and a chart of worlds on the wall, an homage to The Midnight Gospel with nothing of the series copied (`src/simulator.js`); and thirteen books of the owner's Goodreads on the bookcase | 2 h 20 min |
 | 39 | 12 Nov 23:53 | [#49](https://github.com/piabrota/room/pull/49) what #48 hid, and a new Nash, by Fable 5.2 with a subagent: the universe simulator and its chart stood behind the overview's camera and now stand against the left wall, in the overview and in the fabric shot; the Goodreads books sat under the shelf shot's frame and now stand on the top shelf; Nash has a body built in code (one skinned mesh, 33 bones, fur with a sheen, eyes that are slits by day and round by night, `src/catbody.js`), walks on planted feet, wanders at random instead of touring his perches, leaps on parabolas under gravity that a cat can do (at most 1.5 m up and 5.4 m/s, so the top of the bookcase is no longer his), and sleeps curled up; `just cat` watches him | 3 h |
 | 40 | 13 Nov 00:28 | [#51](https://github.com/piabrota/room/pull/51) the room's load, by Fable 5.2 with a subagent, with no picture or model re-encoded: the page preloads its code, its fonts and the first frame's pictures, small colours first (`src/first.js`); every file of `public/` is asked for with its hash, so the host can keep it for good and a second visit makes 2 requests where it made 24 to 49 (`src/files.js`); Brotli and gzip copies made by the build; the shaders compiled once, behind the cover (95 programs to 58); the furniture in order of sight; the chart's stroke in a worker; a load budget in `just check` (`scripts/budget.mjs`); stills the same before and after | 3 h |
+| 41 | 12 Nov 16:32 | [#47](https://github.com/piabrota/room/pull/47) LOFI hides the room's overlays too: on the ▲ grid map (grid.piabrota.art, or the grid shot), the LOFI button set `?lofi` but the map stayed over the page, since the LOFI styles hid the canvas and the buttons and not the map, the lock or the live window | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -478,6 +479,16 @@ user> 'Site looks perfect, after you optmize, please do a huge step for optimizi
 ```
 
 "optimization kills" was read as optimization skills: the techniques come from web.dev's "Preload critical assets", addyosmani/web-quality-skills, emalorenzo/three-agent-skills and Don McCurdy's "Web texture formats", read as ideas, nothing copied (`.claude/skills/room-load/SKILL.md`).
+
+**41.**
+
+```text
+user> 'https://grid.piabrota.art/?lofi broken in room'
+user> 'https://github.com/piabrota/room/pull/47 fix this'
+```
+
+"broken" was read as what a visitor sees: on the map, LOFI is lit and the address says `?lofi`,
+but the map still covers the page.
 
 The address of the reference room is left out of the prompts: this repository credits Felix
 Rieseberg by name and links none of his pages ([`AGENTS.md`](AGENTS.md), invariant 2).

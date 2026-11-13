@@ -75,6 +75,7 @@ Horários em UTC. "Levou" vai do prompt até o pull request ficar pronto para re
 | 38 | 12 nov 20:35 | [#48](https://github.com/piabrota/room/pull/48) um quarto mais cheio e mais velho, feito pelo Fable 5.2 com três subagentes: uma poltrona, uma mesa baixa, um gaveteiro com um aparelho de som, um abajur de pé, um ventilador, um cabideiro, um ar-condicionado de janela e as coisas pequenas que alguém deixa pela casa; umidade, rachaduras, tinta amarelada e um piso gasto (`src/lived.js`); as fitas VHS com etiquetas no tamanho real e a faixa da conta do GitHub de cada uma, um hover que puxa a fita da pilha, as seis teclas do videocassete e o visor dele, e uma fita de índice para cada conta, h0ffmann, marola-dev e piabrota (`src/tapes/index.js`); o fax com o endereço como nome; o email da porta assina a newsletter no Substack, dito no formulário, e a página do Substack abre com o endereço preenchido para o visitante confirmar; um simulador de universos, o microfone dele e um mapa de mundos na parede, uma homenagem a The Midnight Gospel sem copiar nada da série (`src/simulator.js`); e treze livros do Goodreads do dono na estante | 2 h 20 min |
 | 39 | 12 nov 23:53 | [#49](https://github.com/piabrota/room/pull/49) o que o #48 escondeu, e um Nash novo, feito pelo Fable 5.2 com um subagente: o simulador de universos e o mapa dele ficavam atrás da câmera da visão geral e agora ficam na parede esquerda, na visão geral e na tomada dos quadros; os livros do Goodreads ficavam abaixo do quadro da tomada da estante e agora ficam na prateleira de cima; o Nash tem um corpo feito em código (uma malha com esqueleto, 33 ossos, pelo com brilho, olhos em fenda de dia e redondos à noite, `src/catbody.js`), anda com as patas firmes no chão, vagueia ao acaso em vez de fazer a ronda dos poleiros, salta em parábolas sob a gravidade que um gato consegue (no máximo 1,5 m de altura e 5,4 m/s, então o alto da estante não é mais dele) e dorme enrolado; `just cat` observa o gato | 3 h |
 | 40 | 13 nov 00:28 | [#51](https://github.com/piabrota/room/pull/51) a carga do quarto, feita pelo Fable 5.2 com um subagente, sem recodificar nenhuma imagem ou modelo: a página pré-carrega o código, as fontes e as imagens do primeiro quadro, as cores pequenas primeiro (`src/first.js`); todo arquivo de `public/` é pedido com o hash dele, então o servidor pode guardá-lo para sempre e uma segunda visita faz 2 pedidos onde fazia de 24 a 49 (`src/files.js`); cópias Brotli e gzip feitas pelo build; os shaders compilados uma vez, atrás da capa (de 95 programas para 58); os móveis na ordem em que aparecem; o traço do mapa em um worker; um orçamento de carga no `just check` (`scripts/budget.mjs`); as imagens iguais antes e depois | 3 h |
+| 41 | 12 nov 16:32 | [#47](https://github.com/piabrota/room/pull/47) o LOFI esconde também as camadas do quarto: no mapa do ▲ grid (grid.piabrota.art, ou o plano do grid), o botão LOFI punha `?lofi` mas o mapa ficava sobre a página, porque os estilos do LOFI escondiam o canvas e os botões e não o mapa, a fechadura ou a janela ao vivo | 30 min |
 
 **1.** [`PROMPT_1.txt`](prompts/PROMPT_1.txt)
 
@@ -478,6 +479,16 @@ user> 'Site looks perfect, after you optmize, please do a huge step for optimizi
 ```
 
 "optimization kills" foi lido como optimization skills: as técnicas vêm de "Preload critical assets" do web.dev, addyosmani/web-quality-skills, emalorenzo/three-agent-skills e "Web texture formats" de Don McCurdy, lidas como ideias, nada copiado (`.claude/skills/room-load/SKILL.md`).
+
+**41.**
+
+```text
+user> 'https://grid.piabrota.art/?lofi broken in room'
+user> 'https://github.com/piabrota/room/pull/47 fix this'
+```
+
+"broken" foi lido como o que um visitante vê: no mapa, o LOFI acende e o endereço diz `?lofi`,
+mas o mapa continua cobrindo a página.
 
 O endereço do quarto de referência foi tirado dos prompts: este repositório credita Felix
 Rieseberg pelo nome e não linka nenhuma página dele ([`AGENTS.md`](AGENTS.md), invariante 2).

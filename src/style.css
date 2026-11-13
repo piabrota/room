@@ -68,7 +68,8 @@ button.active kbd { opacity: .85; }
 #view button:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
 #view button.on { background: var(--accent); border-color: var(--accent); }
 html:has(body.lofi), body.lofi { height: auto; overflow: auto; } /* the document scrolls, as a page does */
-body.lofi #scene, body.lofi #hud, body.lofi #enter, body.lofi #tooltip, body.lofi #loading { display: none; }
+body.lofi #scene, body.lofi #hud, body.lofi #enter, body.lofi #tooltip, body.lofi #loading,
+body.lofi #grid, body.lofi #lock, body.lofi #live { display: none; } /* the room's overlays stay with the room: the ▲ grid map no longer covers the page */
 body.lofi #fallback { display: block; max-width: 44rem; margin: 12vh auto; padding: 0 16px; }
 body.lofi #fallback h1 { margin: 0; font: 400 34px/1.1 var(--title); text-transform: lowercase; }
 body.lofi #fallback p { color: var(--dim); }
