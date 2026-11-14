@@ -47,7 +47,7 @@
   70
  ],
  "sst": {
-  "date": "2026-11-11",
+  "date": "2026-11-12",
   "scale": 0.01,
   "missing": 65535,
   "dataset": "METOFFICE-GLO-SST-L4-NRT-OBS-SST-V2",
@@ -58,6 +58,6 @@
   "land": "Natural Earth 1:50m land (public domain)",
   "wind": "NOAA GFS 0.25°, 10 m wind, via Open-Meteo (CC BY 4.0)",
   "sea": "Hs = 0.21 U²/g (Pierson–Moskowitz), not WAVEWATCH III",
-  "sst": "OSTIA 2026-11-11, Copernicus Marine (doi:10.48670/moi-00165); these data were provided by GHRSST and Met Office"
+  "sst": "OSTIA 2026-11-12, Copernicus Marine (doi:10.48670/moi-00165); these data were provided by GHRSST and Met Office"
  }
 }
